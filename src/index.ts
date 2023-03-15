@@ -104,7 +104,7 @@ const createOrdinal = async (utxo: Utxo) => {
   console.log({ tx: tx.to_hex() });
 };
 
-const sendOrdinal = async (utxo: Utxo, ordinal: Utxo) => {
+const sendOrdinal = async (paymentUtxo: Utxo, ordinal: Utxo) => {
   let tx = new Transaction(1, 0);
 
   let ordIn = new TxIn(
@@ -116,8 +116,8 @@ const sendOrdinal = async (utxo: Utxo, ordinal: Utxo) => {
 
   // Inputs
   let utxoIn = new TxIn(
-    Buffer.from(utxo.txid, "hex"),
-    utxo.vout,
+    Buffer.from(paymentUtxo.txid, "hex"),
+    paymentUtxo.vout,
     Script.from_asm_string("")
   );
 
@@ -159,8 +159,8 @@ const sendOrdinal = async (utxo: Utxo, ordinal: Utxo) => {
     paymentPk,
     SigHash.ALL | SigHash.FORKID,
     1,
-    Script.from_asm_string(utxo.script),
-    BigInt(utxo.satoshis)
+    Script.from_asm_string(paymentUtxo.script),
+    BigInt(paymentUtxo.satoshis)
   );
 
   utxoIn.set_unlocking_script(
