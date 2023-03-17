@@ -7,7 +7,6 @@
   "scripts": {
     "build": "tsc",
     "clean": "rimraf .build",
-    "start": "yarn build && node --enable-source-maps .build/index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepare": "SET NODE_OPTIONS=--openssl-legacy-provider&&cd node_modules/@ts-bitcoin/core && npm run build:node"
   },
