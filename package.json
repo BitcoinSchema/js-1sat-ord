@@ -12,8 +12,8 @@
     "prepare": "SET NODE_OPTIONS=--openssl-legacy-provider&&cd node_modules/@ts-bitcoin/core && npm run build:node"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "Luke Rohenaz",
+  "license": "MIT",
   "dependencies": {
     "bmapjs": "^0.4.0-beta.21",
     "bsv-wasm": "^2.0.0",
