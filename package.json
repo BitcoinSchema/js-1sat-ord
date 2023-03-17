@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
+    "clean": "rimraf .build",
     "start": "yarn build && node --enable-source-maps .build/index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepare": "SET NODE_OPTIONS=--openssl-legacy-provider&&cd node_modules/@ts-bitcoin/core && npm run build:node"
@@ -14,13 +15,13 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@ts-bitcoin/core": "github:rohenaz/ts-bitcoin",
     "bmapjs": "^0.4.0-beta.21",
     "bsv-wasm": "^2.0.0",
     "buffer": "^6.0.3",
     "dotenv": "^16.0.3"
   },
   "devDependencies": {
+    "rimraf": "^4.4.0",
     "typescript": "^4.9.5"
   }
 }
