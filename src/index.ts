@@ -68,7 +68,7 @@ const createOrdinal = async (
     contentType: string;
     geohash?: string;
   }
-) => {
+): Promise<Transaction> => {
   let tx = new Transaction(1, 0);
 
   // Inputs
@@ -128,7 +128,7 @@ const sendOrdinal = async (
     contentType?: string;
     geohash?: string;
   }
-) => {
+): Promise<Transaction> => {
   let tx = new Transaction(1, 0);
 
   let ordIn = new TxIn(
@@ -201,7 +201,7 @@ const sendOrdinal = async (
 
   tx.set_input(1, utxoIn);
 
-  console.log({ tx: tx.to_hex() });
+  return tx;
 };
 
 export { createOrdinal, sendOrdinal };

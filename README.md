@@ -60,13 +60,13 @@ const ordPk = PrivateKey.from_wif(ordinalWif2);
 
 ## Create an inscription
 
-
 The `createOrdinal` function takes a utxo and inscription data.
 
 ```ts
 // inscription
 const inscription =  { data: fireShard,  contentType: "model/gltf-binary"}
 
+// returns Promise<Transaction>
 const tx = createOrdinal(utxo, ordinalDestinationAddress, paymentPk, changeAddress, inscription);
 ```
 
