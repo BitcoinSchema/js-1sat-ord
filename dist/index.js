@@ -4,7 +4,7 @@ import * as dotenv from "dotenv";
 import { toHex } from "./utils/strings.js";
 dotenv.config();
 const MAP_PREFIX = "1PuQa7K62MiKCtssSLKy1kh56WWU7MtUR5";
-const buildInscription = (destinationAddress, b64File, mediaType, geohash, appName) => {
+const buildInscription = (destinationAddress, b64File, mediaType, metaData) => {
     const ordHex = toHex("ord");
     const fsBuffer = Buffer.from(b64File, "base64");
     const fireShardHex = fsBuffer.toString("hex");
@@ -13,25 +13,26 @@ const buildInscription = (destinationAddress, b64File, mediaType, geohash, appNa
     let inscriptionAsm = `${destinationAddress
         .get_locking_script()
         .to_asm_string()} OP_0 OP_IF ${ordHex} OP_1 ${fireShardMediaType} OP_0 ${fireShardHex} OP_ENDIF`;
-    if (geohash && appName) {
+    // MAP.app and MAP.type keys are required
+    if (metaData && metaData?.app && metaData?.type) {
         const mapPrefixHex = toHex(MAP_PREFIX);
         const mapCmdValue = toHex("SET");
-        const mapAppField = toHex("app");
-        const mapAppValue = toHex("ord-demo");
-        const mapTypeField = toHex("type");
-        const mapTypeValue = toHex("post");
-        const mapGeohashKey = toHex("geohash");
-        inscriptionAsm = `${inscriptionAsm} OP_RETURN ${mapPrefixHex} ${mapCmdValue} ${mapAppField} ${mapAppValue} ${mapTypeField} ${mapTypeValue} ${toHex("context")} ${mapGeohashKey} ${mapGeohashKey} ${toHex(geohash)}`;
+        inscriptionAsm = `${inscriptionAsm} OP_RETURN ${mapPrefixHex} ${mapCmdValue}`;
+        for (const [key, value] of Object.entries(metaData)) {
+            if (key !== "cmd") {
+                inscriptionAsm = `${inscriptionAsm} ${key} ${value}`;
+            }
+        }
     }
     return Script.from_asm_string(inscriptionAsm);
 };
-const createOrdinal = async (utxo, destinationAddress, paymentPk, changeAddress, inscription) => {
+const createOrdinal = async (utxo, destinationAddress, paymentPk, changeAddress, inscription, metaData) => {
     let tx = new Transaction(1, 0);
     // Inputs
     let utxoIn = new TxIn(Buffer.from(utxo.txid, "hex"), utxo.vout, Script.from_asm_string(""));
     tx.add_input(utxoIn);
     // Outputs
-    const inscriptionScript = buildInscription(P2PKHAddress.from_string(destinationAddress), inscription.dataB64, inscription.contentType, inscription.geohash);
+    const inscriptionScript = buildInscription(P2PKHAddress.from_string(destinationAddress), inscription.dataB64, inscription.contentType, metaData);
     let satOut = new TxOut(BigInt(1), inscriptionScript);
     tx.add_output(satOut);
     // add change
@@ -45,7 +46,7 @@ const createOrdinal = async (utxo, destinationAddress, paymentPk, changeAddress,
     tx.set_input(0, utxoIn);
     return tx;
 };
-const sendOrdinal = async (paymentUtxo, ordinal, paymentPk, changeAddress, ordPk, ordDestinationAddress, reinscription) => {
+const sendOrdinal = async (paymentUtxo, ordinal, paymentPk, changeAddress, ordPk, ordDestinationAddress, reinscription, metaData) => {
     let tx = new Transaction(1, 0);
     let ordIn = new TxIn(Buffer.from(ordinal.txid, "hex"), ordinal.vout, Script.from_asm_string(""));
     tx.add_input(ordIn);
@@ -54,8 +55,8 @@ const sendOrdinal = async (paymentUtxo, ordinal, paymentPk, changeAddress, ordPk
     tx.add_input(utxoIn);
     let s;
     const destinationAddress = P2PKHAddress.from_string(ordDestinationAddress);
-    if (reinscription.file && reinscription.contentType) {
-        s = buildInscription(destinationAddress, reinscription.file, reinscription.contentType, reinscription.geohash);
+    if (reinscription?.file && reinscription?.contentType) {
+        s = buildInscription(destinationAddress, reinscription.file, reinscription.contentType, metaData);
     }
     else {
         s = destinationAddress.get_locking_script();
