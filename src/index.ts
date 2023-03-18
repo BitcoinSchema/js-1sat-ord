@@ -20,9 +20,6 @@ type Utxo = {
   script: string;
 };
 
-// The key of the wallet to hold the 1sat ordinals - alice
-const ordinalWif = process.env.ORDINAL_WIF as string;
-
 const MAP_PREFIX = "1PuQa7K62MiKCtssSLKy1kh56WWU7MtUR5";
 
 const buildInscription = (
@@ -204,4 +201,4 @@ const sendOrdinal = async (
   return tx;
 };
 
-export { createOrdinal, sendOrdinal };
+export { buildInscription, createOrdinal, sendOrdinal };
