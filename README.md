@@ -50,7 +50,7 @@ Be sure to use different keys for ordinals and normal payments. If wallets don't
 
 ```ts
 const paymentPk = PrivateKey.from_wif(paymentWif);
-const ordPk = PrivateKey.from_wif(ordinalWif2);
+const ordinalDestinationAddress  = "1N8GgJVvwkiQjjN9Fws9t5ax1PLeHrn2bh";
 ```
 
 ## Create an inscription
