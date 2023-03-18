@@ -1,3 +1,4 @@
+import { MAP } from "bmapjs/types/protocols/map";
 import {
   P2PKHAddress,
   PrivateKey,
@@ -26,8 +27,7 @@ const buildInscription = (
   destinationAddress: P2PKHAddress,
   b64File: string,
   mediaType: string,
-  geohash?: string,
-  appName?: string
+  metaData?: MAP
 ): Script => {
   const ordHex = toHex("ord");
   const fsBuffer = Buffer.from(b64File, "base64");
@@ -39,17 +39,17 @@ const buildInscription = (
     .get_locking_script()
     .to_asm_string()} OP_0 OP_IF ${ordHex} OP_1 ${fireShardMediaType} OP_0 ${fireShardHex} OP_ENDIF`;
 
-  if (geohash && appName) {
+  // MAP.app and MAP.type keys are required
+  if (metaData && metaData?.app && metaData?.type) {
     const mapPrefixHex = toHex(MAP_PREFIX);
     const mapCmdValue = toHex("SET");
-    const mapAppField = toHex("app");
-    const mapAppValue = toHex("ord-demo");
-    const mapTypeField = toHex("type");
-    const mapTypeValue = toHex("post");
-    const mapGeohashKey = toHex("geohash");
-    inscriptionAsm = `${inscriptionAsm} OP_RETURN ${mapPrefixHex} ${mapCmdValue} ${mapAppField} ${mapAppValue} ${mapTypeField} ${mapTypeValue} ${toHex(
-      "context"
-    )} ${mapGeohashKey} ${mapGeohashKey} ${toHex(geohash)}`;
+    inscriptionAsm = `${inscriptionAsm} OP_RETURN ${mapPrefixHex} ${mapCmdValue}`;
+
+    for (const [key, value] of Object.entries(metaData)) {
+      if (key !== "cmd") {
+        inscriptionAsm = `${inscriptionAsm} ${key} ${value}`;
+      }
+    }
   }
 
   return Script.from_asm_string(inscriptionAsm);
@@ -63,8 +63,8 @@ const createOrdinal = async (
   inscription: {
     dataB64: string;
     contentType: string;
-    geohash?: string;
-  }
+  },
+  metaData?: MAP
 ): Promise<Transaction> => {
   let tx = new Transaction(1, 0);
 
@@ -82,7 +82,7 @@ const createOrdinal = async (
     P2PKHAddress.from_string(destinationAddress),
     inscription.dataB64,
     inscription.contentType,
-    inscription.geohash
+    metaData
   );
 
   let satOut = new TxOut(BigInt(1), inscriptionScript);
@@ -120,11 +120,11 @@ const sendOrdinal = async (
   changeAddress: string,
   ordPk: PrivateKey,
   ordDestinationAddress: string,
-  reinscription: {
-    file?: string;
-    contentType?: string;
-    geohash?: string;
-  }
+  reinscription?: {
+    file: string;
+    contentType: string;
+  },
+  metaData?: MAP
 ): Promise<Transaction> => {
   let tx = new Transaction(1, 0);
 
@@ -146,12 +146,12 @@ const sendOrdinal = async (
 
   let s: Script;
   const destinationAddress = P2PKHAddress.from_string(ordDestinationAddress);
-  if (reinscription.file && reinscription.contentType) {
+  if (reinscription?.file && reinscription?.contentType) {
     s = buildInscription(
       destinationAddress,
       reinscription.file,
       reinscription.contentType,
-      reinscription.geohash
+      metaData
     );
   } else {
     s = destinationAddress.get_locking_script();
