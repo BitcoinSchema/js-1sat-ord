@@ -60,6 +60,7 @@ const createOrdinal = async (
   destinationAddress: string,
   paymentPk: PrivateKey,
   changeAddress: string,
+  satPerByteFee: number,
   inscription: {
     dataB64: string;
     contentType: string;
@@ -89,7 +90,8 @@ const createOrdinal = async (
   tx.add_output(satOut);
 
   // add change
-  const change = utxo.satoshis - 1 - Math.ceil(satOut.to_bytes().length / 3);
+  const fee = Math.ceil(satPerByteFee * tx.get_size());
+  const change = utxo.satoshis - 1 - fee;
   const changeaddr = P2PKHAddress.from_string(changeAddress);
   const changeScript = changeaddr.get_locking_script();
   let changeOut = new TxOut(BigInt(change), changeScript);
@@ -118,6 +120,7 @@ const sendOrdinal = async (
   ordinal: Utxo,
   paymentPk: PrivateKey,
   changeAddress: string,
+  satPerByteFee: number,
   ordPk: PrivateKey,
   ordDestinationAddress: string,
   reinscription?: {
@@ -160,7 +163,8 @@ const sendOrdinal = async (
   tx.add_output(satOut);
 
   // add change
-  const change = paymentUtxo.satoshis - Math.ceil(tx.get_size() / 3);
+  const fee = Math.ceil(satPerByteFee * tx.get_size());
+  const change = paymentUtxo.satoshis - fee;
   const changeaddr = P2PKHAddress.from_string(changeAddress);
   const changeScript = changeaddr.get_locking_script();
   let changeOut = new TxOut(BigInt(change), changeScript);

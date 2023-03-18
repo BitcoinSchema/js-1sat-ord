@@ -26,7 +26,7 @@ const buildInscription = (destinationAddress, b64File, mediaType, metaData) => {
     }
     return Script.from_asm_string(inscriptionAsm);
 };
-const createOrdinal = async (utxo, destinationAddress, paymentPk, changeAddress, inscription, metaData) => {
+const createOrdinal = async (utxo, destinationAddress, paymentPk, changeAddress, satPerByteFee, inscription, metaData) => {
     let tx = new Transaction(1, 0);
     // Inputs
     let utxoIn = new TxIn(Buffer.from(utxo.txid, "hex"), utxo.vout, Script.from_asm_string(""));
@@ -36,7 +36,8 @@ const createOrdinal = async (utxo, destinationAddress, paymentPk, changeAddress,
     let satOut = new TxOut(BigInt(1), inscriptionScript);
     tx.add_output(satOut);
     // add change
-    const change = utxo.satoshis - 1 - Math.ceil(satOut.to_bytes().length / 3);
+    const fee = Math.ceil(satPerByteFee * tx.get_size());
+    const change = utxo.satoshis - 1 - fee;
     const changeaddr = P2PKHAddress.from_string(changeAddress);
     const changeScript = changeaddr.get_locking_script();
     let changeOut = new TxOut(BigInt(change), changeScript);
@@ -46,7 +47,7 @@ const createOrdinal = async (utxo, destinationAddress, paymentPk, changeAddress,
     tx.set_input(0, utxoIn);
     return tx;
 };
-const sendOrdinal = async (paymentUtxo, ordinal, paymentPk, changeAddress, ordPk, ordDestinationAddress, reinscription, metaData) => {
+const sendOrdinal = async (paymentUtxo, ordinal, paymentPk, changeAddress, satPerByteFee, ordPk, ordDestinationAddress, reinscription, metaData) => {
     let tx = new Transaction(1, 0);
     let ordIn = new TxIn(Buffer.from(ordinal.txid, "hex"), ordinal.vout, Script.from_asm_string(""));
     tx.add_input(ordIn);
@@ -64,7 +65,8 @@ const sendOrdinal = async (paymentUtxo, ordinal, paymentPk, changeAddress, ordPk
     let satOut = new TxOut(BigInt(1), s);
     tx.add_output(satOut);
     // add change
-    const change = paymentUtxo.satoshis - Math.ceil(tx.get_size() / 3);
+    const fee = Math.ceil(satPerByteFee * tx.get_size());
+    const change = paymentUtxo.satoshis - fee;
     const changeaddr = P2PKHAddress.from_string(changeAddress);
     const changeScript = changeaddr.get_locking_script();
     let changeOut = new TxOut(BigInt(change), changeScript);
