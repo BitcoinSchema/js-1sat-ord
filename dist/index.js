@@ -57,8 +57,8 @@ const sendOrdinal = async (paymentUtxo, ordinal, paymentPk, changeAddress, satPe
     tx.add_input(utxoIn);
     let s;
     const destinationAddress = P2PKHAddress.from_string(ordDestinationAddress);
-    if (reinscription?.file && reinscription?.contentType) {
-        s = buildInscription(destinationAddress, reinscription.file, reinscription.contentType, metaData);
+    if (reinscription?.dataB64 && reinscription?.contentType) {
+        s = buildInscription(destinationAddress, reinscription.dataB64, reinscription.contentType, metaData);
     }
     else {
         s = destinationAddress.get_locking_script();

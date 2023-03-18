@@ -6,13 +6,11 @@ type Utxo = {
     vout: number;
     script: string;
 };
-declare const buildInscription: (destinationAddress: P2PKHAddress, b64File: string, mediaType: string, metaData?: MAP) => Script;
-declare const createOrdinal: (utxo: Utxo, destinationAddress: string, paymentPk: PrivateKey, changeAddress: string, satPerByteFee: number, inscription: {
+type Inscription = {
     dataB64: string;
     contentType: string;
-}, metaData?: MAP) => Promise<Transaction>;
-declare const sendOrdinal: (paymentUtxo: Utxo, ordinal: Utxo, paymentPk: PrivateKey, changeAddress: string, satPerByteFee: number, ordPk: PrivateKey, ordDestinationAddress: string, reinscription?: {
-    file: string;
-    contentType: string;
-}, metaData?: MAP) => Promise<Transaction>;
+};
+declare const buildInscription: (destinationAddress: P2PKHAddress, b64File: string, mediaType: string, metaData?: MAP) => Script;
+declare const createOrdinal: (utxo: Utxo, destinationAddress: string, paymentPk: PrivateKey, changeAddress: string, satPerByteFee: number, inscription: Inscription, metaData?: MAP) => Promise<Transaction>;
+declare const sendOrdinal: (paymentUtxo: Utxo, ordinal: Utxo, paymentPk: PrivateKey, changeAddress: string, satPerByteFee: number, ordPk: PrivateKey, ordDestinationAddress: string, reinscription?: Inscription, metaData?: MAP) => Promise<Transaction>;
 export { buildInscription, createOrdinal, sendOrdinal };
