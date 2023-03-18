@@ -62,7 +62,7 @@ The `createOrdinal` function takes a utxo and inscription data.
 const inscription =  { data: fireShard,  contentType: "model/gltf-binary"}
 
 // returns Promise<Transaction>
-const tx = createOrdinal(utxo, ordinalDestinationAddress, paymentPk, changeAddress, inscription);
+const tx = createOrdinal(utxo, ordinalDestinationAddress, paymentPk, changeAddress, satPerByteFee, inscription);
 ```
 
 ## Transfer

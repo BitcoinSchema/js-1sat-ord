@@ -90,10 +90,13 @@ const createOrdinal = async (
   tx.add_output(satOut);
 
   // add change
-  const fee = Math.ceil(satPerByteFee * tx.get_size());
-  const change = utxo.satoshis - 1 - fee;
   const changeaddr = P2PKHAddress.from_string(changeAddress);
   const changeScript = changeaddr.get_locking_script();
+  let emptyOut = new TxOut(BigInt(1), changeScript);
+  const fee = Math.ceil(
+    satPerByteFee * (tx.get_size() + emptyOut.to_bytes().byteLength)
+  );
+  const change = utxo.satoshis - 1 - fee;
   let changeOut = new TxOut(BigInt(change), changeScript);
   tx.add_output(changeOut);
   const sig = tx.sign(
@@ -163,11 +166,15 @@ const sendOrdinal = async (
   tx.add_output(satOut);
 
   // add change
-  const fee = Math.ceil(satPerByteFee * tx.get_size());
-  const change = paymentUtxo.satoshis - fee;
   const changeaddr = P2PKHAddress.from_string(changeAddress);
   const changeScript = changeaddr.get_locking_script();
+  let emptyOut = new TxOut(BigInt(1), changeScript);
+  const fee = Math.ceil(
+    satPerByteFee * (tx.get_size() + emptyOut.to_bytes().byteLength)
+  );
+  const change = paymentUtxo.satoshis - fee;
   let changeOut = new TxOut(BigInt(change), changeScript);
+
   tx.add_output(changeOut);
 
   // sign ordinal
