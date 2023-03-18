@@ -21,6 +21,11 @@ type Utxo = {
   script: string;
 };
 
+type Inscription = {
+  dataB64: string;
+  contentType: string;
+};
+
 const MAP_PREFIX = "1PuQa7K62MiKCtssSLKy1kh56WWU7MtUR5";
 
 const buildInscription = (
@@ -61,10 +66,7 @@ const createOrdinal = async (
   paymentPk: PrivateKey,
   changeAddress: string,
   satPerByteFee: number,
-  inscription: {
-    dataB64: string;
-    contentType: string;
-  },
+  inscription: Inscription,
   metaData?: MAP
 ): Promise<Transaction> => {
   let tx = new Transaction(1, 0);
@@ -126,10 +128,7 @@ const sendOrdinal = async (
   satPerByteFee: number,
   ordPk: PrivateKey,
   ordDestinationAddress: string,
-  reinscription?: {
-    file: string;
-    contentType: string;
-  },
+  reinscription?: Inscription,
   metaData?: MAP
 ): Promise<Transaction> => {
   let tx = new Transaction(1, 0);
@@ -152,10 +151,10 @@ const sendOrdinal = async (
 
   let s: Script;
   const destinationAddress = P2PKHAddress.from_string(ordDestinationAddress);
-  if (reinscription?.file && reinscription?.contentType) {
+  if (reinscription?.dataB64 && reinscription?.contentType) {
     s = buildInscription(
       destinationAddress,
-      reinscription.file,
+      reinscription.dataB64,
       reinscription.contentType,
       metaData
     );

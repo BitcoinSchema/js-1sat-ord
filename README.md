@@ -91,7 +91,7 @@ You can optyionally pass metadata. In this example we add the standard MAP keys 
 const satPerByteFee = 0.05
 
 // inscription
-const inscription =  { data: fireShard,  contentType: "model/gltf-binary" }
+const inscription =  { dataB64: fireShard,  contentType: "model/gltf-binary" }
 
 // Define MAP keys as a JSON object
 const metaData = { app: "ord-demo", type: "ord", context: "geohash", geohash: "dree547h7" }
@@ -113,7 +113,7 @@ You can technically reinscribe on the same Satoshi. Its up to the apps / indexer
 
 ```ts
 // optional reinscription
-const reinscription =  { data: frostShard,  contentType: "model/gltf-binary" }
+const reinscription =  { dataB64: frostShard,  contentType: "model/gltf-binary" }
 
 const tx = sendOrdinal(
   utxo,
