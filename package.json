@@ -1,10 +1,13 @@
 {
   "name": "js-1sat-ord",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "type": "module",
+  "files": [
+    "/dist"
+  ],
   "scripts": {
     "build": "tsc",
     "clean": "rimraf .build",
