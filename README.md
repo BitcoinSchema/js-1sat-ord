@@ -91,7 +91,7 @@ const inscription =  { data: fireShard,  contentType: "model/gltf-binary" }
 // Define MAP keys as a JSON object
 const metaData = { app: "ord-demo", type: "ord", context: "geohash", geohash: "dree547h7" }
 
-const tx = createOrdinal(utxo, ordinalDestinationAddress, paymentPk, changeAddress, inscription);
+const tx = createOrdinal(utxo, ordinalDestinationAddress, paymentPk, changeAddress, inscription, metaData);
 ```
 
 `app` - is publicly shown in the tx. Should be the app or platform name making the inscription.
