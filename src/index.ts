@@ -52,7 +52,9 @@ const buildInscription = (
 
     for (const [key, value] of Object.entries(metaData)) {
       if (key !== "cmd") {
-        inscriptionAsm = `${inscriptionAsm} ${key} ${value}`;
+        inscriptionAsm = `${inscriptionAsm} ${toHex(key)} ${toHex(
+          value as string
+        )}`;
       }
     }
   }
