@@ -14,14 +14,14 @@ import { toHex } from "./utils/strings.js";
 
 dotenv.config();
 
-type Utxo = {
+export type Utxo = {
   satoshis: number;
   txid: string;
   vout: number;
   script: string;
 };
 
-type Inscription = {
+export type Inscription = {
   dataB64: string;
   contentType: string;
 };

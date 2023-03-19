@@ -1,12 +1,12 @@
 import { MAP } from "bmapjs/types/protocols/map";
 import { P2PKHAddress, PrivateKey, Script, Transaction } from "bsv-wasm";
-type Utxo = {
+export type Utxo = {
     satoshis: number;
     txid: string;
     vout: number;
     script: string;
 };
-type Inscription = {
+export type Inscription = {
     dataB64: string;
     contentType: string;
 };
