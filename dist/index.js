@@ -41,8 +41,12 @@ const createOrdinal = async (utxo, destinationAddress, paymentPk, changeAddress,
     let emptyOut = new TxOut(BigInt(1), changeScript);
     const fee = Math.ceil(satPerByteFee * (tx.get_size() + emptyOut.to_bytes().byteLength));
     const change = utxo.satoshis - 1 - fee;
-    let changeOut = new TxOut(BigInt(change), changeScript);
-    tx.add_output(changeOut);
+    if (change < 0)
+        throw new Error("Inadequate satoshis for fee");
+    if (change > 0) {
+        let changeOut = new TxOut(BigInt(change), changeScript);
+        tx.add_output(changeOut);
+    }
     const sig = tx.sign(paymentPk, SigHash.ALL | SigHash.FORKID, 0, Script.from_asm_string(utxo.script), BigInt(utxo.satoshis));
     utxoIn.set_unlocking_script(Script.from_asm_string(`${sig.to_hex()} ${paymentPk.to_public_key().to_hex()}`));
     tx.set_input(0, utxoIn);
