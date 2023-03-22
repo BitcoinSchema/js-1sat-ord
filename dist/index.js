@@ -87,4 +87,38 @@ const sendOrdinal = async (paymentUtxo, ordinal, paymentPk, changeAddress, satPe
     tx.set_input(1, utxoIn);
     return tx;
 };
-export { buildInscription, createOrdinal, sendOrdinal };
+// sendUtxos sends p2pkh utxos to the given destinationAddress
+const sendUtxos = async (utxos, paymentPk, address, feeSats) => {
+    const tx = new Transaction(1, 0);
+    // Outputs
+    let inputValue = 0;
+    for (let u of utxos || []) {
+        inputValue += u.satoshis;
+    }
+    const satsIn = inputValue;
+    const satsOut = satsIn - feeSats;
+    console.log({ feeSats, satsIn, satsOut });
+    tx.add_output(new TxOut(BigInt(satsOut), address.get_locking_script()));
+    // build txins from our UTXOs
+    let idx = 0;
+    for (let u of utxos || []) {
+        console.log({ u });
+        const inx = new TxIn(Buffer.from(u.txid, "hex"), u.vout, Script.from_asm_string(""));
+        console.log({ inx });
+        inx.set_satoshis(BigInt(u.satoshis));
+        tx.add_input(inx);
+        const sig = tx.sign(paymentPk, SigHash.ALL | SigHash.FORKID, idx, Script.from_asm_string(u.script), BigInt(u.satoshis));
+        // const s = Script.from_asm_string(u.script);
+        // inx.set_unlocking_script(
+        //   P2PKHAddress.from_string(changeAddress || "").get_unlocking_script(
+        //     paymentPk.to_public_key(),
+        //     sig
+        //   )
+        // );
+        inx.set_unlocking_script(Script.from_asm_string(`${sig.to_hex()} ${paymentPk.to_public_key().to_hex()}`));
+        tx.set_input(idx, inx);
+        idx++;
+    }
+    return tx;
+};
+export { buildInscription, createOrdinal, sendOrdinal, sendUtxos };

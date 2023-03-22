@@ -15,7 +15,7 @@ yarn add js-1sat-ord
 ### Usage
 
 ```ts
-import { createOrdinal, sendOrdinal } from 'js-1sat-ord'
+import { createOrdinal, sendOrdinal, sendUtxos } from 'js-1sat-ord'
 ```
 
 ### Example
@@ -85,3 +85,15 @@ const tx = sendOrdinal(
 );
 ```
 
+### Send Utxos
+
+Sends all utxos for the given address to the destination address
+
+```ts
+const tx = sendOrdinal(
+  utxos,
+  paymentPk,
+  destinationAddress,
+  satPerByteFee
+);
+```
