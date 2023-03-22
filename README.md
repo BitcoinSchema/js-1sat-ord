@@ -93,7 +93,7 @@ Sends all utxos for the given address to the destination address
 const tx = sendOrdinal(
   utxos,
   paymentPk,
-  destinationAddress,
-  satPerByteFee
+  address,
+  feeSats
 );
 ```
