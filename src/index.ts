@@ -184,7 +184,7 @@ const sendOrdinal = async (
   // sign ordinal
   const sig = tx.sign(
     ordPk,
-    SigHash.ALL | SigHash.FORKID,
+    SigHash.InputOutputs,
     0,
     Script.from_asm_string(ordinal.script),
     BigInt(ordinal.satoshis)
@@ -199,7 +199,7 @@ const sendOrdinal = async (
   // sign fee payment
   const sig2 = tx.sign(
     paymentPk,
-    SigHash.ALL | SigHash.FORKID,
+    SigHash.InputOutputs,
     1,
     Script.from_asm_string(paymentUtxo.script),
     BigInt(paymentUtxo.satoshis)
@@ -250,19 +250,11 @@ const sendUtxos = async (
 
     const sig = tx.sign(
       paymentPk,
-      SigHash.ALL | SigHash.FORKID,
+      SigHash.InputOutputs,
       idx,
       Script.from_asm_string(u.script),
       BigInt(u.satoshis)
     );
-
-    // const s = Script.from_asm_string(u.script);
-    // inx.set_unlocking_script(
-    //   P2PKHAddress.from_string(changeAddress || "").get_unlocking_script(
-    //     paymentPk.to_public_key(),
-    //     sig
-    //   )
-    // );
 
     inx.set_unlocking_script(
       Script.from_asm_string(

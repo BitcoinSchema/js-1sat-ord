@@ -78,11 +78,11 @@ const sendOrdinal = async (paymentUtxo, ordinal, paymentPk, changeAddress, satPe
     let changeOut = new TxOut(BigInt(change), changeScript);
     tx.add_output(changeOut);
     // sign ordinal
-    const sig = tx.sign(ordPk, SigHash.ALL | SigHash.FORKID, 0, Script.from_asm_string(ordinal.script), BigInt(ordinal.satoshis));
+    const sig = tx.sign(ordPk, SigHash.InputOutputs, 0, Script.from_asm_string(ordinal.script), BigInt(ordinal.satoshis));
     ordIn.set_unlocking_script(Script.from_asm_string(`${sig.to_hex()} ${ordPk.to_public_key().to_hex()}`));
     tx.set_input(0, ordIn);
     // sign fee payment
-    const sig2 = tx.sign(paymentPk, SigHash.ALL | SigHash.FORKID, 1, Script.from_asm_string(paymentUtxo.script), BigInt(paymentUtxo.satoshis));
+    const sig2 = tx.sign(paymentPk, SigHash.InputOutputs, 1, Script.from_asm_string(paymentUtxo.script), BigInt(paymentUtxo.satoshis));
     utxoIn.set_unlocking_script(Script.from_asm_string(`${sig2.to_hex()} ${paymentPk.to_public_key().to_hex()}`));
     tx.set_input(1, utxoIn);
     return tx;
@@ -107,14 +107,7 @@ const sendUtxos = async (utxos, paymentPk, address, feeSats) => {
         console.log({ inx });
         inx.set_satoshis(BigInt(u.satoshis));
         tx.add_input(inx);
-        const sig = tx.sign(paymentPk, SigHash.ALL | SigHash.FORKID, idx, Script.from_asm_string(u.script), BigInt(u.satoshis));
-        // const s = Script.from_asm_string(u.script);
-        // inx.set_unlocking_script(
-        //   P2PKHAddress.from_string(changeAddress || "").get_unlocking_script(
-        //     paymentPk.to_public_key(),
-        //     sig
-        //   )
-        // );
+        const sig = tx.sign(paymentPk, SigHash.InputOutputs, idx, Script.from_asm_string(u.script), BigInt(u.satoshis));
         inx.set_unlocking_script(Script.from_asm_string(`${sig.to_hex()} ${paymentPk.to_public_key().to_hex()}`));
         tx.set_input(idx, inx);
         idx++;
