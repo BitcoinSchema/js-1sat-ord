@@ -1,6 +1,6 @@
 {
   "name": "js-1sat-ord",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -9,8 +9,8 @@
     "/dist"
   ],
   "scripts": {
-    "build": "tsc",
-    "clean": "rimraf .build",
+    "build": "yarn clean && tsc",
+    "clean": "rimraf -rf dist",
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepare": "SET NODE_OPTIONS=--openssl-legacy-provider&&cd node_modules/@ts-bitcoin/core && npm run build:node"
   },

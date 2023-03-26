@@ -184,7 +184,7 @@ const sendOrdinal = async (
   // sign ordinal
   const sig = tx.sign(
     ordPk,
-    SigHash.InputOutputs,
+    SigHash.InputOutput,
     0,
     Script.from_asm_string(ordinal.script),
     BigInt(ordinal.satoshis)
@@ -199,7 +199,7 @@ const sendOrdinal = async (
   // sign fee payment
   const sig2 = tx.sign(
     paymentPk,
-    SigHash.InputOutputs,
+    SigHash.InputOutput,
     1,
     Script.from_asm_string(paymentUtxo.script),
     BigInt(paymentUtxo.satoshis)
