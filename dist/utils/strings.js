@@ -1,3 +1,6 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.toAscii = exports.toHex = void 0;
 const toHex = (asciiStr) => {
     var arr1 = [];
     for (var n = 0, l = asciiStr.length; n < l; n++) {
@@ -6,6 +9,7 @@ const toHex = (asciiStr) => {
     }
     return arr1.join("");
 };
+exports.toHex = toHex;
 const toAscii = (hexStr) => {
     var hex, i;
     var result = "";
@@ -15,4 +19,4 @@ const toAscii = (hexStr) => {
     }
     return result;
 };
-export { toHex, toAscii };
+exports.toAscii = toAscii;
