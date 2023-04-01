@@ -33,7 +33,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendUtxos = exports.sendOrdinal = exports.createOrdinal = exports.buildInscription = void 0;
-const bsv_wasm_1 = require("bsv-wasm");
+const bsv_wasm_web_1 = require("bsv-wasm-web");
 const buffer_1 = require("buffer");
 const dotenv = __importStar(require("dotenv"));
 const strings_js_1 = require("./utils/strings.js");
@@ -59,75 +59,75 @@ const buildInscription = (destinationAddress, b64File, mediaType, metaData) => {
             }
         }
     }
-    return bsv_wasm_1.Script.from_asm_string(inscriptionAsm);
+    return bsv_wasm_web_1.Script.from_asm_string(inscriptionAsm);
 };
 exports.buildInscription = buildInscription;
 const createOrdinal = (utxo, destinationAddress, paymentPk, changeAddress, satPerByteFee, inscription, metaData) => __awaiter(void 0, void 0, void 0, function* () {
-    let tx = new bsv_wasm_1.Transaction(1, 0);
+    let tx = new bsv_wasm_web_1.Transaction(1, 0);
     // Inputs
-    let utxoIn = new bsv_wasm_1.TxIn(buffer_1.Buffer.from(utxo.txid, "hex"), utxo.vout, bsv_wasm_1.Script.from_asm_string(""));
+    let utxoIn = new bsv_wasm_web_1.TxIn(buffer_1.Buffer.from(utxo.txid, "hex"), utxo.vout, bsv_wasm_web_1.Script.from_asm_string(""));
     tx.add_input(utxoIn);
     // Outputs
-    const inscriptionScript = buildInscription(bsv_wasm_1.P2PKHAddress.from_string(destinationAddress), inscription.dataB64, inscription.contentType, metaData);
-    let satOut = new bsv_wasm_1.TxOut(BigInt(1), inscriptionScript);
+    const inscriptionScript = buildInscription(bsv_wasm_web_1.P2PKHAddress.from_string(destinationAddress), inscription.dataB64, inscription.contentType, metaData);
+    let satOut = new bsv_wasm_web_1.TxOut(BigInt(1), inscriptionScript);
     tx.add_output(satOut);
     // add change
-    const changeaddr = bsv_wasm_1.P2PKHAddress.from_string(changeAddress);
+    const changeaddr = bsv_wasm_web_1.P2PKHAddress.from_string(changeAddress);
     const changeScript = changeaddr.get_locking_script();
-    let emptyOut = new bsv_wasm_1.TxOut(BigInt(1), changeScript);
+    let emptyOut = new bsv_wasm_web_1.TxOut(BigInt(1), changeScript);
     const fee = Math.ceil(satPerByteFee * (tx.get_size() + emptyOut.to_bytes().byteLength));
     const change = utxo.satoshis - 1 - fee;
     if (change < 0)
         throw new Error("Inadequate satoshis for fee");
     if (change > 0) {
-        let changeOut = new bsv_wasm_1.TxOut(BigInt(change), changeScript);
+        let changeOut = new bsv_wasm_web_1.TxOut(BigInt(change), changeScript);
         tx.add_output(changeOut);
     }
-    const sig = tx.sign(paymentPk, bsv_wasm_1.SigHash.ALL | bsv_wasm_1.SigHash.FORKID, 0, bsv_wasm_1.Script.from_asm_string(utxo.script), BigInt(utxo.satoshis));
-    utxoIn.set_unlocking_script(bsv_wasm_1.Script.from_asm_string(`${sig.to_hex()} ${paymentPk.to_public_key().to_hex()}`));
+    const sig = tx.sign(paymentPk, bsv_wasm_web_1.SigHash.ALL | bsv_wasm_web_1.SigHash.FORKID, 0, bsv_wasm_web_1.Script.from_asm_string(utxo.script), BigInt(utxo.satoshis));
+    utxoIn.set_unlocking_script(bsv_wasm_web_1.Script.from_asm_string(`${sig.to_hex()} ${paymentPk.to_public_key().to_hex()}`));
     tx.set_input(0, utxoIn);
     return tx;
 });
 exports.createOrdinal = createOrdinal;
 const sendOrdinal = (paymentUtxo, ordinal, paymentPk, changeAddress, satPerByteFee, ordPk, ordDestinationAddress, reinscription, metaData) => __awaiter(void 0, void 0, void 0, function* () {
-    let tx = new bsv_wasm_1.Transaction(1, 0);
-    let ordIn = new bsv_wasm_1.TxIn(buffer_1.Buffer.from(ordinal.txid, "hex"), ordinal.vout, bsv_wasm_1.Script.from_asm_string(""));
+    let tx = new bsv_wasm_web_1.Transaction(1, 0);
+    let ordIn = new bsv_wasm_web_1.TxIn(buffer_1.Buffer.from(ordinal.txid, "hex"), ordinal.vout, bsv_wasm_web_1.Script.from_asm_string(""));
     tx.add_input(ordIn);
     // Inputs
-    let utxoIn = new bsv_wasm_1.TxIn(buffer_1.Buffer.from(paymentUtxo.txid, "hex"), paymentUtxo.vout, bsv_wasm_1.Script.from_asm_string(""));
+    let utxoIn = new bsv_wasm_web_1.TxIn(buffer_1.Buffer.from(paymentUtxo.txid, "hex"), paymentUtxo.vout, bsv_wasm_web_1.Script.from_asm_string(""));
     tx.add_input(utxoIn);
     let s;
-    const destinationAddress = bsv_wasm_1.P2PKHAddress.from_string(ordDestinationAddress);
+    const destinationAddress = bsv_wasm_web_1.P2PKHAddress.from_string(ordDestinationAddress);
     if ((reinscription === null || reinscription === void 0 ? void 0 : reinscription.dataB64) && (reinscription === null || reinscription === void 0 ? void 0 : reinscription.contentType)) {
         s = buildInscription(destinationAddress, reinscription.dataB64, reinscription.contentType, metaData);
     }
     else {
         s = destinationAddress.get_locking_script();
     }
-    let satOut = new bsv_wasm_1.TxOut(BigInt(1), s);
+    let satOut = new bsv_wasm_web_1.TxOut(BigInt(1), s);
     tx.add_output(satOut);
     // add change
-    const changeaddr = bsv_wasm_1.P2PKHAddress.from_string(changeAddress);
+    const changeaddr = bsv_wasm_web_1.P2PKHAddress.from_string(changeAddress);
     const changeScript = changeaddr.get_locking_script();
-    let emptyOut = new bsv_wasm_1.TxOut(BigInt(1), changeScript);
+    let emptyOut = new bsv_wasm_web_1.TxOut(BigInt(1), changeScript);
     const fee = Math.ceil(satPerByteFee * (tx.get_size() + emptyOut.to_bytes().byteLength));
     const change = paymentUtxo.satoshis - fee;
-    let changeOut = new bsv_wasm_1.TxOut(BigInt(change), changeScript);
+    let changeOut = new bsv_wasm_web_1.TxOut(BigInt(change), changeScript);
     tx.add_output(changeOut);
     // sign ordinal
-    const sig = tx.sign(ordPk, bsv_wasm_1.SigHash.InputOutput, 0, bsv_wasm_1.Script.from_asm_string(ordinal.script), BigInt(ordinal.satoshis));
-    ordIn.set_unlocking_script(bsv_wasm_1.Script.from_asm_string(`${sig.to_hex()} ${ordPk.to_public_key().to_hex()}`));
+    const sig = tx.sign(ordPk, bsv_wasm_web_1.SigHash.InputOutput, 0, bsv_wasm_web_1.Script.from_asm_string(ordinal.script), BigInt(ordinal.satoshis));
+    ordIn.set_unlocking_script(bsv_wasm_web_1.Script.from_asm_string(`${sig.to_hex()} ${ordPk.to_public_key().to_hex()}`));
     tx.set_input(0, ordIn);
     // sign fee payment
-    const sig2 = tx.sign(paymentPk, bsv_wasm_1.SigHash.InputOutput, 1, bsv_wasm_1.Script.from_asm_string(paymentUtxo.script), BigInt(paymentUtxo.satoshis));
-    utxoIn.set_unlocking_script(bsv_wasm_1.Script.from_asm_string(`${sig2.to_hex()} ${paymentPk.to_public_key().to_hex()}`));
+    const sig2 = tx.sign(paymentPk, bsv_wasm_web_1.SigHash.InputOutput, 1, bsv_wasm_web_1.Script.from_asm_string(paymentUtxo.script), BigInt(paymentUtxo.satoshis));
+    utxoIn.set_unlocking_script(bsv_wasm_web_1.Script.from_asm_string(`${sig2.to_hex()} ${paymentPk.to_public_key().to_hex()}`));
     tx.set_input(1, utxoIn);
     return tx;
 });
 exports.sendOrdinal = sendOrdinal;
 // sendUtxos sends p2pkh utxos to the given destinationAddress
 const sendUtxos = (utxos, paymentPk, address, feeSats) => __awaiter(void 0, void 0, void 0, function* () {
-    const tx = new bsv_wasm_1.Transaction(1, 0);
+    const tx = new bsv_wasm_web_1.Transaction(1, 0);
     // Outputs
     let inputValue = 0;
     for (let u of utxos || []) {
@@ -136,17 +136,17 @@ const sendUtxos = (utxos, paymentPk, address, feeSats) => __awaiter(void 0, void
     const satsIn = inputValue;
     const satsOut = satsIn - feeSats;
     console.log({ feeSats, satsIn, satsOut });
-    tx.add_output(new bsv_wasm_1.TxOut(BigInt(satsOut), address.get_locking_script()));
+    tx.add_output(new bsv_wasm_web_1.TxOut(BigInt(satsOut), address.get_locking_script()));
     // build txins from our UTXOs
     let idx = 0;
     for (let u of utxos || []) {
         console.log({ u });
-        const inx = new bsv_wasm_1.TxIn(buffer_1.Buffer.from(u.txid, "hex"), u.vout, bsv_wasm_1.Script.from_asm_string(""));
+        const inx = new bsv_wasm_web_1.TxIn(buffer_1.Buffer.from(u.txid, "hex"), u.vout, bsv_wasm_web_1.Script.from_asm_string(""));
         console.log({ inx });
         inx.set_satoshis(BigInt(u.satoshis));
         tx.add_input(inx);
-        const sig = tx.sign(paymentPk, bsv_wasm_1.SigHash.InputOutputs, idx, bsv_wasm_1.Script.from_asm_string(u.script), BigInt(u.satoshis));
-        inx.set_unlocking_script(bsv_wasm_1.Script.from_asm_string(`${sig.to_hex()} ${paymentPk.to_public_key().to_hex()}`));
+        const sig = tx.sign(paymentPk, bsv_wasm_web_1.SigHash.InputOutputs, idx, bsv_wasm_web_1.Script.from_asm_string(u.script), BigInt(u.satoshis));
+        inx.set_unlocking_script(bsv_wasm_web_1.Script.from_asm_string(`${sig.to_hex()} ${paymentPk.to_public_key().to_hex()}`));
         tx.set_input(idx, inx);
         idx++;
     }

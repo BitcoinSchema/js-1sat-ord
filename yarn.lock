@@ -277,6 +277,11 @@ bs58@^5.0.0:
   dependencies:
     base-x "^4.0.0"
 
+bsv-wasm-web@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/bsv-wasm-web/-/bsv-wasm-web-2.0.0.tgz#41e175085d86b201afedd38f8f2ecc140f5c6a02"
+  integrity sha512-ppVR2139UWuuAQRHCj/TcXbmVa37ZhQW3Fnh3FltJfQD1npLEq2VSIWaw47W+TBamebfnOrzB807fVzCS40Kzg==
+
 bsv-wasm@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/bsv-wasm/-/bsv-wasm-2.0.0.tgz#6446a0e26c98aaa8b56039b6057dcb96854a5a8f"
