@@ -97,3 +97,38 @@ const tx = sendOrdinal(
   feeSats
 );
 ```
+
+#### Using with Bundlers
+
+Since this package depends on `bsv-wasm` it will throw errors when used in a frontend project. One workaround for this is to tell your bundler to use `bsv-wasm-web` instead of `bsv-wasm`. There's a webpack example:
+
+Install module replacer
+```
+npm i replace-module-webpack-plugin
+```
+
+Modify the plugins field of your webpack config:
+
+```js
+  config.plugins = [
+    ...config.plugins,
+    new WebpackPluginReplaceNpm({
+      rules: [
+        {
+          originModule: "bsv-wasm",
+          replaceModule: "bsv-wasm-web",
+        },
+      ],
+    }),
+  ];
+```
+
+if you only want to make the replacement for this package
+
+```js
+  {
+    originModule: "bsv-wasm",
+    replaceModule: "bsv-wasm-web",
+    context: /node_modules\/js-1sat-ord/,
+  },  
+```

@@ -10,7 +10,7 @@ import {
 } from "bsv-wasm-web";
 import { Buffer } from "buffer";
 import * as dotenv from "dotenv";
-import { toHex } from "./utils/strings.js";
+import { toHex } from "./utils/strings";
 
 dotenv.config();
 
