@@ -1,6 +1,6 @@
 {
   "name": "js-1sat-ord-web",
-  "version": "0.0.20",
+  "version": "0.0.21",
   "description": "",
   "types": "dist/index.d.ts",
   "type": "module",
@@ -20,7 +20,7 @@
   "author": "Luke Rohenaz",
   "license": "MIT",
   "dependencies": {
-    "bmapjs": "^0.4.0-beta.34",
+    "bmapjs": "^0.4.0-beta.35",
     "bsv-wasm": "^2.0.0",
     "bsv-wasm-web": "^2.0.0",
     "buffer": "^6.0.3",
