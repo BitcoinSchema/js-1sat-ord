@@ -10,6 +10,7 @@ import {
 } from "bsv-wasm-web";
 import { Buffer } from "buffer";
 import * as dotenv from "dotenv";
+import { Sigma } from "sigma-protocol";
 import { toHex } from "./utils/strings";
 
 dotenv.config();
@@ -69,7 +70,8 @@ const createOrdinal = async (
   changeAddress: string,
   satPerByteFee: number,
   inscription: Inscription,
-  metaData?: MAP
+  metaData?: MAP,
+  idKey?: PrivateKey
 ): Promise<Transaction> => {
   let tx = new Transaction(1, 0);
 
@@ -121,6 +123,13 @@ const createOrdinal = async (
   );
 
   tx.set_input(0, utxoIn);
+
+  // sign tx if idKey is provided
+  if (idKey) {
+    const sigma = new Sigma(tx);
+    const { signedTx } = sigma.sign(idKey);
+    tx = signedTx;
+  }
 
   return tx;
 };

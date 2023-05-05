@@ -1537,6 +1537,14 @@
     expect "^29.0.0"
     pretty-format "^29.0.0"
 
+"@types/jest@^29.5.1":
+  version "29.5.1"
+  resolved "https://registry.yarnpkg.com/@types/jest/-/jest-29.5.1.tgz#83c818aa9a87da27d6da85d3378e5a34d2f31a47"
+  integrity sha512-tEuVcHrpaixS36w7hpsfLBLpjtMRJUE09/MHXn923LOVojDwyC14cWcfc0rDs0VEfUyYmt/+iX1kxxp+gZMcaQ==
+  dependencies:
+    expect "^29.0.0"
+    pretty-format "^29.0.0"
+
 "@types/node@*":
   version "18.15.11"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-18.15.11.tgz#b3b790f09cb1696cffcec605de025b088fa4225f"
@@ -2071,15 +2079,20 @@ bser@2.1.1:
   dependencies:
     node-int64 "^0.4.0"
 
-bsv-wasm-web@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/bsv-wasm-web/-/bsv-wasm-web-2.0.0.tgz#41e175085d86b201afedd38f8f2ecc140f5c6a02"
-  integrity sha512-ppVR2139UWuuAQRHCj/TcXbmVa37ZhQW3Fnh3FltJfQD1npLEq2VSIWaw47W+TBamebfnOrzB807fVzCS40Kzg==
+bsv-wasm-web@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/bsv-wasm-web/-/bsv-wasm-web-2.0.1.tgz#7c2f72243a973913f08fe2c3591b07bdb6b30639"
+  integrity sha512-UtqJHb259c5ZtuDLU9N4XDklldUiY1jhVIq6ih2l7Y+p8OUgRzYVkvHg2ftGQ0MHr0UePKjszP99CBGEAkLQMw==
 
 bsv-wasm@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/bsv-wasm/-/bsv-wasm-2.0.0.tgz#6446a0e26c98aaa8b56039b6057dcb96854a5a8f"
   integrity sha512-r/n31tUjUdftbIiUeR2U8ZdapGOt1EcE6f1hxFIRGbal/wRgA2XWdeqNgbhx5uPhup6blRLHg3mPgjqdUE+zzQ==
+
+bsv-wasm@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/bsv-wasm/-/bsv-wasm-2.0.1.tgz#cacca07dc4bd38c025de62b5a7b18c78006f4a56"
+  integrity sha512-+6omHGJxC4I72IdYByKClKPtf6sTSbkO4t2brkMOaE23P10E5SlviAlENp1EpLnq9eDxm+WUsmJDIlMmMAxQpg==
 
 bsv@2.0.7:
   version "2.0.7"
@@ -5226,6 +5239,14 @@ side-channel@^1.0.4:
     call-bind "^1.0.0"
     get-intrinsic "^1.0.2"
     object-inspect "^1.9.0"
+
+sigma-protocol@^0.0.3:
+  version "0.0.3"
+  resolved "https://registry.yarnpkg.com/sigma-protocol/-/sigma-protocol-0.0.3.tgz#b5b9b900d72456d5679f9a94ad7d04ea827e5deb"
+  integrity sha512-XlO1LMQZRUsiaYzyyp0+BToYmPi7gZjhM2KOUtSjzEoT++izUWZcqZvaPzha18OtmnzvizeRgKNNMIjhcGRVXA==
+  dependencies:
+    "@types/jest" "^29.5.1"
+    bsv-wasm "^2.0.1"
 
 signal-exit@^3.0.3, signal-exit@^3.0.7:
   version "3.0.7"

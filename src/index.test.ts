@@ -1,4 +1,4 @@
-import { P2PKHAddress } from "bsv-wasm-web";
+import { P2PKHAddress } from "bsv-wasm";
 import { buildInscription } from "./index";
 
 test("test build inscription", () => {

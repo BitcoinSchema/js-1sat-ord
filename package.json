@@ -1,5 +1,5 @@
 {
-  "name": "js-1sat-ord-web",
+  "name": "js-1sat-ord",
   "version": "0.0.21",
   "description": "",
   "types": "dist/index.d.ts",
@@ -22,9 +22,10 @@
   "dependencies": {
     "bmapjs": "^0.4.0-beta.35",
     "bsv-wasm": "^2.0.0",
-    "bsv-wasm-web": "^2.0.0",
+    "bsv-wasm-web": "^2.0.1",
     "buffer": "^6.0.3",
-    "dotenv": "^16.0.3"
+    "dotenv": "^16.0.3",
+    "sigma-protocol": "^0.0.3"
   },
   "alias": {
     "bsv-wasm@^2.0.0": "bsv-wasm@^2.0.0"
