@@ -1,6 +1,6 @@
 {
   "name": "js-1sat-ord",
-  "version": "0.0.21",
+  "version": "0.0.22",
   "description": "",
   "types": "dist/index.d.ts",
   "type": "module",
