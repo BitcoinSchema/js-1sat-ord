@@ -2079,16 +2079,6 @@ bser@2.1.1:
   dependencies:
     node-int64 "^0.4.0"
 
-bsv-wasm-web@^2.0.1:
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/bsv-wasm-web/-/bsv-wasm-web-2.0.1.tgz#7c2f72243a973913f08fe2c3591b07bdb6b30639"
-  integrity sha512-UtqJHb259c5ZtuDLU9N4XDklldUiY1jhVIq6ih2l7Y+p8OUgRzYVkvHg2ftGQ0MHr0UePKjszP99CBGEAkLQMw==
-
-bsv-wasm@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/bsv-wasm/-/bsv-wasm-2.0.0.tgz#6446a0e26c98aaa8b56039b6057dcb96854a5a8f"
-  integrity sha512-r/n31tUjUdftbIiUeR2U8ZdapGOt1EcE6f1hxFIRGbal/wRgA2XWdeqNgbhx5uPhup6blRLHg3mPgjqdUE+zzQ==
-
 bsv-wasm@^2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/bsv-wasm/-/bsv-wasm-2.0.1.tgz#cacca07dc4bd38c025de62b5a7b18c78006f4a56"

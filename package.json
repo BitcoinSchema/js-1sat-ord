@@ -14,15 +14,14 @@
     "build": "yarn clean && microbundle",
     "clean": "rimraf -rf dist",
     "test": "jest",
-    "prepare": "SET NODE_OPTIONS=--openssl-legacy-provider&&cd node_modules/@ts-bitcoin/core && npm run build:node"
+    "prepare": "SET NODE_OPTIONS=--openssl-legacy-provider"
   },
   "keywords": [],
   "author": "Luke Rohenaz",
   "license": "MIT",
   "dependencies": {
     "bmapjs": "^0.4.0-beta.35",
-    "bsv-wasm": "^2.0.0",
-    "bsv-wasm-web": "^2.0.1",
+    "bsv-wasm": "^2.0.1",
     "buffer": "^6.0.3",
     "dotenv": "^16.0.3",
     "sigma-protocol": "^0.0.3"
