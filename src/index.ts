@@ -7,7 +7,7 @@ import {
   Transaction,
   TxIn,
   TxOut,
-} from "bsv-wasm";
+} from "bsv-wasm-web";
 import { Buffer } from "buffer";
 import * as dotenv from "dotenv";
 import { Sigma } from "sigma-protocol";

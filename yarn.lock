@@ -2079,6 +2079,11 @@ bser@2.1.1:
   dependencies:
     node-int64 "^0.4.0"
 
+bsv-wasm-web@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/bsv-wasm-web/-/bsv-wasm-web-2.0.1.tgz#7c2f72243a973913f08fe2c3591b07bdb6b30639"
+  integrity sha512-UtqJHb259c5ZtuDLU9N4XDklldUiY1jhVIq6ih2l7Y+p8OUgRzYVkvHg2ftGQ0MHr0UePKjszP99CBGEAkLQMw==
+
 bsv-wasm@^2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/bsv-wasm/-/bsv-wasm-2.0.1.tgz#cacca07dc4bd38c025de62b5a7b18c78006f4a56"
@@ -5230,10 +5235,10 @@ side-channel@^1.0.4:
     get-intrinsic "^1.0.2"
     object-inspect "^1.9.0"
 
-sigma-protocol@^0.0.3:
-  version "0.0.3"
-  resolved "https://registry.yarnpkg.com/sigma-protocol/-/sigma-protocol-0.0.3.tgz#b5b9b900d72456d5679f9a94ad7d04ea827e5deb"
-  integrity sha512-XlO1LMQZRUsiaYzyyp0+BToYmPi7gZjhM2KOUtSjzEoT++izUWZcqZvaPzha18OtmnzvizeRgKNNMIjhcGRVXA==
+sigma-protocol@^0.0.4:
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/sigma-protocol/-/sigma-protocol-0.0.4.tgz#6e05e1db46b4d1205274a4ad73890d9092e9710e"
+  integrity sha512-cD9bHl+2m1UP4QYWqLyKUNao6Rup9SM7qN9MSZv0Z9KgdWXnJUBg3OO3cF28e6i6Ae+mZuD4LUaRGRhHd9go/w==
   dependencies:
     "@types/jest" "^29.5.1"
     bsv-wasm "^2.0.1"
