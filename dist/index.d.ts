@@ -1,5 +1,5 @@
 import { MAP } from "bmapjs/types/protocols/map";
-import { P2PKHAddress, PrivateKey, Script, Transaction } from "bsv-wasm-web";
+import { P2PKHAddress, PrivateKey, Script, Transaction } from "bsv-wasm";
 export type Utxo = {
     satoshis: number;
     txid: string;

@@ -1427,7 +1427,7 @@
 
 "@ts-bitcoin/core@^2.2.0":
   version "2.2.0"
-  resolved "https://registry.npmjs.org/@ts-bitcoin/core/-/core-2.2.0.tgz"
+  resolved "https://registry.yarnpkg.com/@ts-bitcoin/core/-/core-2.2.0.tgz#2d756e5323f457fe4a9222e74a8839f8efa08c38"
   integrity sha512-txOTdUXqMMoadNg1qlR+p6loMKL100IO0TpaWsBbvb2M1reqd3yrvIDwPIHHG9YZ3p2yvNdJFIOmhRrR23HovQ==
   dependencies:
     aes "0.1.0"
@@ -2078,11 +2078,6 @@ bser@2.1.1:
   integrity sha512-gQxTNE/GAfIIrmHLUE3oJyp5FO6HRBfhjnw4/wMmA63ZGDJnWBmgY/lyQBpnDUkGmAhbSe39tx2d/iTOAfglwQ==
   dependencies:
     node-int64 "^0.4.0"
-
-bsv-wasm-web@^2.0.1:
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/bsv-wasm-web/-/bsv-wasm-web-2.0.1.tgz#7c2f72243a973913f08fe2c3591b07bdb6b30639"
-  integrity sha512-UtqJHb259c5ZtuDLU9N4XDklldUiY1jhVIq6ih2l7Y+p8OUgRzYVkvHg2ftGQ0MHr0UePKjszP99CBGEAkLQMw==
 
 bsv-wasm@^2.0.1:
   version "2.0.1"
@@ -5235,10 +5230,10 @@ side-channel@^1.0.4:
     get-intrinsic "^1.0.2"
     object-inspect "^1.9.0"
 
-sigma-protocol@^0.0.4:
-  version "0.0.4"
-  resolved "https://registry.yarnpkg.com/sigma-protocol/-/sigma-protocol-0.0.4.tgz#6e05e1db46b4d1205274a4ad73890d9092e9710e"
-  integrity sha512-cD9bHl+2m1UP4QYWqLyKUNao6Rup9SM7qN9MSZv0Z9KgdWXnJUBg3OO3cF28e6i6Ae+mZuD4LUaRGRhHd9go/w==
+sigma-protocol@^0.0.5:
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/sigma-protocol/-/sigma-protocol-0.0.5.tgz#6086b2930d8981f7485955395a7d89068857d3d8"
+  integrity sha512-Mfoi/mNkoMOF5zRqbJ3AdEIEFEB2q9khYOPwQ6XQ13SnG7Jb2UteExlLXZzuj4XJc7VYT85KUnc68bXW/TSegg==
   dependencies:
     "@types/jest" "^29.5.1"
     bsv-wasm "^2.0.1"

@@ -7,7 +7,7 @@ import {
   Transaction,
   TxIn,
   TxOut,
-} from "bsv-wasm-web";
+} from "bsv-wasm";
 import { Buffer } from "buffer";
 import * as dotenv from "dotenv";
 import { Sigma } from "sigma-protocol";
@@ -108,6 +108,16 @@ const createOrdinal = async (
     let changeOut = new TxOut(BigInt(change), changeScript);
     tx.add_output(changeOut);
   }
+
+  // sign tx if idKey is provided
+  if (idKey) {
+    // input txids are available so sigma signature
+    // can be final before signing the tx
+    const sigma = new Sigma(tx);
+    const { signedTx } = sigma.sign(idKey);
+    tx = signedTx;
+  }
+
   const sig = tx.sign(
     paymentPk,
     SigHash.ALL | SigHash.FORKID,
@@ -123,13 +133,6 @@ const createOrdinal = async (
   );
 
   tx.set_input(0, utxoIn);
-
-  // sign tx if idKey is provided
-  if (idKey) {
-    const sigma = new Sigma(tx);
-    const { signedTx } = sigma.sign(idKey);
-    tx = signedTx;
-  }
 
   return tx;
 };
