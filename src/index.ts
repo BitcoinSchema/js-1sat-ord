@@ -1,4 +1,3 @@
-import { MAP } from "bmapjs/types/protocols/map";
 import {
   P2PKHAddress,
   PrivateKey,
@@ -10,10 +9,21 @@ import {
 } from "bsv-wasm";
 import { Buffer } from "buffer";
 import * as dotenv from "dotenv";
-import { Sigma } from "sigma-protocol";
+import { AuthToken, Sigma } from "sigma-protocol";
 import { toHex } from "./utils/strings";
 
 dotenv.config();
+
+type Signer = {};
+
+export interface LocalSigner extends Signer {
+  idKey: PrivateKey;
+}
+
+export interface RemoteSigner extends Signer {
+  keyHost: string;
+  authToken?: AuthToken;
+}
 
 export type Utxo = {
   satoshis: number;
@@ -25,6 +35,12 @@ export type Utxo = {
 export type Inscription = {
   dataB64: string;
   contentType: string;
+};
+
+export type MAP = {
+  app: string;
+  type: string;
+  [prop: string]: string | string[];
 };
 
 const MAP_PREFIX = "1PuQa7K62MiKCtssSLKy1kh56WWU7MtUR5";
@@ -71,7 +87,7 @@ const createOrdinal = async (
   satPerByteFee: number,
   inscription: Inscription,
   metaData?: MAP,
-  idKey?: PrivateKey
+  signer?: LocalSigner | RemoteSigner
 ): Promise<Transaction> => {
   let tx = new Transaction(1, 0);
 
@@ -109,13 +125,25 @@ const createOrdinal = async (
     tx.add_output(changeOut);
   }
 
-  // sign tx if idKey is provided
+  // sign tx if idKey or remote signer like starfish/tokenpass
+  const idKey = (signer as LocalSigner)?.idKey;
+  const keyHost = (signer as RemoteSigner)?.keyHost;
   if (idKey) {
     // input txids are available so sigma signature
     // can be final before signing the tx
     const sigma = new Sigma(tx);
     const { signedTx } = sigma.sign(idKey);
     tx = signedTx;
+  } else if (keyHost) {
+    const authToken = (signer as RemoteSigner)?.authToken;
+    const sigma = new Sigma(tx);
+    try {
+      const { signedTx } = await sigma.remoteSign(keyHost, authToken);
+      tx = signedTx;
+    } catch (e) {
+      console.log(e);
+      throw new Error("Remote signing to " + keyHost + " failed");
+    }
   }
 
   const sig = tx.sign(

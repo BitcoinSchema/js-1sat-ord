@@ -1,6 +1,6 @@
 {
   "name": "js-1sat-ord",
-  "version": "0.0.26",
+  "version": "0.0.32",
   "description": "",
   "types": "dist/index.d.ts",
   "type": "module",
@@ -20,11 +20,9 @@
   "author": "Luke Rohenaz",
   "license": "MIT",
   "dependencies": {
-    "@ts-bitcoin/core": "^2.2.0",
-    "bmapjs": "^0.4.0-beta.35",
     "bsv-wasm": "^2.0.1",
     "dotenv": "^16.0.3",
-    "sigma-protocol": "^0.0.5"
+    "sigma-protocol": "^0.0.7"
   },
   "devDependencies": {
     "@jest/globals": "^29.5.0",
