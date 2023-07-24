@@ -47,19 +47,24 @@ const MAP_PREFIX = "1PuQa7K62MiKCtssSLKy1kh56WWU7MtUR5";
 
 const buildInscription = (
   destinationAddress: P2PKHAddress,
-  b64File: string,
-  mediaType: string,
-  metaData?: MAP
+  b64File?: string | undefined,
+  mediaType?: string | undefined,
+  metaData?: MAP | undefined
 ): Script => {
-  const ordHex = toHex("ord");
-  const fsBuffer = Buffer.from(b64File, "base64");
-  const fireShardHex = fsBuffer.toString("hex");
-  const fireShardMediaType = toHex(mediaType);
+  let ordAsm = "";
+  // This can be omitted for reinscriptions that just update metadata
+  if (b64File !== undefined && mediaType !== undefined) {
+    const ordHex = toHex("ord");
+    const fsBuffer = Buffer.from(b64File, "base64");
+    const fireShardHex = fsBuffer.toString("hex");
+    const fireShardMediaType = toHex(mediaType);
+    ordAsm = `OP_0 OP_IF ${ordHex} OP_1 ${fireShardMediaType} OP_0 ${fireShardHex} OP_ENDIF`;
+  }
 
   // Create ordinal output and inscription in a single output
   let inscriptionAsm = `${destinationAddress
     .get_locking_script()
-    .to_asm_string()} OP_0 OP_IF ${ordHex} OP_1 ${fireShardMediaType} OP_0 ${fireShardHex} OP_ENDIF`;
+    .to_asm_string()}${ordAsm ? " " + ordAsm : ""}`;
 
   // MAP.app and MAP.type keys are required
   if (metaData && metaData?.app && metaData?.type) {
@@ -77,6 +82,37 @@ const buildInscription = (
   }
 
   return Script.from_asm_string(inscriptionAsm);
+};
+
+export const buildReinscriptionTemplate = async (
+  ordinal: Utxo,
+  destinationAddress: string,
+  reinscription?: Inscription,
+  metaData?: MAP
+): Promise<Transaction> => {
+  let tx = new Transaction(1, 0);
+
+  // Inputs
+  let utxoIn = new TxIn(
+    Buffer.from(ordinal.txid, "hex"),
+    ordinal.vout,
+    Script.from_asm_string(ordinal.script)
+  );
+
+  tx.add_input(utxoIn);
+
+  // Outputs
+  const inscriptionScript = buildInscription(
+    P2PKHAddress.from_string(destinationAddress),
+    reinscription?.dataB64,
+    reinscription?.contentType,
+    metaData
+  );
+
+  let satOut = new TxOut(BigInt(1), inscriptionScript);
+  tx.add_output(satOut);
+
+  return tx;
 };
 
 const createOrdinal = async (
