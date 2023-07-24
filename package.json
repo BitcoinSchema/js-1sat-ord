@@ -1,6 +1,6 @@
 {
   "name": "js-1sat-ord",
-  "version": "0.0.33",
+  "version": "0.0.34",
   "description": "",
   "types": "dist/index.d.ts",
   "type": "module",
@@ -21,10 +21,10 @@
   "license": "MIT",
   "dependencies": {
     "bsv-wasm": "^2.0.1",
-    "dotenv": "^16.0.3",
     "sigma-protocol": "^0.0.7"
   },
   "devDependencies": {
+    "dotenv": "^16.0.3",
     "@jest/globals": "^29.5.0",
     "@types/jest": "^29.5.0",
     "jest": "^29.5.0",
