@@ -1,6 +1,6 @@
 {
   "name": "js-1sat-ord",
-  "version": "0.0.34",
+  "version": "0.0.35",
   "description": "",
   "types": "dist/index.d.ts",
   "type": "module",
@@ -14,14 +14,14 @@
     "build": "yarn clean && microbundle",
     "clean": "rimraf -rf dist",
     "test": "jest",
-    "prepare": "SET NODE_OPTIONS=--openssl-legacy-provider"
+    "prepare": "NODE_OPTIONS=--openssl-legacy-provider"
   },
   "keywords": [],
   "author": "Luke Rohenaz",
   "license": "MIT",
   "dependencies": {
-    "bsv-wasm": "^2.0.1",
-    "sigma-protocol": "^0.0.7"
+    "bsv-wasm": "^2.1.1",
+    "sigma-protocol": "^0.0.10"
   },
   "devDependencies": {
     "dotenv": "^16.0.3",
