@@ -1,6 +1,6 @@
 {
   "name": "js-1sat-ord",
-  "version": "0.0.36",
+  "version": "0.0.37",
   "description": "",
   "types": "dist/index.d.ts",
   "type": "module",
@@ -20,9 +20,7 @@
   "author": "Luke Rohenaz",
   "license": "MIT",
   "dependencies": {
-    "sigma-protocol": "^0.0.10"
-  },
-  "peerDependencies": {
+    "sigma-protocol": "^0.0.10",
     "bsv-wasm": "^2.1.1"
   },
   "devDependencies": {
@@ -32,8 +30,8 @@
     "jest": "^29.5.0",
     "microbundle": "^0.15.1",
     "rimraf": "^4.4.0",
-    "ts-jest": "^29.1.0",
-    "ts-node": "^10.9.1",
-    "typescript": "^5.0.3"
+    "ts-jest": "^29.1.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
   }
 }

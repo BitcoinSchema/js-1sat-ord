@@ -115,6 +115,11 @@ export const buildReinscriptionTemplate = async (
   return tx;
 };
 
+export type Payment = {
+  to: string;
+  amount: bigint;
+};
+
 const createOrdinal = async (
   utxo: Utxo,
   destinationAddress: string,
@@ -123,7 +128,8 @@ const createOrdinal = async (
   satPerByteFee: number,
   inscription: Inscription,
   metaData?: MAP,
-  signer?: LocalSigner | RemoteSigner
+  signer?: LocalSigner | RemoteSigner,
+  additionalPayments: Payment[] = []
 ): Promise<Transaction> => {
   let tx = new Transaction(1, 0);
 
@@ -147,14 +153,29 @@ const createOrdinal = async (
   let satOut = new TxOut(BigInt(1), inscriptionScript);
   tx.add_output(satOut);
 
+  // add additional payments if any
+  for (let p of additionalPayments) {
+    let satOut = new TxOut(
+      p.amount,
+      P2PKHAddress.from_string(p.to).get_locking_script()
+    );
+    tx.add_output(satOut);
+  }
+
+  // total the outputs
+  let totalOut = 0n;
+  let numOuts = tx.get_noutputs();
+  for (const i of Array(numOuts).keys()) {
+    totalOut += tx.get_output(i)?.get_satoshis() || 0n;
+  }
+
   // add change
   const changeaddr = P2PKHAddress.from_string(changeAddress);
   const changeScript = changeaddr.get_locking_script();
-  let emptyOut = new TxOut(BigInt(1), changeScript);
   const fee = Math.ceil(
-    satPerByteFee * (tx.get_size() + emptyOut.to_bytes().byteLength)
+    satPerByteFee * (tx.get_size() + P2PKH_OUTPUT_SIZE + P2PKH_INPUT_SCRIPT_SIZE)
   );
-  const change = utxo.satoshis - 1 - fee;
+  const change = BigInt(utxo.satoshis) - totalOut - BigInt(fee);
   if (change < 0) throw new Error("Inadequate satoshis for fee");
   if (change > 0) {
     let changeOut = new TxOut(BigInt(change), changeScript);
@@ -210,10 +231,12 @@ const sendOrdinal = async (
   ordPk: PrivateKey,
   ordDestinationAddress: string,
   reinscription?: Inscription,
-  metaData?: MAP
+  metaData?: MAP,
+  additionalPayments: Payment[] = []
 ): Promise<Transaction> => {
   let tx = new Transaction(1, 0);
 
+  // Inputs
   let ordIn = new TxIn(
     Buffer.from(ordinal.txid, "hex"),
     ordinal.vout,
@@ -221,7 +244,6 @@ const sendOrdinal = async (
   );
   tx.add_input(ordIn);
 
-  // Inputs
   let utxoIn = new TxIn(
     Buffer.from(paymentUtxo.txid, "hex"),
     paymentUtxo.vout,
@@ -245,15 +267,32 @@ const sendOrdinal = async (
   let satOut = new TxOut(BigInt(1), s);
   tx.add_output(satOut);
 
+  // add additional payments if any
+  for (let p of additionalPayments) {
+    let satOut = new TxOut(
+      p.amount,
+      P2PKHAddress.from_string(p.to).get_locking_script()
+    );
+    tx.add_output(satOut);
+  }
+
+  // total the outputs
+  let totalOut = 0n;
+  let numOuts = tx.get_noutputs();
+  for (const i of Array(numOuts).keys()) {
+    totalOut += tx.get_output(i)?.get_satoshis() || 0n;
+  }
+
   // add change
   const changeaddr = P2PKHAddress.from_string(changeAddress);
   const changeScript = changeaddr.get_locking_script();
-  let emptyOut = new TxOut(BigInt(1), changeScript);
+
   const fee = Math.ceil(
-    satPerByteFee * (tx.get_size() + emptyOut.to_bytes().byteLength)
+    satPerByteFee *
+      (tx.get_size() + P2PKH_OUTPUT_SIZE + 2 * P2PKH_INPUT_SCRIPT_SIZE)
   );
-  const change = paymentUtxo.satoshis - fee;
-  let changeOut = new TxOut(BigInt(change), changeScript);
+  const change = BigInt(paymentUtxo.satoshis) - totalOut - BigInt(fee);
+  let changeOut = new TxOut(change, changeScript);
 
   tx.add_output(changeOut);
 
@@ -343,5 +382,9 @@ const sendUtxos = async (
   }
   return tx;
 };
+
+export const P2PKH_INPUT_SCRIPT_SIZE = 107;
+export const P2PKH_FULL_INPUT_SIZE = 148;
+export const P2PKH_OUTPUT_SIZE = 34;
 
 export { buildInscription, createOrdinal, sendOrdinal, sendUtxos };

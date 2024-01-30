@@ -100,7 +100,7 @@ const tx = sendOrdinal(
 
 #### Using with Bundlers
 
-Since this package depends on `bsv-wasm` it will throw errors when used in a frontend project. One workaround for this is to tell your bundler to use `bsv-wasm-web` instead of `bsv-wasm`. There's a webpack example:
+Since this package depends on `bsv-wasm` it will throw errors when used in a frontend project. One workaround for this is to tell your bundler to use `bsv-wasm` instead of `bsv-wasm`. There's a webpack example:
 
 Install module replacer
 ```
@@ -116,7 +116,7 @@ Modify the plugins field of your webpack config:
       rules: [
         {
           originModule: "bsv-wasm",
-          replaceModule: "bsv-wasm-web",
+          replaceModule: "bsv-wasm",
         },
       ],
     }),
@@ -128,7 +128,7 @@ if you only want to make the replacement for this package
 ```js
   {
     originModule: "bsv-wasm",
-    replaceModule: "bsv-wasm-web",
+    replaceModule: "bsv-wasm",
     context: /node_modules\/js-1sat-ord/,
   },  
 ```
