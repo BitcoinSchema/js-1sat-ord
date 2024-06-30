@@ -13,15 +13,13 @@
   "scripts": {
     "build": "yarn clean && microbundle",
     "clean": "rimraf -rf dist",
-    "test": "jest",
-    "prepare": "NODE_OPTIONS=--openssl-legacy-provider"
+    "test": "jest"
   },
   "keywords": [],
   "author": "Luke Rohenaz",
   "license": "MIT",
   "dependencies": {
     "@bsv/sdk": "^1.1.10",
-    "bsv-wasm": "^2.1.1",
     "sigma-protocol": "^0.0.10"
   },
   "devDependencies": {
