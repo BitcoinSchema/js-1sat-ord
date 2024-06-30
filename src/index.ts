@@ -256,8 +256,6 @@ const sendOrdinal = async (
 	} else {
 		s = new P2PKH().lock(ordDestinationAddress);
 	}
-	// let satOut = new TxOut(BigInt(1), s);
-	// tx.add_output(satOut);
 
   const txOuts: TransactionOutput[] = [];
   txOuts.push({
@@ -273,26 +271,7 @@ const sendOrdinal = async (
     });
 	}
 
-	// total the outputs
-	// let totalOut = 0n;
-	// let numOuts = tx.get_noutputs();
-	// for (const i of Array(numOuts).keys()) {
-	// 	totalOut += tx.get_output(i)?.get_satoshis() || 0n;
-	// }
-  
-
-	// add change
-	// const changeaddr = P2PKHAddress.from_string(changeAddress);
 	const changeScript = new P2PKH().lock(changeAddress);
-
-	// const fee = Math.ceil(
-	// 	satPerByteFee *
-	// 		(tx.get_size() + P2PKH_OUTPUT_SIZE + 2 * P2PKH_INPUT_SCRIPT_SIZE),
-	// );
-	// const change = BigInt(paymentUtxo.satoshis) - totalOut - BigInt(fee);
-	// let changeOut = new TxOut(change, changeScript);
-
-	// tx.add_output(changeOut);
 
   const changeOut: TransactionOutput = {
     satoshis: paymentUtxo.satoshis - 1,
@@ -302,38 +281,6 @@ const sendOrdinal = async (
   txOuts.push(changeOut);
 
   const tx = new Transaction(1, txIns, txOuts, 0);
-
-	// sign ordinal
-	// const sig = tx.sign(
-	// 	ordPk,
-	// 	SigHash.InputOutput,
-	// 	0,
-	// 	Script.from_asm_string(ordinal.script),
-	// 	BigInt(ordinal.satoshis),
-	// );
-
-	// ordIn.set_unlocking_script(
-	// 	Script.from_asm_string(`${sig.to_hex()} ${ordPk.to_public_key().to_hex()}`),
-	// );
-
-	// tx.set_input(0, ordIn);
-
-	// sign fee payment
-	// const sig2 = tx.sign(
-	// 	paymentPk,
-	// 	SigHash.InputOutput,
-	// 	1,
-	// 	Script.from_asm_string(paymentUtxo.script),
-	// 	BigInt(paymentUtxo.satoshis),
-	// );
-
-	// utxoIn.set_unlocking_script(
-	// 	Script.from_asm_string(
-	// 		`${sig2.to_hex()} ${paymentPk.to_public_key().to_hex()}`,
-	// 	),
-	// );
-
-	// tx.set_input(1, utxoIn);
 
   await tx.fee();
   await tx.sign();
