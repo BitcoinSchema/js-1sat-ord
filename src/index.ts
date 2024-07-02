@@ -279,11 +279,13 @@ const fromB64Utxo = (
 		estimateLength: (tx: Transaction, inputIndex: number) => Promise<number>;
 	},
 ) => {
-	return fromUtxo(
+	const input = fromUtxo(
 		{
 			...utxo,
 			script: Buffer.from(utxo.script, "base64").toString("hex"),
 		},
 		unlockScriptTemplate,
 	);
+	input.sourceTXID = utxo.txid;
+	return input;
 };
