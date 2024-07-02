@@ -1,4 +1,4 @@
-import { type PrivateKey, type Script, Transaction } from "@bsv/sdk";
+import { type PrivateKey, Transaction } from "@bsv/sdk";
 import { type AuthToken } from "sigma-protocol";
 type Signer = {};
 export interface LocalSigner extends Signer {
@@ -9,10 +9,8 @@ export interface RemoteSigner extends Signer {
     authToken?: AuthToken;
 }
 export type Utxo = {
-    satoshis: number;
-    txid: string;
+    rawTxHex: string;
     vout: number;
-    script: string;
 };
 export type Inscription = {
     dataB64: string;
@@ -23,16 +21,12 @@ export type MAP = {
     type: string;
     [prop: string]: string | string[];
 };
-declare const buildInscription: (destinationAddress: string, b64File?: string | undefined, mediaType?: string | undefined, metaData?: MAP | undefined) => Script;
 export declare const buildReinscriptionTemplate: (ordinal: Utxo, destinationAddress: string, reinscription?: Inscription, metaData?: MAP) => Promise<Transaction>;
 export type Payment = {
     to: string;
     amount: number;
 };
-declare const createOrdinal: (utxo: Utxo, destinationAddress: string, paymentPk: PrivateKey, changeAddress: string, satPerByteFee: number, inscription: Inscription, metaData?: MAP, signer?: LocalSigner | RemoteSigner, additionalPayments?: Payment[]) => Promise<Transaction>;
-declare const sendOrdinal: (paymentUtxo: Utxo, ordinal: Utxo, paymentPk: PrivateKey, changeAddress: string, satPerByteFee: number, ordPk: PrivateKey, ordDestinationAddress: string, reinscription?: Inscription, metaData?: MAP, additionalPayments?: Payment[]) => Promise<Transaction>;
-declare const sendUtxos: (utxos: Utxo[], paymentPk: PrivateKey, address: string, feeSats: number) => Promise<Transaction>;
-export declare const P2PKH_INPUT_SCRIPT_SIZE = 107;
-export declare const P2PKH_FULL_INPUT_SIZE = 148;
-export declare const P2PKH_OUTPUT_SIZE = 34;
-export { buildInscription, createOrdinal, sendOrdinal, sendUtxos };
+declare const createOrdinal: (utxos: Utxo[], destinationAddress: string, paymentPk: PrivateKey, changeAddress: string, inscriptions: Inscription[], satsPerKb?: number, metaData?: MAP, signer?: LocalSigner | RemoteSigner, additionalPayments?: Payment[]) => Promise<Transaction>;
+declare const transferOrdinal: (paymentUtxos: Utxo[], ordinals: Utxo[], paymentPk: PrivateKey, changeAddress: string, ordPk: PrivateKey, ordDestinationAddress: string, satsPerKb: number, reinscription?: Inscription, metaData?: MAP, additionalPayments?: Payment[]) => Promise<Transaction>;
+declare const sendUtxos: (utxos: Utxo[], paymentPk: PrivateKey, destinationAddress: string, satsPerKb: number, amount: number) => Promise<Transaction>;
+export { createOrdinal, transferOrdinal, sendUtxos };

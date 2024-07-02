@@ -5,15 +5,14 @@ import {
 	UnlockingScript,
 	P2PKH,
 	LockingScript,
+	SatoshisPerKilobyte,
 } from "@bsv/sdk";
 import type { TransactionInput, TransactionOutput } from "@bsv/sdk";
-import * as dotenv from "dotenv";
 import { type AuthToken, Sigma } from "sigma-protocol";
-import { toHex } from "./utils/strings";
+import type FeeModel from "@bsv/sdk/dist/types/src/transaction/FeeModel";
+import OrdP2PKH from "./ordP2pkh";
 
-dotenv.config();
-
-// biome-ignore lint/complexity/noBannedTypes: <explanation>
+// biome-ignore lint/complexity/noBannedTypes: Reserved for future use
 type Signer = {};
 
 export interface LocalSigner extends Signer {
@@ -26,10 +25,8 @@ export interface RemoteSigner extends Signer {
 }
 
 export type Utxo = {
-	satoshis: number;
-	txid: string;
-	vout: number;
-	script: string;
+  rawTxHex: string;
+  vout: number;
 };
 
 export type Inscription = {
@@ -43,46 +40,6 @@ export type MAP = {
 	[prop: string]: string | string[];
 };
 
-const MAP_PREFIX = "1PuQa7K62MiKCtssSLKy1kh56WWU7MtUR5";
-
-const buildInscription = (
-	destinationAddress: string,
-	b64File?: string | undefined,
-	mediaType?: string | undefined,
-	metaData?: MAP | undefined,
-): Script => {
-	let ordAsm = "";
-	// This can be omitted for reinscriptions that just update metadata
-	if (b64File !== undefined && mediaType !== undefined) {
-		const ordHex = toHex("ord");
-		const fsBuffer = Buffer.from(b64File, "base64");
-		const fireShardHex = fsBuffer.toString("hex").trim();
-		const fireShardMediaType = toHex(mediaType);
-		ordAsm = `OP_0 OP_IF ${ordHex} OP_1 ${fireShardMediaType} OP_0 ${fireShardHex ? `${fireShardHex} `: ''}OP_ENDIF`;
-	}
-
-	// Create ordinal output and inscription in a single output
-	const lockingScript = new P2PKH().lock(destinationAddress);
-	let inscriptionAsm = `${lockingScript.toASM()}${ordAsm ? ` ${ordAsm}` : ""}`;
-
-	// MAP.app and MAP.type keys are required
-	if (metaData?.app && metaData?.type) {
-		const mapPrefixHex = toHex(MAP_PREFIX);
-		const mapCmdValue = toHex("SET");
-		inscriptionAsm = `${inscriptionAsm} OP_RETURN ${mapPrefixHex} ${mapCmdValue}`;
-
-		for (const [key, value] of Object.entries(metaData)) {
-			if (key !== "cmd") {
-				inscriptionAsm = `${inscriptionAsm} ${toHex(key)} ${toHex(
-					value as string,
-				)}`;
-			}
-		}
-	}
-
-	return LockingScript.fromASM(inscriptionAsm);
-};
-
 export const buildReinscriptionTemplate = async (
 	ordinal: Utxo,
 	destinationAddress: string,
@@ -91,14 +48,13 @@ export const buildReinscriptionTemplate = async (
 ): Promise<Transaction> => {
 	// Inputs
 	const txIn: TransactionInput = {
-		sourceTXID: ordinal.txid,
+		sourceTransaction: Transaction.fromHex(ordinal.rawTxHex),
 		sourceOutputIndex: ordinal.vout,
-		unlockingScript: UnlockingScript.fromASM(ordinal.script),
 		sequence: 0,
 	};
 
 	// Outputs
-	const inscriptionScript = buildInscription(
+	const inscriptionScript = new OrdP2PKH().lock(
 		destinationAddress,
 		reinscription?.dataB64,
 		reinscription?.contentType,
@@ -119,229 +75,243 @@ export type Payment = {
 };
 
 const createOrdinal = async (
-	utxo: Utxo,
+	utxos: Utxo[],
 	destinationAddress: string,
 	paymentPk: PrivateKey,
 	changeAddress: string,
-	satPerByteFee: number,
-	inscription: Inscription,
+	inscriptions: Inscription[],
+	satsPerKb?: number,
 	metaData?: MAP,
 	signer?: LocalSigner | RemoteSigner,
 	additionalPayments: Payment[] = [],
 ): Promise<Transaction> => {
-	const p2pkh = new P2PKH();
 
+	const modelOrFee = new SatoshisPerKilobyte(satsPerKb || 10);
 	// Inputs
-	const utxoIn: TransactionInput = {
-		sourceTXID: utxo.txid,
-		sourceOutputIndex: utxo.vout,
-		unlockingScriptTemplate: p2pkh.unlock(paymentPk),
-		sequence: 0xffffffff,
-	};
-
-	// Outputs
-	const inscriptionScript = buildInscription(
-		destinationAddress,
-		inscription.dataB64,
-		inscription.contentType,
-		metaData,
-	);
-
-	const txOuts: TransactionOutput[] = [];
-
-	txOuts.push({
-		satoshis: 1,
-		lockingScript: inscriptionScript,
+	const txIns: TransactionInput[] = utxos.map(utxo => {
+			const sourceTx = Transaction.fromHex(utxo.rawTxHex);
+			return {
+					sourceTransaction: sourceTx,
+					sourceOutputIndex: utxo.vout,
+					unlockingScriptTemplate: new P2PKH().unlock(paymentPk),
+					sequence: 0xffffffff,
+			};
 	});
 
-	// add additional payments if any
+	// Warn if creating many inscriptions at once
+	if (inscriptions.length > 100) {
+			console.warn("Creating many inscriptions at once can be slow. Consider using multiple transactions instead.");
+	}
+
+	// Outputs
+	const txOuts: TransactionOutput[] = [];
+
+	// Add inscription outputs
+	for (const inscription of inscriptions) {
+			const inscriptionScript = new OrdP2PKH().lock(
+					destinationAddress,
+					inscription.dataB64,
+					inscription.contentType,
+					metaData,
+			);
+
+			txOuts.push({
+					satoshis: 1,
+					lockingScript: inscriptionScript,
+			});
+	}
+
+	// Add additional payments if any
 	for (const p of additionalPayments) {
-		txOuts.push({
-			satoshis: p.amount,
-			lockingScript: new P2PKH().lock(p.to),
-		} as TransactionOutput);
+			txOuts.push({
+					satoshis: p.amount,
+					lockingScript: new P2PKH().lock(p.to),
+			} as TransactionOutput);
 	}
 
-	// total the outputs
-	let totalOut = 0;
-
-	for (const txOut of txOuts) {
-		totalOut += txOut.satoshis || 0;
-	}
-
-	// add change
+	// Add change output
 	const changeScript = new P2PKH().lock(changeAddress);
-
 	txOuts.push({
-		lockingScript: changeScript,
-		change: true,
+			lockingScript: changeScript,
+			change: true,
 	} as TransactionOutput);
 
-	const tx = new Transaction(1, [utxoIn], txOuts, 0);
-	await tx.fee();
-	const fee = tx.getFee() + P2PKH_OUTPUT_SIZE + P2PKH_INPUT_SCRIPT_SIZE;
+	let tx = new Transaction(1, txIns, txOuts, 0);
 
-	// sign tx if idKey or remote signer like starfish/tokenpass
+	// Sign tx if idKey or remote signer like starfish/tokenpass
 	const idKey = (signer as LocalSigner)?.idKey;
 	const keyHost = (signer as RemoteSigner)?.keyHost;
 
-  // TODO: Update Sigma lib to use ts-sdk
 	if (idKey) {
-	  // input txids are available so sigma signature
-	  // can be final before signing the tx
-	  // const sigma = new Sigma(tx);
-	  // const { signedTx } = sigma.sign(idKey);
-	  // tx = signedTx;
+			const sigma = new Sigma(tx);
+			const { signedTx } = sigma.sign(idKey);
+			tx = signedTx;
 	} else if (keyHost) {
-	  const authToken = (signer as RemoteSigner)?.authToken;
-	  // const sigma = new Sigma(tx);
-	  // try {
-	  //   const { signedTx } = await sigma.remoteSign(keyHost, authToken);
-	  //   tx = signedTx;
-	  // } catch (e) {
-	  //   console.log(e);
-	  //   throw new Error(`Remote signing to ${keyHost} failed`);
-	  // }
+			const authToken = (signer as RemoteSigner)?.authToken;
+			const sigma = new Sigma(tx);
+			try {
+					const { signedTx } = await sigma.remoteSign(keyHost, authToken);
+					tx = signedTx;
+			} catch (e) {
+					console.log(e);
+					throw new Error(`Remote signing to ${keyHost} failed`);
+			}
 	}
+
+	await tx.fee(modelOrFee);
 	await tx.sign();
 
 	return tx;
 };
 
-const sendOrdinal = async (
-	paymentUtxo: Utxo,
-	ordinal: Utxo,
+const transferOrdinal = async (
+	paymentUtxos: Utxo[],
+	ordinals: Utxo[],
 	paymentPk: PrivateKey,
 	changeAddress: string,
-	satPerByteFee: number,
 	ordPk: PrivateKey,
 	ordDestinationAddress: string,
+	satsPerKb: number,
 	reinscription?: Inscription,
 	metaData?: MAP,
 	additionalPayments: Payment[] = [],
 ): Promise<Transaction> => {
 
+	const modelOrFee = new SatoshisPerKilobyte(satsPerKb || 10);
 
 	// Inputs
-  const txIns: TransactionInput[] = [];
-  const ordIn: TransactionInput = {
-    sourceTXID: ordinal.txid,
-    sourceOutputIndex: ordinal.vout,
-    unlockingScript: UnlockingScript.fromASM(ordinal.script),
-    unlockingScriptTemplate: new P2PKH().unlock(ordPk),
-    sequence: 0xffffffff,
-  };
-  
-  txIns.push(ordIn);
+	const txIns: TransactionInput[] = [];
 
-  const utxoIn: TransactionInput = {
-    sourceTXID: paymentUtxo.txid,
-    sourceOutputIndex: paymentUtxo.vout,
-    unlockingScriptTemplate: new P2PKH().unlock(paymentPk),
-    sequence: 0xffffffff,
-  };
-
-  txIns.push(utxoIn);
-
-  // Outputs
-	let s: Script;
-	
-	if (reinscription?.dataB64 && reinscription?.contentType) {
-		s = buildInscription(
-			ordDestinationAddress,
-			reinscription.dataB64,
-			reinscription.contentType,
-			metaData,
-		);
-	} else {
-		s = new P2PKH().lock(ordDestinationAddress);
+	// Add ordinal inputs
+	for (const ordinal of ordinals) {
+			const ordinalTx = Transaction.fromHex(ordinal.rawTxHex);
+			const ordIn: TransactionInput = {
+					sourceTransaction: ordinalTx,
+					sourceOutputIndex: ordinal.vout,
+					unlockingScriptTemplate: new OrdP2PKH().unlock(
+							ordPk,
+							undefined,
+							undefined,
+							undefined,
+							LockingScript.fromASM(ordinalTx.outputs[ordinal.vout].lockingScript.toASM())
+					),
+					sequence: 0xffffffff,
+			};
+			txIns.push(ordIn);
 	}
 
-  const txOuts: TransactionOutput[] = [];
-  txOuts.push({
-    satoshis: 1,
-    lockingScript: s,
-  });
+	// Add payment inputs
+	for (const paymentUtxo of paymentUtxos) {
+			const paymentTx = Transaction.fromHex(paymentUtxo.rawTxHex);
+			const utxoIn: TransactionInput = {
+					sourceTransaction: paymentTx,
+					sourceOutputIndex: paymentUtxo.vout,
+					unlockingScriptTemplate: new P2PKH().unlock(paymentPk),
+					sequence: 0xffffffff,
+			};
+			txIns.push(utxoIn);
+	}
 
-	// add additional payments if any
+	// Outputs
+	const txOuts: TransactionOutput[] = [];
+
+	// Add ordinal outputs
+	for (const ordinal of ordinals) {
+			let s: Script;
+			if (reinscription?.dataB64 && reinscription?.contentType) {
+					s = new OrdP2PKH().lock(
+							ordDestinationAddress,
+							reinscription.dataB64,
+							reinscription.contentType,
+							metaData,
+					);
+			} else {
+					s = new P2PKH().lock(ordDestinationAddress);
+			}
+
+			txOuts.push({
+					satoshis: 1,
+					lockingScript: s,
+			});
+	}
+
+	// Add additional payments if any
 	for (const p of additionalPayments) {
-    txOuts.push({
-      satoshis: p.amount,
-      lockingScript: new P2PKH().lock(p.to),
-    });
+			txOuts.push({
+					satoshis: p.amount,
+					lockingScript: new P2PKH().lock(p.to),
+			});
 	}
 
+	// Add change output
 	const changeScript = new P2PKH().lock(changeAddress);
+	const changeOut: TransactionOutput = {
+			lockingScript: changeScript,
+			change: true,
+	};
+	txOuts.push(changeOut);
 
-  const changeOut: TransactionOutput = {
-    satoshis: paymentUtxo.satoshis - 1,
-    lockingScript: changeScript,
-    change: true,
-  };
-  txOuts.push(changeOut);
+	const tx = new Transaction(1, txIns, txOuts, 0);
 
-  const tx = new Transaction(1, txIns, txOuts, 0);
-
-  await tx.fee();
-  await tx.sign();
+	await tx.fee(modelOrFee);
+	await tx.sign();
 
 	return tx;
 };
 
 // sendUtxos sends p2pkh utxos to the given destinationAddress
 const sendUtxos = async (
-	utxos: Utxo[],
-	paymentPk: PrivateKey,
-	address: string,
-	feeSats: number,
+  utxos: Utxo[],
+  paymentPk: PrivateKey,
+  destinationAddress: string,
+  satsPerKb: number,
+	amount: number,
 ): Promise<Transaction> => {
-	// const tx = new Transaction(1, 0);
+	const modelOrFee = new SatoshisPerKilobyte(satsPerKb || 10);
 
-	// // Outputs
-	// let inputValue = 0;
-	// for (let u of utxos || []) {
-	// 	inputValue += u.satoshis;
-	// }
-	// const satsIn = inputValue;
-	// const satsOut = satsIn - feeSats;
-	// console.log({ feeSats, satsIn, satsOut });
-	// tx.add_output(new TxOut(BigInt(satsOut), address.get_locking_script()));
+  // Inputs
+  const txIns: TransactionInput[] = utxos.map(utxo => {
+      const sourceTx = Transaction.fromHex(utxo.rawTxHex);
+      
+      return {
+          sourceTransaction: sourceTx,
+          sourceOutputIndex: utxo.vout,
+          unlockingScriptTemplate: new P2PKH().unlock(paymentPk),
+          sequence: 0xffffffff,
+      };
+  });
 
-	// // build txins from our UTXOs
-	// let idx = 0;
-	// for (let u of utxos || []) {
-	// 	console.log({ u });
-	// 	const inx = new TxIn(
-	// 		Buffer.from(u.txid, "hex"),
-	// 		u.vout,
-	// 		Script.from_asm_string(""),
-	// 	);
-	// 	console.log({ inx });
-	// 	inx.set_satoshis(BigInt(u.satoshis));
-	// 	tx.add_input(inx);
+  // Outputs
+	const txOuts: TransactionOutput[] = [];
 
-	// 	const sig = tx.sign(
-	// 		paymentPk,
-	// 		SigHash.InputOutputs,
-	// 		idx,
-	// 		Script.from_asm_string(u.script),
-	// 		BigInt(u.satoshis),
-	// 	);
+  const sendTxOut: TransactionOutput = {
+      satoshis: amount,
+      lockingScript: new P2PKH().lock(destinationAddress),
+  };
 
-	// 	inx.set_unlocking_script(
-	// 		Script.from_asm_string(
-	// 			`${sig.to_hex()} ${paymentPk.to_public_key().to_hex()}`,
-	// 		),
-	// 	);
+	txOuts.push(sendTxOut);
 
-	// 	tx.set_input(idx, inx);
-	// 	idx++;
-	// }
-	return new Transaction(1, [], [], 0);
+	// Change
+	const changeAddress = paymentPk.toAddress().toString();
+	const changeScript = new P2PKH().lock(changeAddress);
+
+	const changeOut: TransactionOutput = {
+		lockingScript: changeScript,
+		change: true,
+	};
+
+	txOuts.push(changeOut);
+
+  // Create transaction
+  const tx = new Transaction(1, txIns, txOuts, 0);
+
+  // Calculate fee
+  await tx.fee(modelOrFee);
+
+  // Sign the transaction
+  await tx.sign();
+
+  return tx;
 };
 
-export const P2PKH_INPUT_SCRIPT_SIZE = 107;
-export const P2PKH_FULL_INPUT_SIZE = 148;
-export const P2PKH_OUTPUT_SIZE = 34;
-
-export { buildInscription, createOrdinal, sendOrdinal, sendUtxos };
+export { createOrdinal, transferOrdinal, sendUtxos };

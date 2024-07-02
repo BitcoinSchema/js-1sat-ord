@@ -1,6 +1,6 @@
 {
   "name": "js-1sat-ord",
-  "version": "0.0.37",
+  "version": "0.1.0",
   "description": "",
   "types": "dist/index.d.ts",
   "type": "module",
@@ -11,7 +11,7 @@
     "/dist"
   ],
   "scripts": {
-    "build": "yarn clean && microbundle",
+    "build": "bun run clean && microbundle",
     "clean": "rimraf -rf dist",
     "test": "jest"
   },
@@ -20,17 +20,17 @@
   "license": "MIT",
   "dependencies": {
     "@bsv/sdk": "^1.1.10",
-    "sigma-protocol": "^0.0.10"
+    "sigma-protocol": "0.1.0"
   },
   "devDependencies": {
-    "dotenv": "^16.0.3",
-    "@jest/globals": "^29.5.0",
-    "@types/jest": "^29.5.0",
-    "jest": "^29.5.0",
+    "@types/bun": "^1.1.6",
+    "@jest/globals": "^29.7.0",
+    "@types/jest": "^29.5.12",
+    "jest": "^29.7.0",
     "microbundle": "^0.15.1",
-    "rimraf": "^4.4.0",
-    "ts-jest": "^29.1.1",
+    "rimraf": "^4.4.1",
+    "ts-jest": "^29.1.5",
     "ts-node": "^10.9.2",
-    "typescript": "^5.3.3"
+    "typescript": "^5.5.3"
   }
 }
