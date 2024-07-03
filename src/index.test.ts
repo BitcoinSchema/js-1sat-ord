@@ -1,6 +1,7 @@
 import { PrivateKey, Utils } from "@bsv/sdk";
-import { Destination, createOrdinals, sendOrdinals } from ".";
+import { createOrdinals, sendOrdinals } from ".";
 import OrdP2PKH from "./ordP2pkh";
+import type { Destination } from "./types";
 
 test("test build inscription", () => {
   const b64Data = "# Hello World!";
@@ -30,7 +31,7 @@ test("test build inscription w metadata", () => {
   );
 });
 
-test("hello world inscription", async () => {
+test("create and send ordinal inscription", async () => {
   const paymentPk = PrivateKey.fromWif('KzwfqdfecMRtpg65j2BeRtixboNR37fSCDr8QbndV6ySEPT4xibW');
   const changeAddress = paymentPk.toAddress();
   let utxos = [{ 
@@ -43,22 +44,26 @@ test("hello world inscription", async () => {
   let destinations: Destination[] = [{
     address: changeAddress,
     inscription: {
-      dataB64: "hello world",
+      dataB64: Buffer.from("hello world").toString('base64'),
       contentType: "text/plain"
     }
   }];
   let tx = await createOrdinals(utxos, destinations, paymentPk, changeAddress)
   console.log(tx.toHex());
 
+  if (!tx.outputs[0].satoshis || !tx.outputs[1].satoshis) {
+    throw new Error("Expected 2 outputs")
+  }
+  
   utxos = [{
-    satoshis: tx.outputs[1].satoshis!,
+    satoshis: tx.outputs[1].satoshis,
     txid: tx.id('hex'),
     vout: 1,
     script: Buffer.from(tx.outputs[1].lockingScript.toHex(), 'hex').toString('base64')
   }]
 
   let ordinals = [{
-    satoshis: tx.outputs[0].satoshis!,
+    satoshis: tx.outputs[0].satoshis,
     txid: tx.id('hex'),
     vout: 0,
     script: Buffer.from(tx.outputs[0].lockingScript.toHex(), 'hex').toString('base64')
@@ -67,7 +72,7 @@ test("hello world inscription", async () => {
   destinations = [{
     address: changeAddress,
     inscription: {
-      dataB64: "reinscribe",
+      dataB64: Buffer.from("reinscription!").toString('base64'),
       contentType: "text/plain"
     }
   }];
@@ -75,15 +80,19 @@ test("hello world inscription", async () => {
   tx = await sendOrdinals(utxos, ordinals, paymentPk, changeAddress, paymentPk, destinations)
   console.log(tx.toHex());
 
+  if (!tx.outputs[0].satoshis || !tx.outputs[1].satoshis) {
+    throw new Error("Expected 2 outputs")
+  }
+
   utxos = [{
-    satoshis: tx.outputs[1].satoshis!,
+    satoshis: tx.outputs[1].satoshis,
     txid: tx.id('hex'),
     vout: 1,
     script: Buffer.from(tx.outputs[1].lockingScript.toHex(), 'hex').toString('base64')
   }]
 
   ordinals = [{
-    satoshis: tx.outputs[0].satoshis!,
+    satoshis: tx.outputs[0].satoshis,
     txid: tx.id('hex'),
     vout: 1,
     script: Buffer.from(tx.outputs[0].lockingScript.toHex(), 'hex').toString('base64')
