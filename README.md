@@ -40,8 +40,6 @@ const utxo: Utxo = {
 };
 ```
 
-Certainly! Here's an updated version of the "Prepare Inscription" section that demonstrates how to create a markdown inscription and convert it to base64:
-
 #### Prepare Inscription
 
 For a markdown inscription, you can create a string and convert it to base64:
