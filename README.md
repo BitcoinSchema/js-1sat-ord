@@ -72,16 +72,25 @@ const inscription = {
 
 #### Prepare Keys
 
-Be sure to use different keys for ordinals and normal payments. If wallets don't know your outputs contain ordinals, they will be treated like normal utxos and potentially merged with other Satoshis.
+Be sure to use different keys for ordinals and normal payments. If wallets don't know your outputs contain ordinals, they will be treated like normal utxos and potentially merged with other Satoshis. We can use the @bsv/ts-sdk to get a PrivateKey from a WIF string:
 
 ```ts
 const paymentPk = PrivateKey.fromWif(paymentWif);
-const ordinalDestinationAddress  = "1N8GgJVvwkiQjjN9Fws9t5ax1PLeHrn2bh";
 ```
 
-### Create Ordinals
+#### Prepare destinations
 
-The `createOrdinals` function creates a transaction with inscription outputs.
+Lets take a look at the destination type:
+
+```ts
+export type Destination = {
+	address: string;
+	inscription?: Inscription;
+};
+
+```
+
+Destinations define the address that will recieve an inscription, and the inscription itself.
 
 ```ts
 const destinations = [
@@ -90,7 +99,13 @@ const destinations = [
     inscription: { dataB64: encodedFileData, contentType: "model/gltf-binary" }
   }
 ];
+```
 
+### Create Ordinals
+
+The `createOrdinals` function creates a transaction with inscription outputs. The number of utxos supplied does not need to relate to the number of destinations (you can create multiple inscriptions at once).
+
+```ts
 const tx = await createOrdinals(
   [utxo],
   destinations,
@@ -102,6 +117,8 @@ const tx = await createOrdinals(
   additionalPayments
 );
 ```
+
+> **Note:** It is recommended to limit the number of inscriptions you make in a single transaction, as this initial inscription will become the "origin" of this ordinal, and in some cases, this can impact the performance depending on the wallet software.
 
 ### Send Ordinals
 
@@ -120,6 +137,8 @@ const tx = await sendOrdinals(
   additionalPayments
 );
 ```
+
+> **Warning:** This is not for BSV20/BSV21 tokens or other "sub-protocols" of 1Sat Ordinals that depend on a specific inscription structure. Transfering a fungible token will require a specific output inscription and is not currently covered by this library. Using this function to send fungible tokens will effectively burn them!
 
 ### Send Utxos
 
