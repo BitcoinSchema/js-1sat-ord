@@ -70,7 +70,7 @@ const inscription = {
 
 #### Prepare Keys
 
-Be sure to use different keys for ordinals and normal payments. If wallets don't know your outputs contain ordinals, they will be treated like normal utxos and potentially merged with other Satoshis. We can use the @bsv/ts-sdk to get a PrivateKey from a WIF string:
+Be sure to use different keys for ordinals and normal payments. If wallets don't know your outputs contain ordinals, they will be treated like normal utxos and potentially merged with other Satoshis. We can use the @bsv/sdk to get a PrivateKey from a WIF string:
 
 ```ts
 const paymentPk = PrivateKey.fromWif(paymentWif);
