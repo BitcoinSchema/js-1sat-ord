@@ -34,6 +34,10 @@ export const sendOrdinals = async (
 	// Inputs
 	// Add ordinal inputs
 	for (const ordUtxo of ordinals) {
+		if (ordUtxo.satoshis !== 1) {
+			throw new Error("1Sat Ordinal utxos must have exactly 1 satoshi");
+		}
+		
 		const input = fromB64Utxo(ordUtxo, new OrdP2PKH().unlock(ordPk));
 		tx.addInput(input);
 	}
