@@ -4,6 +4,19 @@ import OrdP2PKH from "./ordP2pkh";
 import type { Utxo, Destination, MAP, Payment } from "./types";
 import { fromB64Utxo } from "./utils/utxo";
 
+/**
+ * Sends ordinals to the given destinations
+ * @param {Utxo[]} paymentUtxos - Utxos to spend (with base64 encoded scripts)
+ * @param {Utxo[]} ordinals - Utxos to spend (with base64 encoded scripts)
+ * @param {PrivateKey} paymentPk - Private key to sign paymentUtxos
+ * @param {string} changeAddress - Address to send change to
+ * @param {PrivateKey} ordPk - Private key to sign ordinals
+ * @param {Destination[]} destinations - Array of destinations with addresses and inscriptions
+ * @param {number} satsPerKb - Satoshis per kilobyte for fee calculation. Default is DEFAULT_SAT_PER_KB
+ * @param {MAP} metaData - MAP (Magic Attribute Protocol) metadata to include in inscriptions
+ * @param {Payment[]} additionalPayments - Additional payments to include in the transaction
+ * @returns {Promise<Transaction>} Transaction with inscription outputs
+ */
 export const sendOrdinals = async (
 	paymentUtxos: Utxo[],
 	ordinals: Utxo[],

@@ -4,18 +4,27 @@ description: js-1sat-ord
 
 # 1Sat Ordinals - JS Library
 
-A Javascript library for creating 1Sat Ordinal inscriptions and transactions. Uses `bsv-wasm` under the hood.
+A Javascript library for creating and managing 1Sat Ordinal inscriptions and transactions. Uses `@bsv/sdk` under the hood.
 
 ### Install
 
+We recommend using Bun for the best performance, but you can also use Yarn or npm:
+
 ```bash
+# Using Bun (recommended)
+bun add js-1sat-ord
+
+# Using Yarn
 yarn add js-1sat-ord
+
+# Using npm
+npm install js-1sat-ord
 ```
 
 ### Usage
 
 ```ts
-import { createOrdinal, sendOrdinal, sendUtxos } from 'js-1sat-ord'
+import { createOrdinals, sendOrdinals, sendUtxos } from 'js-1sat-ord'
 ```
 
 ### Example
@@ -23,29 +32,42 @@ import { createOrdinal, sendOrdinal, sendUtxos } from 'js-1sat-ord'
 Prepare some utxos to use
 
 ```ts
-const ordinal: Utxo = {
-  satoshis: 1,
-  txid: "61fd6e240610a9e9e071c34fc87569ef871760ea1492fe1225d668de4d76407e",
-  script:
-    "OP_DUP OP_HASH160 b87db78cba867b9f5def9f48d00ec732493ee543 OP_EQUALVERIFY OP_CHECKSIG",
-  vout: 0,
-};
-
 const utxo: Utxo = {
   satoshis: 269114,
   txid: "61fd6e240610a9e9e071c34fc87569ef871760ea1492fe1225d668de4d76407e",
-  script:
-    "OP_DUP OP_HASH160 df936f6867bf13de0feef81b3fd14804c35e8cc6 OP_EQUALVERIFY OP_CHECKSIG",
+  script: "<base64 encoded script>",
   vout: 1,
 };
 ```
 
+Certainly! Here's an updated version of the "Prepare Inscription" section that demonstrates how to create a markdown inscription and convert it to base64:
+
 #### Prepare Inscription
 
-Format raw bytes in b64
+For a markdown inscription, you can create a string and convert it to base64:
 
 ```ts
-const frostShard = "b64 string...";
+// Create a markdown string
+const markdownContent = "# Hello World!\n\nThis is a 1Sat Ordinal inscription.";
+
+// Convert to base64
+const encodedFileData = Buffer.from(markdownContent).toString('base64');
+
+// Prepare the inscription object
+const inscription = {
+  dataB64: encodedFileData,
+  contentType: "text/markdown"
+};
+```
+
+For other file types, you can still use raw bytes in base64:
+
+```ts
+// any file type (e.g., image/png, model/gltf-binary, etc.)
+const inscription = {
+  dataB64: "b64 string...",
+  contentType: "image/png"
+} 
 ```
 
 #### Prepare Keys
@@ -53,82 +75,68 @@ const frostShard = "b64 string...";
 Be sure to use different keys for ordinals and normal payments. If wallets don't know your outputs contain ordinals, they will be treated like normal utxos and potentially merged with other Satoshis.
 
 ```ts
-const paymentPk = PrivateKey.from_wif(paymentWif);
+const paymentPk = PrivateKey.fromWif(paymentWif);
 const ordinalDestinationAddress  = "1N8GgJVvwkiQjjN9Fws9t5ax1PLeHrn2bh";
 ```
 
-### Create an inscription
+### Create Ordinals
 
-The `createOrdinal` function takes a utxo and inscription data.
-
-```ts
-// inscription
-const inscription =  { dataB64: fireShard,  contentType: "model/gltf-binary"}
-
-// returns Promise<Transaction>
-const tx = createOrdinal(utxo, ordinalDestinationAddress, paymentPk, changeAddress, satPerByteFee, inscription);
-```
-
-### Transfer
-
-Sends the ordinal to the destination address.
+The `createOrdinals` function creates a transaction with inscription outputs.
 
 ```ts
-const tx = sendOrdinal(
-  utxo,
-  ordinal,
+const destinations = [
+  {
+    address: ordinalDestinationAddress,
+    inscription: { dataB64: encodedFileData, contentType: "model/gltf-binary" }
+  }
+];
+
+const tx = await createOrdinals(
+  [utxo],
+  destinations,
   paymentPk,
   changeAddress,
   satPerByteFee,
+  metaData,
+  signer,
+  additionalPayments
+);
+```
+
+### Send Ordinals
+
+Sends ordinals to the given destinations. The number of destinations must match number of ordinals being sent.
+
+```ts
+const tx = await sendOrdinals(
+  paymentUtxos,
+  ordinals,
+  paymentPk,
+  changeAddress,
   ordPk,
-  ordDestinationAddress
+  destinations,
+  satPerByteFee,
+  metaData,
+  additionalPayments
 );
 ```
 
 ### Send Utxos
 
-Sends all utxos for the given address to the destination address
+Sends utxos to the given destination
 
 ```ts
-const tx = sendOrdinal(
+const tx = await sendUtxos(
   utxos,
   paymentPk,
-  address,
-  feeSats
+  destinationAddress,
+  amount,
+  satPerByteFee
 );
 ```
 
 #### Using with Bundlers
 
-Since this package depends on `bsv-wasm` it will throw errors when used in a frontend project. One workaround for this is to tell your bundler to use `bsv-wasm` instead of `bsv-wasm`. There's a webpack example:
+Since this package depends on `@bsv/sdk` there should be no issue with bundlers.
 
-Install module replacer
-```
-npm i replace-module-webpack-plugin
-```
-
-Modify the plugins field of your webpack config:
-
-```js
-  config.plugins = [
-    ...config.plugins,
-    new WebpackPluginReplaceNpm({
-      rules: [
-        {
-          originModule: "bsv-wasm",
-          replaceModule: "bsv-wasm",
-        },
-      ],
-    }),
-  ];
-```
-
-if you only want to make the replacement for this package
-
-```js
-  {
-    originModule: "bsv-wasm",
-    replaceModule: "bsv-wasm",
-    context: /node_modules\/js-1sat-ord/,
-  },  
-```
+---

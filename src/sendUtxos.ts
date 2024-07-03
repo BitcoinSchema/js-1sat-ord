@@ -3,7 +3,15 @@ import { DEFAULT_SAT_PER_KB } from "./constants";
 import type { Utxo } from "./types";
 import { fromB64Utxo } from "./utils/utxo";
 
-// sendUtxos sends p2pkh utxos to the given destinationAddress
+/**
+ * Sends utxos to the given destination
+ * @param {Utxo[]} utxos - Utxos to spend (with base64 encoded scripts)
+ * @param {PrivateKey} paymentPk - Private key to sign utxos
+ * @param {string} destinationAddress - Address to send utxos to
+ * @param {number} amount - Amount to send in satoshis
+ * @param {number} satsPerKb - Satoshis per kilobyte for fee calculation. Default is DEFAULT_SAT_PER_KB
+ * @returns {Promise<Transaction>} Transaction with utxo outputs
+ */
 export const sendUtxos = async (
 	utxos: Utxo[],
 	paymentPk: PrivateKey,
