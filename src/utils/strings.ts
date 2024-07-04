@@ -1,22 +1,11 @@
-const toHex = (asciiStr: string) => {
-  var arr1: string[] = [];
-  for (var n = 0, l = asciiStr.length; n < l; n++) {
-    var hex = Number(asciiStr.charCodeAt(n)).toString(16);
-    arr1.push(hex);
-  }
-  return arr1.join("");
+/**
+ * Converts a string to its hexadecimal representation
+ *
+ * @param {string} utf8Str - The string to convert
+ * @returns {string} The hexadecimal representation of the input string
+ */
+const toHex = (utf8Str: string): string => {
+  return Buffer.from(utf8Str).toString("hex");
 };
 
-const toAscii = (hexStr: string) => {
-  var hex, i;
-
-  var result = "";
-  for (i = 0; i < hexStr.length; i++) {
-    hex = hexStr.charCodeAt(i).toString(16);
-    result += ("000" + hex).slice(-4);
-  }
-
-  return result;
-};
-
-export { toHex, toAscii };
+export { toHex };
