@@ -7,7 +7,7 @@ import type { Utxo } from "../types";
  * @param {Object} unlockScriptTemplate - Object with sign and estimateLength functions
  * @returns {TransactionInput} Utxo object with hex encoded script
  */
-export const fromB64Utxo = (
+export const inputFromB64Utxo = (
 	utxo: Utxo,
 	unlockScriptTemplate: {
 		sign: (tx: Transaction, inputIndex: number) => Promise<UnlockingScript>;

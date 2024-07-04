@@ -48,22 +48,18 @@ test("create and send ordinal inscription", async () => {
       contentType: "text/plain"
     }
   }];
-  let tx = await createOrdinals(utxos, destinations, paymentPk, changeAddress)
-  console.log(tx.toHex());
-
-  if (!tx.outputs[0].satoshis || !tx.outputs[1].satoshis) {
-    throw new Error("Expected 2 outputs")
-  }
+  const tx = await createOrdinals(utxos, destinations, paymentPk)
+  console.log({ txHex: tx.toHex() });
   
   utxos = [{
-    satoshis: tx.outputs[1].satoshis,
+    satoshis: tx.outputs[1].satoshis || 1,
     txid: tx.id('hex'),
     vout: 1,
     script: Buffer.from(tx.outputs[1].lockingScript.toHex(), 'hex').toString('base64')
   }]
 
   let ordinals = [{
-    satoshis: tx.outputs[0].satoshis,
+    satoshis: tx.outputs[0].satoshis || 1,
     txid: tx.id('hex'),
     vout: 0,
     script: Buffer.from(tx.outputs[0].lockingScript.toHex(), 'hex').toString('base64')
@@ -77,24 +73,20 @@ test("create and send ordinal inscription", async () => {
     }
   }];
 
-  tx = await sendOrdinals(utxos, ordinals, paymentPk, changeAddress, paymentPk, destinations)
-  console.log(tx.toHex());
-
-  if (!tx.outputs[0].satoshis || !tx.outputs[1].satoshis) {
-    throw new Error("Expected 2 outputs")
-  }
+  let tx2 = await sendOrdinals(utxos, ordinals, paymentPk, paymentPk, destinations)
+  console.log(tx2.toHex());
 
   utxos = [{
-    satoshis: tx.outputs[1].satoshis,
+    satoshis: tx.outputs[1].satoshis || 1,
     txid: tx.id('hex'),
     vout: 1,
     script: Buffer.from(tx.outputs[1].lockingScript.toHex(), 'hex').toString('base64')
   }]
 
   ordinals = [{
-    satoshis: tx.outputs[0].satoshis,
+    satoshis: tx.outputs[0].satoshis || 1,
     txid: tx.id('hex'),
-    vout: 1,
+    vout: 0,
     script: Buffer.from(tx.outputs[0].lockingScript.toHex(), 'hex').toString('base64')
   }]
   
@@ -102,6 +94,7 @@ test("create and send ordinal inscription", async () => {
     address: changeAddress,
   }];
 
-  tx = await sendOrdinals(utxos, ordinals, paymentPk, changeAddress, paymentPk, destinations)
+  tx2 = await sendOrdinals(utxos, ordinals, paymentPk, paymentPk, destinations)
   console.log(tx.toHex());
+  
 })

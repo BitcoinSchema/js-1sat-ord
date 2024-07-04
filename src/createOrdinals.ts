@@ -1,16 +1,28 @@
-import { type PrivateKey, Transaction, SatoshisPerKilobyte, P2PKH } from "@bsv/sdk";
-import { Sigma } from "sigma-protocol";
+import {
+	type PrivateKey,
+	Transaction,
+	SatoshisPerKilobyte,
+	P2PKH,
+} from "@bsv/sdk";
 import OrdP2PKH from "./ordP2pkh";
-import type { Utxo, Destination, MAP, LocalSigner, RemoteSigner, Payment } from "./types";
-import { fromB64Utxo } from "./utils/utxo";
+import type {
+	Utxo,
+	Destination,
+	MAP,
+	LocalSigner,
+	RemoteSigner,
+	Payment,
+} from "./types";
+import { inputFromB64Utxo } from "./utils/utxo";
 import { DEFAULT_SAT_PER_KB } from "./constants";
+import { signData } from "./signData";
 
 /**
  * Creates a transaction with inscription outputs
  * @param {Utxo[]} utxos - Utxos to spend (with base64 encoded scripts)
  * @param {Destination[]} destinations - Array of destinations with addresses and inscriptions
  * @param {PrivateKey} paymentPk - Private key to sign utxos
- * @param {string} changeAddress - Address to send change to
+ * @param {string} changeAddress - (optional) Address to send change to. If not provided, defaults to paymentPk address
  * @param {number} satsPerKb - Satoshis per kilobyte for fee calculation. Default is DEFAULT_SAT_PER_KB
  * @param {MAP} metaData - MAP (Magic Attribute Protocol) metadata to include in inscriptions
  * @param {LocalSigner | RemoteSigner} signer - Local or remote signer (used for data signature)
@@ -21,7 +33,7 @@ export const createOrdinals = async (
 	utxos: Utxo[],
 	destinations: Destination[],
 	paymentPk: PrivateKey,
-	changeAddress: string,
+	changeAddress?: string,
 	satsPerKb: number = DEFAULT_SAT_PER_KB,
 	metaData?: MAP,
 	signer?: LocalSigner | RemoteSigner,
@@ -32,7 +44,7 @@ export const createOrdinals = async (
 
 	// Inputs
 	for (const utxo of utxos) {
-		const input = fromB64Utxo(utxo, new P2PKH().unlock(paymentPk));
+		const input = inputFromB64Utxo(utxo, new P2PKH().unlock(paymentPk));
 		tx.addInput(input);
 	}
 
@@ -71,31 +83,18 @@ export const createOrdinals = async (
 
 	// Add change output
 	tx.addOutput({
-		lockingScript: new P2PKH().lock(changeAddress),
+		lockingScript: new P2PKH().lock(changeAddress || paymentPk.toAddress().toString()),
 		change: true,
 	});
 
-	// Sign tx if idKey or remote signer like starfish/tokenpass
-	const idKey = (signer as LocalSigner)?.idKey;
-	const keyHost = (signer as RemoteSigner)?.keyHost;
-
-	if (idKey) {
-		const sigma = new Sigma(tx);
-		const { signedTx } = sigma.sign(idKey);
-		tx = signedTx;
-	} else if (keyHost) {
-		const authToken = (signer as RemoteSigner)?.authToken;
-		const sigma = new Sigma(tx);
-		try {
-			const { signedTx } = await sigma.remoteSign(keyHost, authToken);
-			tx = signedTx;
-		} catch (e) {
-			console.log(e);
-			throw new Error(`Remote signing to ${keyHost} failed`);
-		}
+	if (signer) {
+		tx = await signData(tx, signer);
 	}
 
+	// Calculate fee
 	await tx.fee(modelOrFee);
+
+	// Sign the transaction
 	await tx.sign();
 
 	return tx;
