@@ -127,9 +127,9 @@ const tx = await sendOrdinals(
   paymentUtxos,
   ordinals,
   paymentPk,
-  changeAddress,
   ordPk,
   destinations,
+  changeAddress,
   satPerByteFee,
   metaData,
   additionalPayments
@@ -140,7 +140,7 @@ const tx = await sendOrdinals(
 
 ### Send Utxos
 
-Sends utxos to the given destination
+Sends utxos to the given destination. This creates a typical P2PKH funds transfer without Ordinals.
 
 ```ts
 const tx = await sendUtxos(

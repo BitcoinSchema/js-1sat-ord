@@ -1,6 +1,6 @@
 {
   "name": "js-1sat-ord",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "",
   "types": "dist/index.d.ts",
   "type": "module",
@@ -19,8 +19,8 @@
   "author": "Luke Rohenaz",
   "license": "MIT",
   "dependencies": {
-    "@bsv/sdk": "^1.1.10",
-    "sigma-protocol": "0.1.0"
+    "@bsv/sdk": "^1.1.12",
+    "sigma-protocol": "^0.1.2"
   },
   "devDependencies": {
     "@types/bun": "^1.1.6",
