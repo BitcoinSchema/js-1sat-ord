@@ -14,8 +14,8 @@ export type Destination = {
 };
 /**
  * @typedef {Object} Distribution
- * @property {string} address - Destination address
- * @property {string} amt - Number of tokens as a string
+ * @property {string} address - Destination address. Must be a Ordinals address (BSV address for recieving 1Sat ordinals tokens).
+ * @property {string} amt - Number of tokens as a string, considering decimals. Not display format. Ex. 100000000 for 1 token with 8 decimal places.
  */
 export type Distribution = {
     address: string;

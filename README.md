@@ -136,7 +136,43 @@ const tx = await sendOrdinals(
 );
 ```
 
-> **Warning:** This is not for BSV20/BSV21 tokens or other "sub-protocols" of 1Sat Ordinals that depend on a specific inscription structure. Transfering a fungible token will require a specific output inscription and is not currently covered by this library. Using this function to send fungible tokens will effectively burn them!
+> **Warning:** This is not for BSV20/BSV21 tokens or other "sub-protocols" of 1Sat Ordinals that depend on a specific inscription structure. To transfering a fungible token, use the transferOrdToken function instead. Using this function to send fungible tokens will burn them!
+
+### Deploy a BSV21 Token
+
+First, prepare an icon by making an ordinal inscription for the icon image. It should be a square image with a standard image mime type like image/png. It should be optimized for web display (low file size). The recommended size is 400x400px. Outpoint format must be "txid_vout".
+
+```ts
+const tx = await deployBsv21(
+  "MYTICKER",
+  "<icon_outpoint>",
+
+)
+```
+
+You can also create the icon in the same transaction. To do this, provide an Inscription for the icon instead of an outpoint.
+
+```
+const tx = await deployBsv21(
+  "MYTICKER",
+  iconInscription,
+
+)
+```
+
+### Transfer BSV21 Tokens
+
+```ts
+const tx = await transferOrdToken(
+  TokenType.BSV21,
+  tokenID,
+  utxos,
+  inputTokens,
+  distributions,
+  paymentPk,
+  ordPk
+);
+```
 
 ### Send Utxos
 

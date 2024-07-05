@@ -20,8 +20,8 @@ export type Destination = {
 
 /**
  * @typedef {Object} Distribution
- * @property {string} address - Destination address
- * @property {string} amt - Number of tokens as a string
+ * @property {string} address - Destination address. Must be a Ordinals address (BSV address for recieving 1Sat ordinals tokens).
+ * @property {string} amt - Number of tokens as a string, considering decimals. Not display format. Ex. 100000000 for 1 token with 8 decimal places.
  */
 export type Distribution = {
 	address: string;
@@ -42,7 +42,6 @@ export type Utxo = {
 	script: string;
 };
 
-
 /**
  * @typedef {Object} TokenUtxo
  * @property {string} amt - Number of tokens as a string
@@ -60,6 +59,23 @@ export type Inscription = {
 	contentType: string;
 };
 
+export type ImageContentType =
+	| "image/png"
+	| "image/jpeg"
+	| "image/gif"
+	| "image/svg+xml"
+	| "image/webp";
+
+/**
+ * @typedef {Object} IconInscription
+ * @property {string} dataB64 - Base64 encoded image data. Must be a square image.
+ * @property {ImageContentType} contentType - Media type of the image
+ */
+export type IconInscription = {
+	dataB64: string;
+	contentType: ImageContentType;
+};
+
 export type MAP = {
 	app: string;
 	type: string;
@@ -74,24 +90,24 @@ export type Payment = {
 export type TokenInscription = {
 	p: "bsv-20";
 	amt: string;
-  op: "transfer" | "mint" | "deploy+mint";
+	op: "transfer" | "mint" | "deploy+mint";
 };
 
 export interface MintTokenInscription extends TokenInscription {
 	op: "mint";
-};
+}
 
 export interface DeployMintTokenInscription extends TokenInscription {
 	op: "deploy+mint";
 	sym: string;
 	icon: string;
-};
+}
 
 export interface TransferTokenInscription extends TokenInscription {
 	p: "bsv-20";
 	amt: string;
-  op: "transfer";
-};
+	op: "transfer";
+}
 
 export interface TransferBSV20Inscription extends TransferTokenInscription {
 	tick: string;
