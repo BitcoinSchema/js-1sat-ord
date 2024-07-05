@@ -146,17 +146,23 @@ First, prepare an icon by making an ordinal inscription for the icon image. It s
 const tx = await deployBsv21(
   "MYTICKER",
   "<icon_outpoint>",
-
+  utxos,
+  initialDistribution,
+  paymentPk,
+  destinationAddress
 )
 ```
 
-You can also create the icon in the same transaction. To do this, provide an Inscription for the icon instead of an outpoint.
+You can also create the icon in the same transaction. To do this, provide an IconInscription for the icon instead of an outpoint.
 
-```
+```ts
 const tx = await deployBsv21(
   "MYTICKER",
   iconInscription,
-
+  utxos,
+  initialDistribution,
+  paymentPk,
+  destinationAddress
 )
 ```
 
