@@ -1,5 +1,5 @@
 import { PrivateKey, Utils } from "@bsv/sdk";
-import { deployBsv21Token } from "./deployBsv21";
+import { deployBsv21Token, type DeployBsv21TokenConfig } from "./deployBsv21";
 import type { Utxo, IconInscription } from "./types";
 import { ErrorIconProportions, ErrorOversizedIcon } from "./utils/icon";
 
@@ -39,8 +39,17 @@ describe("deployBsv21Token", () => {
     contentType: "image/svg+xml"
   };
 
+  const baseConfig: DeployBsv21TokenConfig = {
+    symbol,
+    icon: svgIcon,
+    utxos: sufficientUtxos,
+    initialDistribution,
+    paymentPk,
+    destinationAddress: address,
+  };
+
   test("deploy BSV21 token with a sufficient utxo", async () => {
-    const tx = await deployBsv21Token(symbol, svgIcon, sufficientUtxos, initialDistribution, paymentPk, address);
+    const { tx } = await deployBsv21Token(baseConfig);
 
     expect(tx).toBeDefined();
     expect(tx.toHex()).toBeTruthy();
@@ -50,7 +59,8 @@ describe("deployBsv21Token", () => {
   });
 
   test("deploy BSV21 token with an exact utxo", async () => {
-    const tx = await deployBsv21Token(symbol, svgIcon, exactUtxos, initialDistribution, paymentPk, address);
+    const config = { ...baseConfig, utxos: exactUtxos };
+    const { tx } = await deployBsv21Token(config);
 
     expect(tx).toBeDefined();
     expect(tx.toHex()).toBeTruthy();
@@ -60,19 +70,13 @@ describe("deployBsv21Token", () => {
   });
 
   test("deploy BSV21 token with a insufficient utxo", async () => {
+    const config = { ...baseConfig, utxos: insufficientUtxos };
     // expect this to throw an error
-    await expect(deployBsv21Token(symbol, svgIcon, insufficientUtxos, initialDistribution, paymentPk, address))
-      .rejects.toThrow();
+    await expect(deployBsv21Token(config)).rejects.toThrow();
   });
 
   test("deploy BSV21 token with sufficient utxos", async () => {
-    const symbol = "TEST";
-    const svgIcon: IconInscription = {
-      dataB64: Buffer.from('<svg width="100" height="100"><circle cx="50" cy="50" r="40" stroke="black" stroke-width="3" fill="red" /></svg>').toString('base64'),
-      contentType: "image/svg+xml"
-    };
-
-    const tx = await deployBsv21Token(symbol, svgIcon, sufficientUtxos, initialDistribution, paymentPk, address);
+    const { tx } = await deployBsv21Token(baseConfig);
 
     expect(tx).toBeDefined();
     expect(tx.toHex()).toBeTruthy();
@@ -80,24 +84,22 @@ describe("deployBsv21Token", () => {
   });
 
   test("deploy BSV21 token with incorrect image proportion", async () => {
-    const symbol = "TEST";
     const nonSquareIcon: IconInscription = {
       dataB64: Buffer.from('<svg width="200" height="100"><rect width="200" height="100" style="fill:rgb(0,0,255);" /></svg>').toString('base64'),
       contentType: "image/svg+xml"
     };
+    const config = { ...baseConfig, icon: nonSquareIcon };
 
-    await expect(deployBsv21Token(symbol, nonSquareIcon, sufficientUtxos, initialDistribution, paymentPk, address))
-      .rejects.toThrow(ErrorIconProportions.message);
+    await expect(deployBsv21Token(config)).rejects.toThrow(ErrorIconProportions.message);
   });
 
   test("deploy BSV21 token with oversized image", async () => {
-    const symbol = "TEST";
     const oversizedIcon: IconInscription = {
       dataB64: Buffer.from('<svg width="500" height="500"><circle cx="250" cy="250" r="200" stroke="black" stroke-width="3" fill="blue" /></svg>').toString('base64'),
       contentType: "image/svg+xml"
     };
+    const config = { ...baseConfig, icon: oversizedIcon };
 
-    await expect(deployBsv21Token(symbol, oversizedIcon, sufficientUtxos, initialDistribution, paymentPk, address))
-      .rejects.toThrow(ErrorOversizedIcon.message);
+    await expect(deployBsv21Token(config)).rejects.toThrow(ErrorOversizedIcon.message);
   });
 });

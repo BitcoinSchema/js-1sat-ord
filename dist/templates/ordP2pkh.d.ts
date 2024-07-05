@@ -1,5 +1,5 @@
 import { P2PKH, type Script } from "@bsv/sdk";
-import type { MAP } from "./types";
+import type { MAP } from "../types";
 /**
  * OrdP2PKH (1Sat Ordinal + Pay To Public Key Hash) class implementing ScriptTemplate.
  *

@@ -17,40 +17,63 @@ import {
   type TransferBSV21Inscription,
 } from "./types";
 import { DEFAULT_SAT_PER_KB } from "./constants";
-import { sendOrdinals } from "./sendOrdinals";
+import { type SendOrdinalsResult, sendOrdinals, type SendOrdinalsConfig } from "./sendOrdinals";
+
+interface TransferOrdTokensResult extends SendOrdinalsResult {
+	tokenChangeVout?: number;
+}
+
+export type TransferOrdTokensConfig = {
+	protocol: TokenType;
+	tokenID: string;
+	utxos: Utxo[];
+	inputTokens: TokenUtxo[];
+	distributions: Distribution[];
+	paymentPk: PrivateKey;
+	ordPk: PrivateKey;
+	changeAddress?: string;
+	tokenChangeAddress?: string;
+	satsPerKb?: number;
+	metaData?: MAP;
+	signer?: LocalSigner | RemoteSigner;
+	additionalPayments?: Payment[];
+}
 
 /**
  * Transfer tokens to a destination
- * @param {TokenType} protocol - Token protocol. Must be TokenType.BSV20 or TokenType.BSV21
- * @param {string} tokenID - Token ID. Either the tick or id value depending on the protocol
- * @param {Utxo[]} utxos - Payment Utxos available to spend. Will only consume what is needed.
- * @param {TokenUtxo[]} inputTokens - Token utxos to spend
- * @param {Distribution[]} distributions - Array of destinations with addresses and amounts
- * @param {PrivateKey} paymentPk - Private key to sign paymentUtxos
- * @param {PrivateKey} ordPk - Private key to sign ordinals
- * @param {string} changeAddress - Address to send payment change to, if any. If not provided, defaults to paymentPk address
- * @param {string} tokenChangeAddress - Address to send token change to, if any. If not provided, defaults to ordPk address
- * @param {number} satsPerKb - (optional) Satoshis per kilobyte for fee calculation. Default is DEFAULT_SAT_PER_KB
- * @param {MAP} metaData - (optional) MAP (Magic Attribute Protocol) metadata to include in inscriptions
- * @param {LocalSigner | RemoteSigner} signer - (optional) Signer object to sign the transaction
- * @param {Payment[]} additionalPayments - (optional) Additional payments to include in the transaction
- * @returns {Promise<Transaction>} Transaction with token transfer outputs
+ * @param {TransferOrdTokensConfig} config - Configuration object for transferring tokens
+ * @param {TokenType} config.protocol - Token protocol. Must be TokenType.BSV20 or TokenType.BSV21
+ * @param {string} config.tokenID - Token ID. Either the tick or id value depending on the protocol
+ * @param {Utxo[]} config.utxos - Payment Utxos available to spend. Will only consume what is needed.
+ * @param {TokenUtxo[]} config.inputTokens - Token utxos to spend
+ * @param {Distribution[]} config.distributions - Array of destinations with addresses and amounts
+ * @param {PrivateKey} config.paymentPk - Private key to sign paymentUtxos
+ * @param {PrivateKey} config.ordPk - Private key to sign ordinals
+ * @param {string} config.changeAddress - Optional. Address to send payment change to, if any. If not provided, defaults to paymentPk address
+ * @param {string} config.tokenChangeAddress - Optional. Address to send token change to, if any. If not provided, defaults to ordPk address
+ * @param {number} config.satsPerKb - Optional. Satoshis per kilobyte for fee calculation. Default is DEFAULT_SAT_PER_KB
+ * @param {MAP} config.metaData - Optional. MAP (Magic Attribute Protocol) metadata to include in inscriptions
+ * @param {LocalSigner | RemoteSigner} config.signer - Optional. Signer object to sign the transaction
+ * @param {Payment[]} config.additionalPayments - Optional. Additional payments to include in the transaction
+ * @returns {Promise<TransferOrdTokensResult>} Transaction with token transfer outputs
  */
-export const transferOrdTokens = async (
-	protocol: TokenType,
-	tokenID: string, // either tick or id depending on protocol
-	utxos: Utxo[],
-	inputTokens: TokenUtxo[],
-	distributions: Distribution[],
-	paymentPk: PrivateKey,
-  ordPk: PrivateKey,
-	changeAddress?: string,
-  tokenChangeAddress?: string,
-	satsPerKb: number = DEFAULT_SAT_PER_KB,
-	metaData?: MAP,
-	signer?: LocalSigner | RemoteSigner,
-	additionalPayments: Payment[] = [],
-): Promise<Transaction> => {
+export const transferOrdTokens = async (config: TransferOrdTokensConfig): Promise<TransferOrdTokensResult> => {
+	const {
+		protocol,
+		tokenID,
+		utxos,
+		inputTokens,
+		distributions,
+		paymentPk,
+		ordPk,
+		changeAddress,
+		tokenChangeAddress,
+		satsPerKb = DEFAULT_SAT_PER_KB,
+		metaData,
+		signer,
+		additionalPayments = [],
+	} = config;
+
 	// calculate change amount
 	let changeAmt = 0n;
 	let totalAmtIn = 0n;
@@ -78,7 +101,7 @@ export const transferOrdTokens = async (
 
 	changeAmt = totalAmtIn - totalAmtOut;
 
-	// add change to destinations
+	// add change to distributions
 	if (changeAmt > 0n) {
 		const changeDistribution = {
 			address: tokenChangeAddress || ordPk.toAddress().toString(),
@@ -118,20 +141,29 @@ export const transferOrdTokens = async (
 		};
 	});
 
-	// chaeck that
-	const tx = await sendOrdinals(
-		utxos,
-		inputTokens,
+	const sendOrdinalsConfig: SendOrdinalsConfig = {
+		paymentUtxos: utxos,
+		ordinals: inputTokens,
 		paymentPk,
 		ordPk,
 		destinations,
-		changeAddress || paymentPk.toAddress().toString(),
+		changeAddress: changeAddress || paymentPk.toAddress().toString(),
 		satsPerKb,
 		metaData,
-    signer,
+		signer,
 		additionalPayments,
-		false
-	);
+		enforceUniformSend: false
+	};
+
+	const { tx, spentOutpoints, payChangeVout } = await sendOrdinals(sendOrdinalsConfig);
 	
-	return tx;
+	// find the tokenChangeVout by looking for the destination with the tokenChangeAddress
+	return {
+		tx,
+		spentOutpoints,
+		payChangeVout,
+		tokenChangeVout: destinations.findIndex(
+			(d) => d.address === (tokenChangeAddress || ordPk.toAddress().toString())
+		),
+	}
 };

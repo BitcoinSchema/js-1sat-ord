@@ -4,7 +4,7 @@ import {
 	SatoshisPerKilobyte,
 	P2PKH,
 } from "@bsv/sdk";
-import OrdP2PKH from "./ordP2pkh";
+import OrdP2PKH from "./templates/ordP2pkh";
 import type {
 	Utxo,
 	Destination,
@@ -17,28 +17,50 @@ import { inputFromB64Utxo } from "./utils/utxo";
 import { DEFAULT_SAT_PER_KB } from "./constants";
 import { signData } from "./signData";
 
+type CreateOrdinalsResult = {
+	tx: Transaction;
+	spentOutpoints: string[];
+	payChangeVout?: number;
+};
+
+export type CreateOrdinalsConfig = {
+	utxos: Utxo[];
+	destinations: Destination[];
+	paymentPk: PrivateKey;
+	changeAddress?: string;
+	satsPerKb?: number;
+	metaData?: MAP;
+	signer?: LocalSigner | RemoteSigner;
+	additionalPayments?: Payment[];
+};
+
 /**
  * Creates a transaction with inscription outputs
- * @param {Utxo[]} utxos - Utxos to spend (with base64 encoded scripts)
- * @param {Destination[]} destinations - Array of destinations with addresses and inscriptions
- * @param {PrivateKey} paymentPk - Private key to sign utxos
- * @param {string} changeAddress - (optional) Address to send change to. If not provided, defaults to paymentPk address
- * @param {number} satsPerKb - Satoshis per kilobyte for fee calculation. Default is DEFAULT_SAT_PER_KB
- * @param {MAP} metaData - MAP (Magic Attribute Protocol) metadata to include in inscriptions
- * @param {LocalSigner | RemoteSigner} signer - Local or remote signer (used for data signature)
- * @param {Payment[]} additionalPayments - Additional payments to include in the transaction
- * @returns {Promise<Transaction>} Transaction with inscription outputs
+ * @param {CreateOrdinalsConfig} config - Configuration object for creating ordinals
+ * @param {Utxo[]} config.utxos - Utxos to spend (with base64 encoded scripts)
+ * @param {Destination[]} config.destinations - Array of destinations with addresses and inscriptions
+ * @param {PrivateKey} config.paymentPk - Private key to sign utxos
+ * @param {string} config.changeAddress - Optional. Address to send change to. If not provided, defaults to paymentPk address
+ * @param {number} config.satsPerKb - Optional. Satoshis per kilobyte for fee calculation. Default is DEFAULT_SAT_PER_KB
+ * @param {MAP} config.metaData - Optional. MAP (Magic Attribute Protocol) metadata to include in inscriptions
+ * @param {LocalSigner | RemoteSigner} config.signer - Optional. Local or remote signer (used for data signature)
+ * @param {Payment[]} config.additionalPayments - Optional. Additional payments to include in the transaction
+ * @returns {Promise<CreateOrdinalsResult>} Transaction with inscription outputs
  */
 export const createOrdinals = async (
-	utxos: Utxo[],
-	destinations: Destination[],
-	paymentPk: PrivateKey,
-	changeAddress?: string,
-	satsPerKb: number = DEFAULT_SAT_PER_KB,
-	metaData?: MAP,
-	signer?: LocalSigner | RemoteSigner,
-	additionalPayments: Payment[] = [],
-): Promise<Transaction> => {
+	config: CreateOrdinalsConfig
+): Promise<CreateOrdinalsResult> => {
+	const {
+		utxos,
+		destinations,
+		paymentPk,
+		changeAddress,
+		satsPerKb = DEFAULT_SAT_PER_KB,
+		metaData,
+		signer,
+		additionalPayments = [],
+	} = config;
+
 	const modelOrFee = new SatoshisPerKilobyte(satsPerKb);
 	let tx = new Transaction();
 
@@ -81,12 +103,27 @@ export const createOrdinals = async (
 		});
 	}
 
-	// Add change output
-	tx.addOutput({
-		lockingScript: new P2PKH().lock(changeAddress || paymentPk.toAddress().toString()),
-		change: true,
-	});
-
+	let payChangeVout: number | undefined;
+	
+	// Calculate total input and output amounts
+	const totalInput = utxos.reduce((sum, utxo) => sum + BigInt(utxo.satoshis), 0n);
+	const totalOutput = tx.outputs.reduce((sum, output) => sum + BigInt(output.satoshis || 0), 0n);
+	
+	// Estimate fee
+	const estimatedFee = await modelOrFee.computeFee(tx);
+	
+	// Check if change is needed
+	if (totalInput > totalOutput + BigInt(estimatedFee)) {
+		// Add change output
+		tx.addOutput({
+			lockingScript: new P2PKH().lock(
+				changeAddress || paymentPk.toAddress().toString(),
+			),
+			change: true,
+		});
+		payChangeVout = tx.outputs.length - 1;
+	}
+	
 	if (signer) {
 		tx = await signData(tx, signer);
 	}
@@ -97,5 +134,9 @@ export const createOrdinals = async (
 	// Sign the transaction
 	await tx.sign();
 
-	return tx;
+	return {
+		tx,
+		spentOutpoints: utxos.map((utxo) => `${utxo.txid}_${utxo.vout}`),
+		payChangeVout,
+	};
 };

@@ -1,5 +1,5 @@
 import { PrivateKey, Utils } from "@bsv/sdk";
-import { transferOrdTokens } from "./transferOrdinals";
+import { type TransferOrdTokensConfig, transferOrdTokens } from "./transferOrdinals";
 import { TokenType, type TokenUtxo, type Utxo } from "./types";
 
 test("transfer a BSV21", async () => {
@@ -33,7 +33,17 @@ test("transfer a BSV21", async () => {
     amt: "2500000000",
   }];
 
-  const tx = await transferOrdTokens(TokenType.BSV21, tokenID, utxos, inputTokens, distributions, paymentPk, paymentPk);
+  const config: TransferOrdTokensConfig = {
+    utxos,
+    inputTokens,
+    distributions,
+    paymentPk,
+    ordPk,
+    protocol: TokenType.BSV20,
+    tokenID,
+  };
+
+  const { tx } = await transferOrdTokens(config);
 
   console.log({ txHex: tx.toHex() });
 });

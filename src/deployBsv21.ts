@@ -14,36 +14,61 @@ import type {
 } from "./types";
 import { inputFromB64Utxo } from "./utils/utxo";
 import { validIconData, validIconFormat } from "./utils/icon";
-import OrdP2PKH from "./ordP2pkh";
+import OrdP2PKH from "./templates/ordP2pkh";
 import { DEFAULT_SAT_PER_KB } from "./constants";
+
+type DeployBsv21TokenResult = {
+	tx: Transaction;
+	spentOutpoints: string[];
+	payChangeVout: number;
+};
+
+export type DeployBsv21TokenConfig = {
+	symbol: string;
+	icon: string | IconInscription;
+	utxos: Utxo[];
+	initialDistribution: Distribution;
+	paymentPk: PrivateKey;
+	destinationAddress: string;
+	changeAddress?: string;
+	satsPerKb?: number;
+	additionalPayments?: Payment[];
+};
 
 /**
  * Deploys & Mints a BSV21 token to the given destination address
- * @param {string} symbol - Token ticker symbol
- * @param {string | IconInscription} icon - outpoint (format: txid_vout) or Inscription. If Inscription, must be a valid image type
- * @param {Utxo[]} utxos - Payment Utxos available to spend. Will only consume what is needed.
- * @param {Distribution} initialDistribution - Initial distribution with addresses and total supply
- * @param {PrivateKey} paymentPk - Private key to sign paymentUtxos
- * @param {string} destinationAddress - Address to deploy token to.
- * @param {string} changeAddress - (optional) Address to send payment change to, if any. If not provided, defaults to paymentPk address
- * @param {number} satsPerKb - (optional) Satoshis per kilobyte for fee calculation. Default is DEFAULT_SAT_PER_KB
- * @param {Payment[]} additionalPayments - (optional) Additional payments to include in the transaction
- * @returns {Promise<Transaction>} Transaction to deploy BSV 2.1 token
+ * @param {DeployBsv21TokenConfig} config - Configuration object for deploying BSV21 token
+ * @param {string} config.symbol - Token ticker symbol
+ * @param {string | IconInscription} config.icon - outpoint (format: txid_vout) or Inscription. If Inscription, must be a valid image type
+ * @param {Utxo[]} config.utxos - Payment Utxos available to spend. Will only consume what is needed.
+ * @param {Distribution} config.initialDistribution - Initial distribution with addresses and total supply
+ * @param {PrivateKey} config.paymentPk - Private key to sign paymentUtxos
+ * @param {string} config.destinationAddress - Address to deploy token to.
+ * @param {string} config.changeAddress - Optional. Address to send payment change to, if any. If not provided, defaults to paymentPk address
+ * @param {number} config.satsPerKb - Optional. Satoshis per kilobyte for fee calculation. Default is DEFAULT_SAT_PER_KB
+ * @param {Payment[]} config.additionalPayments - Optional. Additional payments to include in the transaction
+ * @returns {Promise<DeployBsv21TokenResult>} Transaction to deploy BSV 2.1 token
  */
 export const deployBsv21Token = async (
-	symbol: string,
-	icon: string | IconInscription,
-	utxos: Utxo[],
-	initialDistribution: Distribution,
-	paymentPk: PrivateKey,
-	destinationAddress: string,
-	changeAddress?: string,
-	satsPerKb: number = DEFAULT_SAT_PER_KB,
-	additionalPayments: Payment[] = [],
-): Promise<Transaction> => {
+	config: DeployBsv21TokenConfig
+): Promise<DeployBsv21TokenResult> => {
+	const {
+		symbol,
+		icon,
+		utxos,
+		initialDistribution,
+		paymentPk,
+		destinationAddress,
+		changeAddress,
+		satsPerKb = DEFAULT_SAT_PER_KB,
+		additionalPayments = [],
+	} = config;
+
 	const modelOrFee = new SatoshisPerKilobyte(satsPerKb);
 
 	const tx = new Transaction();
+	const spentOutpoints: string[] = [];
+	let payChangeVout = 0;
 
 	let iconValue: string;
 	if (typeof icon === "string") {
@@ -113,6 +138,8 @@ export const deployBsv21Token = async (
 	let fee = 0;
 	for (const utxo of utxos) {
 		const input = inputFromB64Utxo(utxo, new P2PKH().unlock(paymentPk));
+		spentOutpoints.push(`${utxo.txid}_${utxo.vout}`);
+
 		tx.addInput(input);
 		// stop adding inputs if the total amount is enough
 		totalSatsIn += BigInt(utxo.satoshis);
@@ -137,6 +164,8 @@ export const deployBsv21Token = async (
 			lockingScript: changeScript,
 			change: true,
 		};
+		spentOutpoints.push(change);
+		payChangeVout = tx.outputs.length;
 		tx.addOutput(changeOut);
 	} else if (totalSatsIn < totalSatsOut + fee) {
 		console.log("No change needed");
@@ -147,5 +176,9 @@ export const deployBsv21Token = async (
 
 	await tx.sign();
 
-	return tx;
+	return { 
+		tx,
+		spentOutpoints: utxos.map((utxo) => `${utxo.txid}_${utxo.vout}`),
+		payChangeVout: tx.outputs.length - 1,
+	}
 };

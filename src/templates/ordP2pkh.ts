@@ -3,9 +3,9 @@ import {
 	P2PKH,
 	type Script,
 } from "@bsv/sdk";
-import type { MAP } from "./types";
-import { toHex } from "./utils/strings";
-import { MAP_PREFIX } from "./constants";
+import type { MAP } from "../types";
+import { toHex } from "../utils/strings";
+import { MAP_PREFIX } from "../constants";
 
 /**
  * OrdP2PKH (1Sat Ordinal + Pay To Public Key Hash) class implementing ScriptTemplate.

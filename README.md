@@ -24,7 +24,7 @@ npm install js-1sat-ord
 ### Usage
 
 ```ts
-import { createOrdinals, sendOrdinals, sendUtxos } from 'js-1sat-ord'
+import { createOrdinals, sendOrdinals, sendUtxos, deployBsv21Token, transferOrdToken } from 'js-1sat-ord'
 ```
 
 ### Example
@@ -58,141 +58,107 @@ const inscription = {
 };
 ```
 
-For other file types, you can still use raw bytes in base64:
-
-```ts
-// any file type (e.g., image/png, model/gltf-binary, etc.)
-const inscription = {
-  dataB64: "b64 string...",
-  contentType: "image/png"
-} 
-```
-
 #### Prepare Keys
 
-Be sure to use different keys for ordinals and normal payments. If wallets don't know your outputs contain ordinals, they will be treated like normal utxos and potentially merged with other Satoshis. We can use the @bsv/sdk to get a PrivateKey from a WIF string:
+Be sure to use different keys for ordinals and normal payments:
 
 ```ts
 const paymentPk = PrivateKey.fromWif(paymentWif);
-```
-
-#### Prepare destinations
-
-Lets take a look at the destination type:
-
-```ts
-export type Destination = {
-	address: string;
-	inscription?: Inscription;
-};
-
-```
-
-Destinations define the address that will recieve an inscription, and the inscription itself.
-
-```ts
-const destinations = [
-  {
-    address: ordinalDestinationAddress,
-    inscription: { dataB64: encodedFileData, contentType: "model/gltf-binary" }
-  }
-];
+const ordPk = PrivateKey.fromWif(ordWif);
 ```
 
 ### Create Ordinals
 
-The `createOrdinals` function creates a transaction with inscription outputs. The number of utxos supplied does not need to relate to the number of destinations (you can create multiple inscriptions at once).
+The `createOrdinals` function creates a transaction with inscription outputs:
 
 ```ts
-const tx = await createOrdinals(
-  [utxo],
-  destinations,
-  paymentPk,
-  changeAddress,
-  satPerByteFee,
-  metaData,
-  signer,
-  additionalPayments
-);
-```
+const config = {
+  utxos: [utxo],
+  destinations: [{
+    address: ordinalDestinationAddress,
+    inscription: { dataB64: encodedFileData, contentType: "text/markdown" }
+  }],
+  paymentPk: paymentPk
+};
 
-> **Note:** It is recommended to limit the number of inscriptions you make in a single transaction, as this initial inscription will become the "origin" of this ordinal, and in some cases, this can impact the performance depending on the wallet software.
+const result = await createOrdinals(config);
+```
 
 ### Send Ordinals
 
-Sends ordinals to the given destinations. The number of destinations must match number of ordinals being sent.
+Sends ordinals to the given destinations:
 
 ```ts
-const tx = await sendOrdinals(
-  paymentUtxos,
-  ordinals,
-  paymentPk,
-  ordPk,
-  destinations,
-  changeAddress,
-  satPerByteFee,
-  metaData,
-  additionalPayments
-);
-```
+const config = {
+  paymentUtxos: [paymentUtxo],
+  ordinals: [ordinalUtxo],
+  paymentPk: paymentPk,
+  ordPk: ordPk,
+  destinations: [{
+    address: destinationAddress,
+    inscription: { dataB64: encodedFileData, contentType: "text/markdown" }
+  }]
+};
 
-> **Warning:** This is not for BSV20/BSV21 tokens or other "sub-protocols" of 1Sat Ordinals that depend on a specific inscription structure. To transfering a fungible token, use the transferOrdToken function instead. Using this function to send fungible tokens will burn them!
+const result = await sendOrdinals(config);
+```
 
 ### Deploy a BSV21 Token
 
-First, prepare an icon by making an ordinal inscription for the icon image. It should be a square image with a standard image mime type like image/png. It should be optimized for web display (low file size). The recommended size is 400x400px. Outpoint format must be "txid_vout".
-
 ```ts
-const tx = await deployBsv21(
-  "MYTICKER",
-  "<icon_outpoint>",
-  utxos,
-  initialDistribution,
-  paymentPk,
-  destinationAddress
-)
-```
+const config = {
+  symbol: "MYTICKER",
+  icon: "<icon_outpoint>",
+  utxos: [utxo],
+  initialDistribution: { address: destinationAddress, amt: "1000000000" },
+  paymentPk: paymentPk,
+  destinationAddress: destinationAddress
+};
 
-You can also create the icon in the same transaction. To do this, provide an IconInscription for the icon instead of an outpoint.
-
-```ts
-const tx = await deployBsv21(
-  "MYTICKER",
-  iconInscription,
-  utxos,
-  initialDistribution,
-  paymentPk,
-  destinationAddress
-)
+const result = await deployBsv21Token(config);
 ```
 
 ### Transfer BSV21 Tokens
 
 ```ts
-const tx = await transferOrdToken(
-  TokenType.BSV21,
-  tokenID,
-  utxos,
-  inputTokens,
-  distributions,
-  paymentPk,
-  ordPk
-);
+const config = {
+  protocol: TokenType.BSV21,
+  tokenID: tokenID,
+  utxos: [utxo],
+  inputTokens: [tokenUtxo],
+  distributions: [{ address: destinationAddress, amt: "1000" }],
+  paymentPk: paymentPk,
+  ordPk: ordPk
+};
+
+const result = await transferOrdToken(config);
 ```
 
 ### Send Utxos
 
-Sends utxos to the given destination. This creates a typical P2PKH funds transfer without Ordinals.
+Sends utxos to the given destination:
 
 ```ts
-const tx = await sendUtxos(
-  utxos,
-  paymentPk,
-  destinationAddress,
-  amount,
-  satPerByteFee
-);
+const config = {
+  utxos: [utxo],
+  paymentPk: paymentPk,
+  payments: [{ to: destinationAddress, amount: 1000 }]
+};
+
+const tx = await sendUtxos(config);
 ```
+
+### Additional Configuration Options
+
+Each function accepts additional configuration options not shown in the examples above. These include:
+
+- `changeAddress`: Address to send change to (if not provided, defaults to the payment key's address)
+- `satsPerKb`: Satoshis per kilobyte for fee calculation
+- `metaData`: MAP (Magic Attribute Protocol) metadata to include in inscriptions
+- `signer`: Custom signer object for transaction signing
+- `additionalPayments`: Additional payments to include in the transaction
+
+Refer to the function documentation for a complete list of configuration options for each function.
 
 #### Using with Bundlers
 

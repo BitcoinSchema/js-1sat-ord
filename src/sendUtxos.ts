@@ -9,20 +9,41 @@ import { DEFAULT_SAT_PER_KB } from "./constants";
 import type { Distribution, Payment, Utxo } from "./types";
 import { inputFromB64Utxo } from "./utils/utxo";
 
+export type SendUtxosResult = {
+	tx: Transaction;
+	spentOutpoints: string[];
+	payChangeVout?: number;
+};
+
+export type SendUtxosConfig = {
+	utxos: Utxo[];
+	paymentPk: PrivateKey;
+	payments: Payment[];
+	satsPerKb?: number;
+	changeAddress?: string;
+};
+
 /**
  * Sends utxos to the given destination
- * @param {Utxo[]} utxos - Utxos to spend (with base64 encoded scripts)
- * @param {PrivateKey} paymentPk - Private key to sign utxos
- * @param {Payment[]} payments - Array of payments with addresses and amounts
- * @param {number} satsPerKb - Satoshis per kilobyte for fee calculation. Default is DEFAULT_SAT_PER_KB
- * @returns {Promise<Transaction>} Transaction with utxo outputs
+ * @param {SendUtxosConfig} config - Configuration object for sending utxos
+ * @param {Utxo[]} config.utxos - Utxos to spend (with base64 encoded scripts)
+ * @param {PrivateKey} config.paymentPk - Private key to sign utxos
+ * @param {Payment[]} config.payments - Array of payments with addresses and amounts
+ * @param {number} [config.satsPerKb] - Satoshis per kilobyte for fee calculation. Default is DEFAULT_SAT_PER_KB
+ * @param {string} [config.changeAddress] - Address to send change to. If not provided, defaults to paymentPk address
+ * @returns {Promise<SendUtxosResult>} Transaction with utxo outputs
  */
 export const sendUtxos = async (
-	utxos: Utxo[],
-	paymentPk: PrivateKey,
-	payments: Payment[],
-	satsPerKb: number = DEFAULT_SAT_PER_KB,
-): Promise<Transaction> => {
+	config: SendUtxosConfig,
+): Promise<SendUtxosResult> => {
+	const {
+		utxos,
+		paymentPk,
+		payments,
+		satsPerKb = DEFAULT_SAT_PER_KB,
+		changeAddress = paymentPk.toAddress().toString(),
+	} = config;
+
 	const modelOrFee = new SatoshisPerKilobyte(satsPerKb);
 
 	const tx = new Transaction();
@@ -59,21 +80,21 @@ export const sendUtxos = async (
 	// make sure we have enough
 	if (totalSatsIn < totalSatsOut + fee) {
 		throw new Error(
-			`Not enough funds to deploy token. Total sats in: ${totalSatsIn}, Total sats out: ${totalSatsOut}, Fee: ${fee}`,
+			`Not enough funds to send. Total sats in: ${totalSatsIn}, Total sats out: ${totalSatsOut}, Fee: ${fee}`,
 		);
 	}
 
 	// if we need to send change, add it to the outputs
+	let payChangeVout: number | undefined;
 	if (totalSatsIn > totalSatsOut + fee) {
 		// Change
-		const changeAddress = paymentPk.toAddress().toString();
 		const changeScript = new P2PKH().lock(changeAddress);
 
 		const changeOut: TransactionOutput = {
 			lockingScript: changeScript,
 			change: true,
 		};
-
+		payChangeVout = tx.outputs.length;
 		tx.addOutput(changeOut);
 	} else if (totalSatsIn < totalSatsOut + fee) {
 		console.log("No change needed");
@@ -85,5 +106,11 @@ export const sendUtxos = async (
 	// Sign the transaction
 	await tx.sign();
 
-	return tx;
+	// we dont want -1 we want undefined in that case
+
+	return {
+		tx,
+		spentOutpoints: utxos.map((utxo) => `${utxo.txid}_${utxo.vout}`),
+		payChangeVout,
+	};
 };
