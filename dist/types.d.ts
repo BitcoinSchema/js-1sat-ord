@@ -49,6 +49,16 @@ export type Inscription = {
     dataB64: string;
     contentType: string;
 };
+export type ImageContentType = "image/png" | "image/jpeg" | "image/gif" | "image/svg+xml" | "image/webp";
+/**
+ * @typedef {Object} IconInscription
+ * @property {string} dataB64 - Base64 encoded image data. Must be a square image.
+ * @property {ImageContentType} contentType - Media type of the image
+ */
+export type IconInscription = {
+    dataB64: string;
+    contentType: ImageContentType;
+};
 export type MAP = {
     app: string;
     type: string;
