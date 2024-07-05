@@ -1,7 +1,21 @@
-import { type PrivateKey, Transaction, SatoshisPerKilobyte, P2PKH, type Script, type TransactionOutput } from "@bsv/sdk";
+import {
+	type PrivateKey,
+	Transaction,
+	SatoshisPerKilobyte,
+	P2PKH,
+	type Script,
+	type TransactionOutput,
+} from "@bsv/sdk";
 import { DEFAULT_SAT_PER_KB } from "./constants";
 import OrdP2PKH from "./ordP2pkh";
-import type { Utxo, Destination, MAP, Payment, LocalSigner, RemoteSigner } from "./types";
+import type {
+	Utxo,
+	Destination,
+	MAP,
+	Payment,
+	LocalSigner,
+	RemoteSigner,
+} from "./types";
 import { inputFromB64Utxo } from "./utils/utxo";
 import { signData } from "./signData";
 
@@ -46,12 +60,6 @@ export const sendOrdinals = async (
 		tx.addInput(input);
 	}
 
-	// Add payment inputs
-	for (const paymentUtxo of paymentUtxos) {
-		const input = inputFromB64Utxo(paymentUtxo, new P2PKH().unlock(paymentPk));
-		tx.addInput(input);
-	}
-
 	// Outputs
 	// check that ordinals coming in matches ordinals going out if supplied
 	if (enforceUniformSend && destinations.length !== ordinals.length) {
@@ -80,7 +88,6 @@ export const sendOrdinals = async (
 		tx.addOutput({
 			satoshis: 1,
 			lockingScript: s,
-
 		});
 	}
 
@@ -93,8 +100,16 @@ export const sendOrdinals = async (
 		});
 	}
 
+	// Add payment inputs
+	for (const paymentUtxo of paymentUtxos) {
+		const input = inputFromB64Utxo(paymentUtxo, new P2PKH().unlock(paymentPk));
+		tx.addInput(input);
+	}
+
 	// Add change output
-	const changeScript = new P2PKH().lock(changeAddress || paymentPk.toAddress().toString());
+	const changeScript = new P2PKH().lock(
+		changeAddress || paymentPk.toAddress().toString(),
+	);
 	const changeOut: TransactionOutput = {
 		lockingScript: changeScript,
 		change: true,

@@ -1,4 +1,10 @@
-import { type PrivateKey, Transaction, SatoshisPerKilobyte, P2PKH, type TransactionOutput } from "@bsv/sdk";
+import {
+	type PrivateKey,
+	Transaction,
+	SatoshisPerKilobyte,
+	P2PKH,
+	type TransactionOutput,
+} from "@bsv/sdk";
 import { DEFAULT_SAT_PER_KB } from "./constants";
 import type { Distribution, Payment, Utxo } from "./types";
 import { inputFromB64Utxo } from "./utils/utxo";
@@ -21,12 +27,6 @@ export const sendUtxos = async (
 
 	const tx = new Transaction();
 
-	// Inputs
-	for (const utxo of utxos) {
-		const input = inputFromB64Utxo(utxo, new P2PKH().unlock(paymentPk));
-		tx.addInput(input);
-	}
-
 	// Outputs
 	for (const payment of payments) {
 		const sendTxOut: TransactionOutput = {
@@ -36,16 +36,48 @@ export const sendUtxos = async (
 		tx.addOutput(sendTxOut);
 	}
 
-	// Change
-	const changeAddress = paymentPk.toAddress().toString();
-	const changeScript = new P2PKH().lock(changeAddress);
+	// Inputs
+	let totalSatsIn = 0n;
+	const totalSatsOut = tx.outputs.reduce(
+		(total, out) => total + (out.satoshis || 0),
+		0,
+	);
+	let fee = 0;
+	for (const utxo of utxos) {
+		const input = inputFromB64Utxo(utxo, new P2PKH().unlock(paymentPk));
+		tx.addInput(input);
 
-	const changeOut: TransactionOutput = {
-		lockingScript: changeScript,
-		change: true,
-	};
+		// stop adding inputs if the total amount is enough
+		totalSatsIn += BigInt(utxo.satoshis);
+		fee = await modelOrFee.computeFee(tx);
 
-	tx.addOutput(changeOut);
+		if (totalSatsIn >= totalSatsOut + fee) {
+			break;
+		}
+	}
+
+	// make sure we have enough
+	if (totalSatsIn < totalSatsOut + fee) {
+		throw new Error(
+			`Not enough funds to deploy token. Total sats in: ${totalSatsIn}, Total sats out: ${totalSatsOut}, Fee: ${fee}`,
+		);
+	}
+
+	// if we need to send change, add it to the outputs
+	if (totalSatsIn > totalSatsOut + fee) {
+		// Change
+		const changeAddress = paymentPk.toAddress().toString();
+		const changeScript = new P2PKH().lock(changeAddress);
+
+		const changeOut: TransactionOutput = {
+			lockingScript: changeScript,
+			change: true,
+		};
+
+		tx.addOutput(changeOut);
+	} else if (totalSatsIn < totalSatsOut + fee) {
+		console.log("No change needed");
+	}
 
 	// Calculate fee
 	await tx.fee(modelOrFee);

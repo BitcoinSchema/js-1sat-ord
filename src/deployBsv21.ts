@@ -3,11 +3,13 @@ import {
 	Transaction,
 	P2PKH,
 	SatoshisPerKilobyte,
+	type TransactionOutput,
 } from "@bsv/sdk";
 import type {
 	DeployMintTokenInscription,
 	Distribution,
 	IconInscription,
+	Payment,
 	Utxo,
 } from "./types";
 import { inputFromB64Utxo } from "./utils/utxo";
@@ -24,6 +26,8 @@ import { DEFAULT_SAT_PER_KB } from "./constants";
  * @param {PrivateKey} paymentPk - Private key to sign paymentUtxos
  * @param {string} destinationAddress - Address to deploy token to.
  * @param {string} changeAddress - (optional) Address to send payment change to, if any. If not provided, defaults to paymentPk address
+ * @param {number} satsPerKb - (optional) Satoshis per kilobyte for fee calculation. Default is DEFAULT_SAT_PER_KB
+ * @param {Payment[]} additionalPayments - (optional) Additional payments to include in the transaction
  * @returns {Promise<Transaction>} Transaction to deploy BSV 2.1 token
  */
 export const deployBsv21Token = async (
@@ -35,6 +39,7 @@ export const deployBsv21Token = async (
 	destinationAddress: string,
 	changeAddress?: string,
 	satsPerKb: number = DEFAULT_SAT_PER_KB,
+	additionalPayments: Payment[] = [],
 ): Promise<Transaction> => {
 	const modelOrFee = new SatoshisPerKilobyte(satsPerKb);
 
@@ -90,29 +95,54 @@ export const deployBsv21Token = async (
 	};
 	tx.addOutput(sendTxOut);
 
+	// Additional payments
+	for (const payment of additionalPayments) {
+		const sendTxOut: TransactionOutput = {
+			satoshis: payment.amount,
+			lockingScript: new P2PKH().lock(payment.to),
+		};
+		tx.addOutput(sendTxOut);
+	}
+
 	// Inputs
-	let totalAmt = BigInt(0);
+	let totalSatsIn = 0n;
+	const totalSatsOut = tx.outputs.reduce(
+		(total, out) => total + (out.satoshis || 0),
+		0,
+	);
+	let fee = 0;
 	for (const utxo of utxos) {
 		const input = inputFromB64Utxo(utxo, new P2PKH().unlock(paymentPk));
 		tx.addInput(input);
 		// stop adding inputs if the total amount is enough
-		totalAmt += BigInt(utxo.satoshis);
+		totalSatsIn += BigInt(utxo.satoshis);
+		fee = await modelOrFee.computeFee(tx);
 
-		if (totalAmt > tx.getFee()) {
+		if (totalSatsIn >= totalSatsOut + fee) {
 			break;
 		}
 	}
 
-	// Change
-	const change = changeAddress || paymentPk.toAddress().toString();
-	const changeScript = new P2PKH().lock(change);
-	const changeOut = {
-		lockingScript: changeScript,
-		change: true,
-	};
-	tx.addOutput(changeOut);
+	// make sure we have enough
+	if (totalSatsIn < totalSatsOut + fee) {
+		throw new Error(`Not enough funds to deploy token. Total sats in: ${totalSatsIn}, Total sats out: ${totalSatsOut}, Fee: ${fee}`);
+	}
 
-	// estimate the cost of the transaction
+	// if we need to send change, add it to the outputs
+	if (totalSatsIn > totalSatsOut + fee) {
+		// Change
+		const change = changeAddress || paymentPk.toAddress().toString();
+		const changeScript = new P2PKH().lock(change);
+		const changeOut = {
+			lockingScript: changeScript,
+			change: true,
+		};
+		tx.addOutput(changeOut);
+	} else if (totalSatsIn < totalSatsOut + fee) {
+		console.log("No change needed");
+	}
+
+	// estimate the cost of the transaction and assign change value
 	await tx.fee(modelOrFee);
 
 	await tx.sign();
