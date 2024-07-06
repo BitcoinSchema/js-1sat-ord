@@ -3,4 +3,6 @@ import { sendOrdinals } from "./sendOrdinals";
 import { sendUtxos } from "./sendUtxos";
 import { transferOrdTokens } from "./transferOrdinals";
 import { fetchPayUtxos } from "./utils/utxo";
+export * from './types';
+
 export { createOrdinals, sendOrdinals, sendUtxos, transferOrdTokens, fetchPayUtxos };

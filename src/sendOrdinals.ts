@@ -1,5 +1,4 @@
 import {
-	type PrivateKey,
 	Transaction,
 	SatoshisPerKilobyte,
 	P2PKH,
