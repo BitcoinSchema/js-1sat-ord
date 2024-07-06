@@ -43,7 +43,6 @@ export const sendOrdinals = async (
 	const modelOrFee = new SatoshisPerKilobyte(config.satsPerKb);
 	let tx = new Transaction();
 	const spentOutpoints: string[] = [];
-	let payChangeVout: number | undefined;
 
 	// Inputs
 	// Add ordinal inputs
@@ -158,7 +157,7 @@ export const sendOrdinals = async (
 	if (payChange) {
 		const changeOutput = tx.outputs[tx.outputs.length - 1];
 		payChange.satoshis = changeOutput.satoshis as number;
-		payChange.txid = tx.hash("hex") as string;
+		payChange.txid = tx.id("hex") as string;
 	}
 
 	return {
