@@ -6,7 +6,7 @@ import {
 	type TransactionOutput,
 } from "@bsv/sdk";
 import { DEFAULT_SAT_PER_KB } from "./constants";
-import type { SendUtxosConfig, SendUtxosResult } from "./types";
+import type { SendUtxosConfig, SendUtxosResult, Utxo } from "./types";
 import { inputFromB64Utxo } from "./utils/utxo";
 
 /**
@@ -71,7 +71,7 @@ export const sendUtxos = async (
 	}
 
 	// if we need to send change, add it to the outputs
-	let payChangeVout: number | undefined;
+	let payChange: Utxo | undefined;
 	if (totalSatsIn > totalSatsOut + fee) {
 		// Change
 		const changeScript = new P2PKH().lock(changeAddress);
@@ -80,7 +80,12 @@ export const sendUtxos = async (
 			lockingScript: changeScript,
 			change: true,
 		};
-		payChangeVout = tx.outputs.length;
+		payChange = {
+			txid: "", // txid is not known yet
+			vout: tx.outputs.length,
+			satoshis: 0, // change output amount is not known yet
+			script: Buffer.from(changeScript.toHex(), "hex").toString("base64"),
+		};
 		tx.addOutput(changeOut);
 	} else if (totalSatsIn < totalSatsOut + fee) {
 		console.log("No change needed");
@@ -92,11 +97,15 @@ export const sendUtxos = async (
 	// Sign the transaction
 	await tx.sign();
 
-	// we dont want -1 we want undefined in that case
+	if (payChange) {
+		const changeOutput = tx.outputs[tx.outputs.length - 1];
+		payChange.satoshis = changeOutput.satoshis as number;
+		payChange.txid = tx.hash("hex") as string;
+	}
 
 	return {
 		tx,
 		spentOutpoints: utxos.map((utxo) => `${utxo.txid}_${utxo.vout}`),
-		payChangeVout,
+		payChange,
 	};
 };

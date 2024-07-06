@@ -33,7 +33,7 @@ import { signData } from "./signData";
  * @returns {Promise<CreateOrdinalsResult>} Transaction with inscription outputs
  */
 export const createOrdinals = async (
-	config: CreateOrdinalsConfig
+	config: CreateOrdinalsConfig,
 ): Promise<CreateOrdinalsResult> => {
 	const {
 		utxos,
@@ -89,26 +89,43 @@ export const createOrdinals = async (
 	}
 
 	let payChangeVout: number | undefined;
-	
+
 	// Calculate total input and output amounts
-	const totalInput = utxos.reduce((sum, utxo) => sum + BigInt(utxo.satoshis), 0n);
-	const totalOutput = tx.outputs.reduce((sum, output) => sum + BigInt(output.satoshis || 0), 0n);
-	
+	const totalInput = utxos.reduce(
+		(sum, utxo) => sum + BigInt(utxo.satoshis),
+		0n,
+	);
+	const totalOutput = tx.outputs.reduce(
+		(sum, output) => sum + BigInt(output.satoshis || 0),
+		0n,
+	);
+
 	// Estimate fee
 	const estimatedFee = await modelOrFee.computeFee(tx);
-	
+
 	// Check if change is needed
+	let payChange: Utxo | undefined;
 	if (totalInput > totalOutput + BigInt(estimatedFee)) {
-		// Add change output
-		tx.addOutput({
-			lockingScript: new P2PKH().lock(
-				changeAddress || paymentPk.toAddress().toString(),
-			),
+		const changeScript = new P2PKH().lock(
+			changeAddress || paymentPk.toAddress().toString(),
+		);
+		const changeOutput = {
+			lockingScript: changeScript,
 			change: true,
-		});
-		payChangeVout = tx.outputs.length - 1;
+		};
+		// Add change output
+		payChange = {
+			txid: "", // txid is not known yet,
+			vout: tx.outputs.length,
+			satoshis: 0, // change output amount is not known yet
+			script: Buffer.from(changeScript.toHex(), "hex").toString(
+				"base64",
+			),
+		};
+
+		tx.addOutput(changeOutput);
 	}
-	
+
 	if (signer) {
 		tx = await signData(tx, signer);
 	}
@@ -119,9 +136,15 @@ export const createOrdinals = async (
 	// Sign the transaction
 	await tx.sign();
 
+	if (payChange) {
+		const changeOutput = tx.outputs[tx.outputs.length - 1];
+		payChange.satoshis = changeOutput.satoshis as number;
+		payChange.txid = tx.hash("hex") as string;
+	}
+	
 	return {
 		tx,
 		spentOutpoints: utxos.map((utxo) => `${utxo.txid}_${utxo.vout}`),
-		payChangeVout,
+		payChange,
 	};
 };

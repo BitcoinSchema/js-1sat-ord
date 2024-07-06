@@ -39,24 +39,24 @@ describe("sendUtxos", () => {
   };
 
   test("send utxos with a sufficient utxo", async () => {
-    const { tx, spentOutpoints, payChangeVout } = await sendUtxos(baseConfig);
+    const { tx, spentOutpoints, payChange } = await sendUtxos(baseConfig);
 
     expect(tx).toBeDefined();
     expect(tx.toHex()).toBeTruthy();
     expect(spentOutpoints).toEqual(["ecb483eda58f26da1b1f8f15b782b1186abdf9c6399a1c3e63e0d429d5092a41_0"]);
-    expect(payChangeVout).toBe(1);
+    expect(payChange?.vout).toBe(1);
     expect(tx.outputs.length).toBe(2);
     console.log({ txHex: tx.toHex() });
   });
 
   test("send utxos with an exact utxo", async () => {
     const config = { ...baseConfig, utxos: exactUtxos };
-    const { tx, spentOutpoints, payChangeVout } = await sendUtxos(config);
+    const { tx, spentOutpoints, payChange } = await sendUtxos(config);
 
     expect(tx).toBeDefined();
     expect(tx.toHex()).toBeTruthy();
     expect(spentOutpoints).toEqual(["ecb483eda58f26da1b1f8f15b782b1186abdf9c6399a1c3e63e0d429d5092a41_0"]);
-    expect(payChangeVout).toBeUndefined();
+    expect(payChange).toBeUndefined();
     expect(tx.outputs.length).toBe(1);
     console.log({ txHex: tx.toHex() });
   });

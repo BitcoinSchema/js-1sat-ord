@@ -8,6 +8,7 @@ import type {
 	DeployBsv21TokenConfig,
 	DeployBsv21TokenResult,
 	DeployMintTokenInscription,
+	Utxo,
 } from "./types";
 import { inputFromB64Utxo } from "./utils/utxo";
 import { validIconData, validIconFormat } from "./utils/icon";
@@ -47,7 +48,6 @@ export const deployBsv21Token = async (
 
 	const tx = new Transaction();
 	const spentOutpoints: string[] = [];
-	let payChangeVout = 0;
 
 	let iconValue: string;
 	if (typeof icon === "string") {
@@ -111,8 +111,8 @@ export const deployBsv21Token = async (
 	// Inputs
 	let totalSatsIn = 0n;
 	const totalSatsOut = tx.outputs.reduce(
-		(total, out) => total + (out.satoshis || 0),
-		0,
+		(total, out) => total + BigInt(out.satoshis || 0),
+		0n,
 	);
 	let fee = 0;
 	for (const utxo of utxos) {
@@ -124,18 +124,19 @@ export const deployBsv21Token = async (
 		totalSatsIn += BigInt(utxo.satoshis);
 		fee = await modelOrFee.computeFee(tx);
 
-		if (totalSatsIn >= totalSatsOut + fee) {
+		if (totalSatsIn >= totalSatsOut + BigInt(fee)) {
 			break;
 		}
 	}
 
 	// make sure we have enough
-	if (totalSatsIn < totalSatsOut + fee) {
+	if (totalSatsIn < totalSatsOut + BigInt(fee)) {
 		throw new Error(`Not enough funds to deploy token. Total sats in: ${totalSatsIn}, Total sats out: ${totalSatsOut}, Fee: ${fee}`);
 	}
 
 	// if we need to send change, add it to the outputs
-	if (totalSatsIn > totalSatsOut + fee) {
+	let payChange: Utxo | undefined;
+	if (totalSatsIn > totalSatsOut + BigInt(fee)) {
 		// Change
 		const change = changeAddress || paymentPk.toAddress().toString();
 		const changeScript = new P2PKH().lock(change);
@@ -144,20 +145,34 @@ export const deployBsv21Token = async (
 			change: true,
 		};
 		spentOutpoints.push(change);
-		payChangeVout = tx.outputs.length;
+		payChange = {
+			txid: "", // txid is not known yet
+			vout: tx.outputs.length,
+			satoshis: 0, // change output amount is not known yet
+			script: Buffer.from(changeScript.toHex(), "hex").toString(
+				"base64",
+			)
+		};
 		tx.addOutput(changeOut);
-	} else if (totalSatsIn < totalSatsOut + fee) {
+	} else if (totalSatsIn < totalSatsOut + BigInt(fee)) {
 		console.log("No change needed");
 	}
 
 	// estimate the cost of the transaction and assign change value
 	await tx.fee(modelOrFee);
 
+	// Sign the transaction
 	await tx.sign();
+
+	if (payChange) {
+		const changeOutput = tx.outputs[tx.outputs.length - 1];
+		payChange.satoshis = changeOutput.satoshis as number;
+		payChange.txid = tx.hash("hex") as string;
+	}
 
 	return { 
 		tx,
 		spentOutpoints: utxos.map((utxo) => `${utxo.txid}_${utxo.vout}`),
-		payChangeVout: tx.outputs.length - 1,
+		payChange,
 	}
 };

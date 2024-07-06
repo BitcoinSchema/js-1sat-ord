@@ -126,7 +126,7 @@ export enum TokenType {
 export type CreateOrdinalsResult = {
 	tx: Transaction;
 	spentOutpoints: string[];
-	payChangeVout?: number;
+	payChange?: Utxo;
 };
 
 export type CreateOrdinalsConfig = {
@@ -143,7 +143,7 @@ export type CreateOrdinalsConfig = {
 export type SendOrdinalsResult = {
 	tx: Transaction;
 	spentOutpoints: string[];
-	payChangeVout?: number;
+	payChange?: Utxo;
 };
 
 export type SendOrdinalsConfig = {
@@ -163,7 +163,7 @@ export type SendOrdinalsConfig = {
 export type DeployBsv21TokenResult = {
 	tx: Transaction;
 	spentOutpoints: string[];
-	payChangeVout: number;
+	payChange?: Utxo;
 };
 
 export type DeployBsv21TokenConfig = {
@@ -181,7 +181,7 @@ export type DeployBsv21TokenConfig = {
 export type SendUtxosResult = {
 	tx: Transaction;
 	spentOutpoints: string[];
-	payChangeVout?: number;
+	payChange?: Utxo;
 };
 
 export type SendUtxosConfig = {
@@ -193,7 +193,7 @@ export type SendUtxosConfig = {
 };
 
 export interface TransferOrdTokensResult extends SendOrdinalsResult {
-	tokenChangeVout?: number;
+	tokenChange?: TokenUtxo;
 }
 
 export type TransferOrdTokensConfig = {

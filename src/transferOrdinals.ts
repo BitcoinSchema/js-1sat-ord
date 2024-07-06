@@ -7,10 +7,10 @@ import {
 	type TransferOrdTokensConfig,
 	type TransferOrdTokensResult,
 	type SendOrdinalsConfig,
+	type TokenUtxo,
 } from "./types";
 import { DEFAULT_SAT_PER_KB } from "./constants";
 import { sendOrdinals } from "./sendOrdinals";
-
 
 /**
  * Transfer tokens to a destination
@@ -128,15 +128,31 @@ export const transferOrdTokens = async (config: TransferOrdTokensConfig): Promis
 		enforceUniformSend: false
 	};
 
-	const { tx, spentOutpoints, payChangeVout } = await sendOrdinals(sendOrdinalsConfig);
+	const { tx, spentOutpoints, payChange } = await sendOrdinals(sendOrdinalsConfig);
 	
 	// find the tokenChangeVout by looking for the destination with the tokenChangeAddress
+	const tokenChangeVout = destinations.findIndex(
+		(d) => d.address === (tokenChangeAddress || ordPk.toAddress().toString())
+	);
+	
+	let tokenChange: TokenUtxo | undefined;
+	if (tokenChangeVout !== -1) {
+		tokenChange = {
+			id: tokenID,
+			amt: changeAmt.toString(),
+			satoshis: 1,
+			txid: tx.id("hex"),
+			vout: tokenChangeVout,
+			script: Buffer.from(tx.outputs[tokenChangeVout].lockingScript.toHex(), "hex").toString(
+				"base64",
+			),
+		};
+	}
+
 	return {
 		tx,
 		spentOutpoints,
-		payChangeVout,
-		tokenChangeVout: destinations.findIndex(
-			(d) => d.address === (tokenChangeAddress || ordPk.toAddress().toString())
-		),
+		payChange,
+		tokenChange,
 	}
 };

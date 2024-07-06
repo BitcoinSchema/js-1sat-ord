@@ -10,6 +10,7 @@ import OrdP2PKH from "./templates/ordP2pkh";
 import type {
 	SendOrdinalsResult,
 	SendOrdinalsConfig,
+	Utxo,
 } from "./types";
 import { inputFromB64Utxo } from "./utils/utxo";
 import { signData } from "./signData";
@@ -120,6 +121,7 @@ export const sendOrdinals = async (config: SendOrdinalsConfig): Promise<SendOrdi
 		throw new Error("Not enough ordinals to send");
 	}
 	
+	let payChange: Utxo | undefined;
 	if (totalSatsIn > totalSatsOut + fee) {
 		const changeScript = new P2PKH().lock(
 			config.changeAddress || config.paymentPk.toAddress().toString(),
@@ -128,7 +130,14 @@ export const sendOrdinals = async (config: SendOrdinalsConfig): Promise<SendOrdi
 			lockingScript: changeScript,
 			change: true,
 		};
-		payChangeVout = tx.outputs.length;
+		payChange = {
+			txid: "", // txid is not available until the transaction is signed
+			vout: tx.outputs.length,
+			satoshis: 0, // change output amount is not known yet
+			script: Buffer.from(changeScript.toHex(), "hex").toString(
+				"base64",
+			)
+		};
 		tx.addOutput(changeOut);
 	}
 
@@ -138,13 +147,19 @@ export const sendOrdinals = async (config: SendOrdinalsConfig): Promise<SendOrdi
 
 	// Calculate fee
 	await tx.fee(modelOrFee);
-
+	
 	// Sign the transaction
 	await tx.sign();
 
+	if (payChange) {
+		const changeOutput = tx.outputs[tx.outputs.length - 1];
+		payChange.satoshis = changeOutput.satoshis as number
+		payChange.txid = tx.hash("hex") as string;
+	}
+	
 	return {
 		tx,
 		spentOutpoints,
-		payChangeVout,
+		payChange,
 	};
 };
