@@ -1,12 +1,18 @@
 {
   "name": "js-1sat-ord",
-  "version": "0.1.4",
-  "description": "",
+  "version": "0.1.8",
+  "description": "1Sat Ordinals library",
   "types": "dist/index.d.ts",
   "type": "module",
   "main": "dist/index.cjs",
   "module": "dist/index.module.js",
+  "unpkg": "dist/index.umd.js",
   "source": "src/index.ts",
+  "exports": {
+    "require": "./dist/index.cjs",
+    "default": "./dist/index.modern.js",
+    "types": "./dist/index.d.ts"
+  },
   "files": [
     "/dist"
   ],
@@ -19,9 +25,11 @@
   "author": "Luke Rohenaz",
   "license": "MIT",
   "dependencies": {
-    "@bsv/sdk": "^1.1.12",
     "sharp": "^0.33.4",
     "sigma-protocol": "^0.1.2"
+  },
+  "peerDependencies": {
+    "@bsv/sdk": "^1.1.12"
   },
   "devDependencies": {
     "@types/bun": "^1.1.6",

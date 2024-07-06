@@ -10,3 +10,4 @@ export declare const inputFromB64Utxo: (utxo: Utxo, unlockScriptTemplate: {
     sign: (tx: Transaction, inputIndex: number) => Promise<UnlockingScript>;
     estimateLength: (tx: Transaction, inputIndex: number) => Promise<number>;
 }) => TransactionInput;
+export declare const fetchPayUtxos: (address: string) => Promise<any>;

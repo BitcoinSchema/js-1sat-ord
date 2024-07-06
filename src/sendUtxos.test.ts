@@ -1,4 +1,4 @@
-import { PrivateKey, Utils } from "@bsv/sdk";
+import { P2PKH, PrivateKey, Utils } from "@bsv/sdk";
 import { sendUtxos, type SendUtxosConfig } from "./sendUtxos";
 import type { Utxo, Payment } from "./types";
 
@@ -10,21 +10,21 @@ describe("sendUtxos", () => {
     satoshis: 5,
     txid: "ecb483eda58f26da1b1f8f15b782b1186abdf9c6399a1c3e63e0d429d5092a41",
     vout: 0,
-    script: Buffer.from(Utils.fromBase58Check(address).data).toString("base64")
+    script: Buffer.from(new P2PKH().lock(address).toHex(), 'hex').toString('base64'),
   }];
 
   const exactUtxos: Utxo[] = [{
     satoshis: 12,
     txid: "ecb483eda58f26da1b1f8f15b782b1186abdf9c6399a1c3e63e0d429d5092a41",
     vout: 0,
-    script: Buffer.from(Utils.fromBase58Check(address).data).toString("base64")
+    script: Buffer.from(new P2PKH().lock(address).toHex(), 'hex').toString('base64'),
   }];
 
   const sufficientUtxos: Utxo[] = [{
     satoshis: 15,
     txid: "ecb483eda58f26da1b1f8f15b782b1186abdf9c6399a1c3e63e0d429d5092a41",
     vout: 0,
-    script: Buffer.from(Utils.fromBase58Check(address).data).toString("base64")
+    script: Buffer.from(new P2PKH().lock(address).toHex(), 'hex').toString('base64'),
   }];
 
   const payments: Payment[] = [{
@@ -65,5 +65,4 @@ describe("sendUtxos", () => {
     const config = { ...baseConfig, utxos: insufficientUtxos };
     await expect(sendUtxos(config)).rejects.toThrow("Not enough funds");
   });
-
 });

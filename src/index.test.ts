@@ -4,6 +4,7 @@ import OrdP2PKH from "./templates/ordP2pkh";
 import type { Destination } from "./types";
 import type { SendOrdinalsConfig } from "./sendOrdinals";
 import type { CreateOrdinalsConfig } from "./createOrdinals";
+import { P2PKH } from "@bsv/sdk";
 
 test("test build inscription", () => {
 	const b64Data = "# Hello World!";
@@ -43,9 +44,7 @@ test("create and send ordinal inscription", async () => {
 			satoshis: 100000,
 			txid: "ecb483eda58f26da1b1f8f15b782b1186abdf9c6399a1c3e63e0d429d5092a41",
 			vout: 0,
-			script: Buffer.from(Utils.fromBase58Check(changeAddress).data).toString(
-				"base64",
-			),
+      script: Buffer.from(new P2PKH().lock(changeAddress).toHex(), 'hex').toString('base64'),
 		},
 	];
 

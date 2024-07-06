@@ -29,7 +29,7 @@ import { createOrdinals, sendOrdinals, sendUtxos, deployBsv21Token, transferOrdT
 
 ### Example
 
-Prepare some utxos to use
+Prepare some utxos to use. You can use the helper `fetchPayUtxos(address)` to fetch from the public 1Sat API, or use an API of your choice.
 
 ```ts
 const utxo: Utxo = {
@@ -163,5 +163,10 @@ Refer to the function documentation for a complete list of configuration options
 #### Using with Bundlers
 
 Since this package depends on `@bsv/sdk` there should be no issue with bundlers.
+
+## Resources
+There is a public 1Sat API which is documented here:
+
+[https://ordinals.gorillapool.io/api/docs](https://ordinals.gorillapool.io/api/docs)
 
 ---

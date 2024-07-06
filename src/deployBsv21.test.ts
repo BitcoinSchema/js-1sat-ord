@@ -1,4 +1,4 @@
-import { PrivateKey, Utils } from "@bsv/sdk";
+import { P2PKH, PrivateKey, Utils } from "@bsv/sdk";
 import { deployBsv21Token, type DeployBsv21TokenConfig } from "./deployBsv21";
 import type { Utxo, IconInscription } from "./types";
 import { ErrorIconProportions, ErrorOversizedIcon } from "./utils/icon";
@@ -11,21 +11,21 @@ describe("deployBsv21Token", () => {
     satoshis: 6,
     txid: "ecb483eda58f26da1b1f8f15b782b1186abdf9c6399a1c3e63e0d429d5092a41",
     vout: 0,
-    script: Buffer.from(Utils.fromBase58Check(address).data).toString("base64")
+    script: Buffer.from(new P2PKH().lock(address).toHex(), 'hex').toString('base64'),
   }];
 
   const exactUtxos: Utxo[] = [{
     satoshis: 7,
     txid: "ecb483eda58f26da1b1f8f15b782b1186abdf9c6399a1c3e63e0d429d5092a41",
     vout: 0,
-    script: Buffer.from(Utils.fromBase58Check(address).data).toString("base64")
+    script: Buffer.from(new P2PKH().lock(address).toHex(), 'hex').toString('base64'),
   }];
 
   const sufficientUtxos: Utxo[] = [{
     satoshis: 10,
     txid: "ecb483eda58f26da1b1f8f15b782b1186abdf9c6399a1c3e63e0d429d5092a41",
     vout: 0,
-    script: Buffer.from(Utils.fromBase58Check(address).data).toString("base64")
+    script: Buffer.from(new P2PKH().lock(address).toHex(), 'hex').toString('base64'),
   }];
 
   const initialDistribution = {
