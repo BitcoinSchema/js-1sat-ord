@@ -28,13 +28,17 @@ export const inputFromB64Utxo = (
 	return input;
 };
 
-export const fetchPayUtxos = async (address: string) => {
+/**
+ * Fetches pay utxos from the API
+ * @param {string} address - Address to fetch utxos for
+ * @returns {Promise<Utxo[]>} Array of pay utxos
+ */
+export const fetchPayUtxos = async (address: string): Promise<Utxo[]> => {
   const payUrl = `${API_HOST}/txos/address/${address}/unspent?bsv20=false`;
   console.log({ payUrl });
   const payRes = await fetch(payUrl);
   if (!payRes.ok) {
-    console.error("Error fetching pay utxos:", payRes.statusText);
-    return;
+    throw new Error("Error fetching pay utxos");
   }
   let payUtxos = await payRes.json();
   // exclude all 1 satoshi utxos

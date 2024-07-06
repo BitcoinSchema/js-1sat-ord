@@ -8,17 +8,17 @@ A Javascript library for creating and managing 1Sat Ordinal inscriptions and tra
 
 ### Install
 
-We recommend using Bun for the best performance, but you can also use Yarn or npm:
+Install the library, and it's peer dependency. We recommend using Bun for the best performance, but you can also use Yarn or npm:
 
 ```bash
 # Using Bun (recommended)
-bun add js-1sat-ord
+bun add js-1sat-ord @bsv/sdk
 
 # Using Yarn
-yarn add js-1sat-ord
+yarn add js-1sat-ord @bsv/sdk
 
 # Using npm
-npm install js-1sat-ord
+npm i js-1sat-ord @bsv/sdk
 ```
 
 ### Usage
@@ -29,9 +29,11 @@ import { createOrdinals, sendOrdinals, sendUtxos, deployBsv21Token, transferOrdT
 
 ### Example
 
-Prepare some utxos to use. You can use the helper `fetchPayUtxos(address)` to fetch from the public 1Sat API, or use an API of your choice.
+Prepare some utxos to use in the following format. Be sure to use base64 encoded scripts. We use this encoding because it makes large scripts smaller in size.
 
 ```ts
+import type { Utxo } from "js-1sat-ord";
+
 const utxo: Utxo = {
   satoshis: 269114,
   txid: "61fd6e240610a9e9e071c34fc87569ef871760ea1492fe1225d668de4d76407e",
@@ -40,11 +42,22 @@ const utxo: Utxo = {
 };
 ```
 
+ You can use the helper `fetchPayUtxos(address)` to fetch unspent transaction outputs from the public 1Sat API and create the scripts with the correct encoding. This should be a BSV address, not your ordinals address.
+
+ ```ts
+ import { fetchPayUtxos } from "js-1sat-ord";
+
+ const utxos = await fetchPayUtxos(payAddress)
+ ```
+
 #### Prepare Inscription
 
 For a markdown inscription, you can create a string and convert it to base64:
 
 ```ts
+import type { Inscription } from "js-1sat-ord";
+
+
 // Create a markdown string
 const markdownContent = "# Hello World!\n\nThis is a 1Sat Ordinal inscription.";
 
@@ -52,7 +65,7 @@ const markdownContent = "# Hello World!\n\nThis is a 1Sat Ordinal inscription.";
 const encodedFileData = Buffer.from(markdownContent).toString('base64');
 
 // Prepare the inscription object
-const inscription = {
+const inscription: Inscription = {
   dataB64: encodedFileData,
   contentType: "text/markdown"
 };
@@ -63,6 +76,8 @@ const inscription = {
 Be sure to use different keys for ordinals and normal payments:
 
 ```ts
+import { PrivateKey } from "js-1sat-ord";
+
 const paymentPk = PrivateKey.fromWif(paymentWif);
 const ordPk = PrivateKey.fromWif(ordWif);
 ```
@@ -72,7 +87,9 @@ const ordPk = PrivateKey.fromWif(ordWif);
 The `createOrdinals` function creates a transaction with inscription outputs:
 
 ```ts
-const config = {
+import type { CreateOrdinalsConfig } from "js-1sat-ord";
+
+const config: CreateOrdinalsConfig = {
   utxos: [utxo],
   destinations: [{
     address: ordinalDestinationAddress,
@@ -89,7 +106,9 @@ const result = await createOrdinals(config);
 Sends ordinals to the given destinations:
 
 ```ts
-const config = {
+import type { SendOrdinalsConfig } from "js-1sat-ord";
+
+const config: SendOrdinalsConfig = {
   paymentUtxos: [paymentUtxo],
   ordinals: [ordinalUtxo],
   paymentPk: paymentPk,
@@ -106,7 +125,9 @@ const result = await sendOrdinals(config);
 ### Deploy a BSV21 Token
 
 ```ts
-const config = {
+import type { DeployBsv21TokenConfig } from "js-1sat-ord";
+
+const config: DeployBsv21TokenConfig = {
   symbol: "MYTICKER",
   icon: "<icon_outpoint>",
   utxos: [utxo],
@@ -121,7 +142,9 @@ const result = await deployBsv21Token(config);
 ### Transfer BSV21 Tokens
 
 ```ts
-const config = {
+import type { TransferBsv21TokenConfig } from "js-1sat-ord";
+
+const config: TransferBsv21TokenConfig = {
   protocol: TokenType.BSV21,
   tokenID: tokenID,
   utxos: [utxo],
@@ -139,13 +162,15 @@ const result = await transferOrdToken(config);
 Sends utxos to the given destination:
 
 ```ts
-const config = {
+import type { SendUtxosConfig } from "js-1sat-ord";
+
+const config: SendUtxosConfig = {
   utxos: [utxo],
   paymentPk: paymentPk,
   payments: [{ to: destinationAddress, amount: 1000 }]
 };
 
-const tx = await sendUtxos(config);
+const { tx } = await sendUtxos(config);
 ```
 
 ### Additional Configuration Options
