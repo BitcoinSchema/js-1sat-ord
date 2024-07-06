@@ -9,35 +9,11 @@ import {
 import { DEFAULT_SAT_PER_KB } from "./constants";
 import OrdP2PKH from "./templates/ordP2pkh";
 import type {
-	Utxo,
-	Destination,
-	MAP,
-	Payment,
-	LocalSigner,
-	RemoteSigner,
+	SendOrdinalsResult,
+	SendOrdinalsConfig,
 } from "./types";
 import { inputFromB64Utxo } from "./utils/utxo";
 import { signData } from "./signData";
-
-export type SendOrdinalsResult = {
-	tx: Transaction;
-	spentOutpoints: string[];
-	payChangeVout?: number;
-};
-
-export type SendOrdinalsConfig = {
-	paymentUtxos: Utxo[];
-	ordinals: Utxo[];
-	paymentPk: PrivateKey;
-	ordPk: PrivateKey;
-	destinations: Destination[];
-	changeAddress?: string;
-	satsPerKb?: number;
-	metaData?: MAP;
-	signer?: LocalSigner | RemoteSigner;
-	additionalPayments?: Payment[];
-	enforceUniformSend?: boolean;
-}
 
 /**
  * Sends ordinals to the given destinations

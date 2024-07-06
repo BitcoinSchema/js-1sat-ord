@@ -1,39 +1,18 @@
 import {
-	type PrivateKey,
 	Transaction,
 	P2PKH,
 	SatoshisPerKilobyte,
 	type TransactionOutput,
 } from "@bsv/sdk";
 import type {
+	DeployBsv21TokenConfig,
+	DeployBsv21TokenResult,
 	DeployMintTokenInscription,
-	Distribution,
-	IconInscription,
-	Payment,
-	Utxo,
 } from "./types";
 import { inputFromB64Utxo } from "./utils/utxo";
 import { validIconData, validIconFormat } from "./utils/icon";
 import OrdP2PKH from "./templates/ordP2pkh";
 import { DEFAULT_SAT_PER_KB } from "./constants";
-
-type DeployBsv21TokenResult = {
-	tx: Transaction;
-	spentOutpoints: string[];
-	payChangeVout: number;
-};
-
-export type DeployBsv21TokenConfig = {
-	symbol: string;
-	icon: string | IconInscription;
-	utxos: Utxo[];
-	initialDistribution: Distribution;
-	paymentPk: PrivateKey;
-	destinationAddress: string;
-	changeAddress?: string;
-	satsPerKb?: number;
-	additionalPayments?: Payment[];
-};
 
 /**
  * Deploys & Mints a BSV21 token to the given destination address

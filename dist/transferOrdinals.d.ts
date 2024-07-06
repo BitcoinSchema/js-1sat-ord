@@ -1,24 +1,4 @@
-import type { PrivateKey } from "@bsv/sdk";
-import { type Distribution, type LocalSigner, type MAP, type Payment, type RemoteSigner, TokenType, type TokenUtxo, type Utxo } from "./types";
-import { type SendOrdinalsResult } from "./sendOrdinals";
-interface TransferOrdTokensResult extends SendOrdinalsResult {
-    tokenChangeVout?: number;
-}
-export type TransferOrdTokensConfig = {
-    protocol: TokenType;
-    tokenID: string;
-    utxos: Utxo[];
-    inputTokens: TokenUtxo[];
-    distributions: Distribution[];
-    paymentPk: PrivateKey;
-    ordPk: PrivateKey;
-    changeAddress?: string;
-    tokenChangeAddress?: string;
-    satsPerKb?: number;
-    metaData?: MAP;
-    signer?: LocalSigner | RemoteSigner;
-    additionalPayments?: Payment[];
-};
+import { type TransferOrdTokensConfig, type TransferOrdTokensResult } from "./types";
 /**
  * Transfer tokens to a destination
  * @param {TransferOrdTokensConfig} config - Configuration object for transferring tokens
@@ -38,4 +18,3 @@ export type TransferOrdTokensConfig = {
  * @returns {Promise<TransferOrdTokensResult>} Transaction with token transfer outputs
  */
 export declare const transferOrdTokens: (config: TransferOrdTokensConfig) => Promise<TransferOrdTokensResult>;
-export {};

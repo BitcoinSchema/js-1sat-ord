@@ -1,23 +1,4 @@
-import { type PrivateKey, Transaction } from "@bsv/sdk";
-import type { Utxo, Destination, MAP, Payment, LocalSigner, RemoteSigner } from "./types";
-export type SendOrdinalsResult = {
-    tx: Transaction;
-    spentOutpoints: string[];
-    payChangeVout?: number;
-};
-export type SendOrdinalsConfig = {
-    paymentUtxos: Utxo[];
-    ordinals: Utxo[];
-    paymentPk: PrivateKey;
-    ordPk: PrivateKey;
-    destinations: Destination[];
-    changeAddress?: string;
-    satsPerKb?: number;
-    metaData?: MAP;
-    signer?: LocalSigner | RemoteSigner;
-    additionalPayments?: Payment[];
-    enforceUniformSend?: boolean;
-};
+import type { SendOrdinalsResult, SendOrdinalsConfig } from "./types";
 /**
  * Sends ordinals to the given destinations
  * @param {SendOrdinalsConfig} config - Configuration object for sending ordinals

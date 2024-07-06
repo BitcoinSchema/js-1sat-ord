@@ -1,17 +1,4 @@
-import { type PrivateKey, Transaction } from "@bsv/sdk";
-import type { Payment, Utxo } from "./types";
-export type SendUtxosResult = {
-    tx: Transaction;
-    spentOutpoints: string[];
-    payChangeVout?: number;
-};
-export type SendUtxosConfig = {
-    utxos: Utxo[];
-    paymentPk: PrivateKey;
-    payments: Payment[];
-    satsPerKb?: number;
-    changeAddress?: string;
-};
+import type { SendUtxosConfig, SendUtxosResult } from "./types";
 /**
  * Sends utxos to the given destination
  * @param {SendUtxosConfig} config - Configuration object for sending utxos

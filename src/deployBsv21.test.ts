@@ -1,6 +1,6 @@
-import { P2PKH, PrivateKey, Utils } from "@bsv/sdk";
-import { deployBsv21Token, type DeployBsv21TokenConfig } from "./deployBsv21";
-import type { Utxo, IconInscription } from "./types";
+import { P2PKH, PrivateKey } from "@bsv/sdk";
+import { deployBsv21Token } from "./deployBsv21";
+import type { Utxo, IconInscription, DeployBsv21TokenConfig } from "./types";
 import { ErrorIconProportions, ErrorOversizedIcon } from "./utils/icon";
 
 describe("deployBsv21Token", () => {

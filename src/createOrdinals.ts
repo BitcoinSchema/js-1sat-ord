@@ -12,27 +12,12 @@ import type {
 	LocalSigner,
 	RemoteSigner,
 	Payment,
+	CreateOrdinalsConfig,
+	CreateOrdinalsResult,
 } from "./types";
 import { inputFromB64Utxo } from "./utils/utxo";
 import { DEFAULT_SAT_PER_KB } from "./constants";
 import { signData } from "./signData";
-
-type CreateOrdinalsResult = {
-	tx: Transaction;
-	spentOutpoints: string[];
-	payChangeVout?: number;
-};
-
-export type CreateOrdinalsConfig = {
-	utxos: Utxo[];
-	destinations: Destination[];
-	paymentPk: PrivateKey;
-	changeAddress?: string;
-	satsPerKb?: number;
-	metaData?: MAP;
-	signer?: LocalSigner | RemoteSigner;
-	additionalPayments?: Payment[];
-};
 
 /**
  * Creates a transaction with inscription outputs

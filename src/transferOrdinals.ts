@@ -1,43 +1,16 @@
-import type {
-	PrivateKey,
-	Transaction,
-} from "@bsv/sdk";
 import {
 	type Destination,
-	type Distribution,
-	type LocalSigner,
-	type MAP,
-	type Payment,
-	type RemoteSigner,
 	TokenType,
-	type TokenUtxo,
 	type TransferBSV20Inscription,
 	type TransferTokenInscription,
-	type Utxo,
   type TransferBSV21Inscription,
+	type TransferOrdTokensConfig,
+	type TransferOrdTokensResult,
+	type SendOrdinalsConfig,
 } from "./types";
 import { DEFAULT_SAT_PER_KB } from "./constants";
-import { type SendOrdinalsResult, sendOrdinals, type SendOrdinalsConfig } from "./sendOrdinals";
+import { sendOrdinals } from "./sendOrdinals";
 
-interface TransferOrdTokensResult extends SendOrdinalsResult {
-	tokenChangeVout?: number;
-}
-
-export type TransferOrdTokensConfig = {
-	protocol: TokenType;
-	tokenID: string;
-	utxos: Utxo[];
-	inputTokens: TokenUtxo[];
-	distributions: Distribution[];
-	paymentPk: PrivateKey;
-	ordPk: PrivateKey;
-	changeAddress?: string;
-	tokenChangeAddress?: string;
-	satsPerKb?: number;
-	metaData?: MAP;
-	signer?: LocalSigner | RemoteSigner;
-	additionalPayments?: Payment[];
-}
 
 /**
  * Transfer tokens to a destination

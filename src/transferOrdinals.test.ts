@@ -1,6 +1,6 @@
 import { PrivateKey, Utils } from "@bsv/sdk";
-import { type TransferOrdTokensConfig, transferOrdTokens } from "./transferOrdinals";
-import { TokenType, type TokenUtxo, type Utxo } from "./types";
+import { transferOrdTokens } from "./transferOrdinals";
+import { TokenType, type TransferOrdTokensConfig, type TokenUtxo } from "./types";
 
 test("transfer a BSV21", async () => {
   const paymentPk = PrivateKey.fromWif("KzwfqdfecMRtpg65j2BeRtixboNR37fSCDr8QbndV6ySEPT4xibW");

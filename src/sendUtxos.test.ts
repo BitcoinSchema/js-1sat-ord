@@ -1,6 +1,6 @@
-import { P2PKH, PrivateKey, Utils } from "@bsv/sdk";
-import { sendUtxos, type SendUtxosConfig } from "./sendUtxos";
-import type { Utxo, Payment } from "./types";
+import { P2PKH, PrivateKey } from "@bsv/sdk";
+import { sendUtxos } from "./sendUtxos";
+import type { Utxo, Payment, SendUtxosConfig } from "./types";
 
 describe("sendUtxos", () => {
   const paymentPk = PrivateKey.fromWif("KzwfqdfecMRtpg65j2BeRtixboNR37fSCDr8QbndV6ySEPT4xibW");

@@ -1,21 +1,4 @@
-import { type PrivateKey, Transaction } from "@bsv/sdk";
-import type { Distribution, IconInscription, Payment, Utxo } from "./types";
-type DeployBsv21TokenResult = {
-    tx: Transaction;
-    spentOutpoints: string[];
-    payChangeVout: number;
-};
-export type DeployBsv21TokenConfig = {
-    symbol: string;
-    icon: string | IconInscription;
-    utxos: Utxo[];
-    initialDistribution: Distribution;
-    paymentPk: PrivateKey;
-    destinationAddress: string;
-    changeAddress?: string;
-    satsPerKb?: number;
-    additionalPayments?: Payment[];
-};
+import type { DeployBsv21TokenConfig, DeployBsv21TokenResult } from "./types";
 /**
  * Deploys & Mints a BSV21 token to the given destination address
  * @param {DeployBsv21TokenConfig} config - Configuration object for deploying BSV21 token
@@ -31,4 +14,3 @@ export type DeployBsv21TokenConfig = {
  * @returns {Promise<DeployBsv21TokenResult>} Transaction to deploy BSV 2.1 token
  */
 export declare const deployBsv21Token: (config: DeployBsv21TokenConfig) => Promise<DeployBsv21TokenResult>;
-export {};

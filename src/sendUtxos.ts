@@ -6,22 +6,8 @@ import {
 	type TransactionOutput,
 } from "@bsv/sdk";
 import { DEFAULT_SAT_PER_KB } from "./constants";
-import type { Distribution, Payment, Utxo } from "./types";
+import type { SendUtxosConfig, SendUtxosResult } from "./types";
 import { inputFromB64Utxo } from "./utils/utxo";
-
-export type SendUtxosResult = {
-	tx: Transaction;
-	spentOutpoints: string[];
-	payChangeVout?: number;
-};
-
-export type SendUtxosConfig = {
-	utxos: Utxo[];
-	paymentPk: PrivateKey;
-	payments: Payment[];
-	satsPerKb?: number;
-	changeAddress?: string;
-};
 
 /**
  * Sends utxos to the given destination

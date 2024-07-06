@@ -1,4 +1,4 @@
-import type { PrivateKey } from "@bsv/sdk";
+import type { PrivateKey, Transaction } from "@bsv/sdk";
 import type { AuthToken } from "sigma-protocol";
 
 // biome-ignore lint/complexity/noBannedTypes: Reserved for future use
@@ -120,4 +120,94 @@ export interface TransferBSV21Inscription extends TransferTokenInscription {
 export enum TokenType {
 	BSV20 = "bsv20",
 	BSV21 = "bsv21",
+}
+
+
+export type CreateOrdinalsResult = {
+	tx: Transaction;
+	spentOutpoints: string[];
+	payChangeVout?: number;
+};
+
+export type CreateOrdinalsConfig = {
+	utxos: Utxo[];
+	destinations: Destination[];
+	paymentPk: PrivateKey;
+	changeAddress?: string;
+	satsPerKb?: number;
+	metaData?: MAP;
+	signer?: LocalSigner | RemoteSigner;
+	additionalPayments?: Payment[];
+};
+
+export type SendOrdinalsResult = {
+	tx: Transaction;
+	spentOutpoints: string[];
+	payChangeVout?: number;
+};
+
+export type SendOrdinalsConfig = {
+	paymentUtxos: Utxo[];
+	ordinals: Utxo[];
+	paymentPk: PrivateKey;
+	ordPk: PrivateKey;
+	destinations: Destination[];
+	changeAddress?: string;
+	satsPerKb?: number;
+	metaData?: MAP;
+	signer?: LocalSigner | RemoteSigner;
+	additionalPayments?: Payment[];
+	enforceUniformSend?: boolean;
+}
+
+export type DeployBsv21TokenResult = {
+	tx: Transaction;
+	spentOutpoints: string[];
+	payChangeVout: number;
+};
+
+export type DeployBsv21TokenConfig = {
+	symbol: string;
+	icon: string | IconInscription;
+	utxos: Utxo[];
+	initialDistribution: Distribution;
+	paymentPk: PrivateKey;
+	destinationAddress: string;
+	changeAddress?: string;
+	satsPerKb?: number;
+	additionalPayments?: Payment[];
+};
+
+export type SendUtxosResult = {
+	tx: Transaction;
+	spentOutpoints: string[];
+	payChangeVout?: number;
+};
+
+export type SendUtxosConfig = {
+	utxos: Utxo[];
+	paymentPk: PrivateKey;
+	payments: Payment[];
+	satsPerKb?: number;
+	changeAddress?: string;
+};
+
+export interface TransferOrdTokensResult extends SendOrdinalsResult {
+	tokenChangeVout?: number;
+}
+
+export type TransferOrdTokensConfig = {
+	protocol: TokenType;
+	tokenID: string;
+	utxos: Utxo[];
+	inputTokens: TokenUtxo[];
+	distributions: Distribution[];
+	paymentPk: PrivateKey;
+	ordPk: PrivateKey;
+	changeAddress?: string;
+	tokenChangeAddress?: string;
+	satsPerKb?: number;
+	metaData?: MAP;
+	signer?: LocalSigner | RemoteSigner;
+	additionalPayments?: Payment[];
 }

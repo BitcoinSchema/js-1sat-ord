@@ -1,20 +1,4 @@
-import { type PrivateKey, Transaction } from "@bsv/sdk";
-import type { Utxo, Destination, MAP, LocalSigner, RemoteSigner, Payment } from "./types";
-type CreateOrdinalsResult = {
-    tx: Transaction;
-    spentOutpoints: string[];
-    payChangeVout?: number;
-};
-export type CreateOrdinalsConfig = {
-    utxos: Utxo[];
-    destinations: Destination[];
-    paymentPk: PrivateKey;
-    changeAddress?: string;
-    satsPerKb?: number;
-    metaData?: MAP;
-    signer?: LocalSigner | RemoteSigner;
-    additionalPayments?: Payment[];
-};
+import type { CreateOrdinalsConfig, CreateOrdinalsResult } from "./types";
 /**
  * Creates a transaction with inscription outputs
  * @param {CreateOrdinalsConfig} config - Configuration object for creating ordinals
@@ -29,4 +13,3 @@ export type CreateOrdinalsConfig = {
  * @returns {Promise<CreateOrdinalsResult>} Transaction with inscription outputs
  */
 export declare const createOrdinals: (config: CreateOrdinalsConfig) => Promise<CreateOrdinalsResult>;
-export {};
