@@ -1,6 +1,6 @@
 {
   "name": "js-1sat-ord",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "description": "1Sat Ordinals library",
   "types": "dist/index.d.ts",
   "type": "module",
@@ -11,7 +11,7 @@
   "exports": {
     "require": "./dist/index.cjs",
     "default": "./dist/index.modern.js",
-    "types": "./dist/index.d.ts"
+    "types": ["./dist/index.d.ts", "./dist/types/types.ts"]
   },
   "files": [
     "/dist"
