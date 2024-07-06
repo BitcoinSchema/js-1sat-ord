@@ -7,11 +7,7 @@ import {
 } from "@bsv/sdk";
 import { DEFAULT_SAT_PER_KB } from "./constants";
 import OrdP2PKH from "./templates/ordP2pkh";
-import type {
-	SendOrdinalsResult,
-	SendOrdinalsConfig,
-	Utxo,
-} from "./types";
+import type { SendOrdinalsResult, SendOrdinalsConfig, Utxo } from "./types";
 import { inputFromB64Utxo } from "./utils/utxo";
 import { signData } from "./signData";
 
@@ -31,7 +27,9 @@ import { signData } from "./signData";
  * @param {boolean} config.enforceUniformSend - Optional. Default: true. Enforce that the number of destinations matches the number of ordinals being sent. Sending ordinals requires a 1:1 mapping of destinations to ordinals. This is only used for sub-protocols like BSV21 that manage tokens without sending the inscriptions directly.
  * @returns {Promise<SendOrdinalsResult>} Transaction, spent outpoints, and change vout
  */
-export const sendOrdinals = async (config: SendOrdinalsConfig): Promise<SendOrdinalsResult> => {
+export const sendOrdinals = async (
+	config: SendOrdinalsConfig,
+): Promise<SendOrdinalsResult> => {
 	if (!config.satsPerKb) {
 		config.satsPerKb = DEFAULT_SAT_PER_KB;
 	}
@@ -54,14 +52,20 @@ export const sendOrdinals = async (config: SendOrdinalsConfig): Promise<SendOrdi
 			throw new Error("1Sat Ordinal utxos must have exactly 1 satoshi");
 		}
 
-		const input = inputFromB64Utxo(ordUtxo, new OrdP2PKH().unlock(config.ordPk));
+		const input = inputFromB64Utxo(
+			ordUtxo,
+			new OrdP2PKH().unlock(config.ordPk),
+		);
 		spentOutpoints.push(`${ordUtxo.txid}_${ordUtxo.vout}`);
 		tx.addInput(input);
 	}
 
 	// Outputs
 	// check that ordinals coming in matches ordinals going out if supplied
-	if (config.enforceUniformSend && config.destinations.length !== config.ordinals.length) {
+	if (
+		config.enforceUniformSend &&
+		config.destinations.length !== config.ordinals.length
+	) {
 		throw new Error(
 			"Number of destinations must match number of ordinals being sent",
 		);
@@ -92,37 +96,39 @@ export const sendOrdinals = async (config: SendOrdinalsConfig): Promise<SendOrdi
 
 	// Add additional payments if any
 	for (const p of config.additionalPayments) {
-		console.log("Additional payment", p);
 		tx.addOutput({
 			satoshis: p.amount,
 			lockingScript: new P2PKH().lock(p.to),
 		});
 	}
 
-	// Add payment inputs
-	for (const paymentUtxo of config.paymentUtxos) {
-		const input = inputFromB64Utxo(paymentUtxo, new P2PKH().unlock(config.paymentPk));
-		spentOutpoints.push(`${paymentUtxo.txid}_${paymentUtxo.vout}`);
-		tx.addInput(input);
-	}
-
-	// Add change output if needed
-	const fee = await modelOrFee.computeFee(tx);
-	const totalSatsIn = config.paymentUtxos.reduce(
-		(total, utxo) => total + BigInt(utxo.satoshis),
+	// Inputs
+	let totalSatsIn = 0n;
+	const totalSatsOut = tx.outputs.reduce(
+		(total, out) => total + BigInt(out.satoshis || 0),
 		0n,
 	);
-	const totalSatsOut = tx.outputs.reduce(
-		(total, out) => total + (out.satoshis || 0),
-		0,
-	);
+	let fee = 0;
+	for (const utxo of config.paymentUtxos) {
+		const input = inputFromB64Utxo(utxo, new P2PKH().unlock(config.paymentPk));
+		spentOutpoints.push(`${utxo.txid}_${utxo.vout}`);
+
+		tx.addInput(input);
+		// stop adding inputs if the total amount is enough
+		totalSatsIn += BigInt(utxo.satoshis);
+		fee = await modelOrFee.computeFee(tx);
+
+		if (totalSatsIn >= totalSatsOut + BigInt(fee)) {
+			break;
+		}
+	}
 
 	if (totalSatsIn < totalSatsOut) {
 		throw new Error("Not enough ordinals to send");
 	}
-	
+
 	let payChange: Utxo | undefined;
-	if (totalSatsIn > totalSatsOut + fee) {
+	if (totalSatsIn > totalSatsOut + BigInt(fee)) {
 		const changeScript = new P2PKH().lock(
 			config.changeAddress || config.paymentPk.toAddress().toString(),
 		);
@@ -134,9 +140,7 @@ export const sendOrdinals = async (config: SendOrdinalsConfig): Promise<SendOrdi
 			txid: "", // txid is not available until the transaction is signed
 			vout: tx.outputs.length,
 			satoshis: 0, // change output amount is not known yet
-			script: Buffer.from(changeScript.toHex(), "hex").toString(
-				"base64",
-			)
+			script: Buffer.from(changeScript.toHex(), "hex").toString("base64"),
 		};
 		tx.addOutput(changeOut);
 	}
@@ -147,16 +151,16 @@ export const sendOrdinals = async (config: SendOrdinalsConfig): Promise<SendOrdi
 
 	// Calculate fee
 	await tx.fee(modelOrFee);
-	
+
 	// Sign the transaction
 	await tx.sign();
 
 	if (payChange) {
 		const changeOutput = tx.outputs[tx.outputs.length - 1];
-		payChange.satoshis = changeOutput.satoshis as number
+		payChange.satoshis = changeOutput.satoshis as number;
 		payChange.txid = tx.hash("hex") as string;
 	}
-	
+
 	return {
 		tx,
 		spentOutpoints,
