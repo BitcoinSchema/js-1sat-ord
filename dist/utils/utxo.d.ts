@@ -1,5 +1,5 @@
 import { type Transaction, type UnlockingScript, type TransactionInput } from "@bsv/sdk";
-import { TokenType, type TokenUtxo, type Utxo } from "../types";
+import { type NftUtxo, TokenType, type TokenUtxo, type Utxo } from "../types";
 /**
  * Converts a Utxo object with a base64 encoded script to a Utxo object with a hex encoded script
  * @param {Utxo} utxo - Utxo object with base64 encoded script
@@ -24,7 +24,7 @@ export declare const fetchPayUtxos: (address: string) => Promise<Utxo[]>;
  * @param {number} [offset=0] - Optional. Offset for fetching utxos. Default is 0
  * @returns {Promise<Utxo[]>} Array of NFT utxos
  */
-export declare const fetchNftUtxos: (address: string, collectionId?: string, limit?: number, offset?: number) => Promise<Utxo[]>;
+export declare const fetchNftUtxos: (address: string, collectionId?: string, limit?: number, offset?: number) => Promise<NftUtxo[]>;
 /**
  * Fetches token utxos from the API
  * @param {TokenType} protocol - Token protocol. Either BSV20 or BSV21

@@ -76,7 +76,7 @@ export const fetchNftUtxos = async (
 	collectionId?: string,
 	limit = 10,
 	offset = 0,
-): Promise<Utxo[]> => {
+): Promise<NftUtxo[]> => {
 	let url = `${API_HOST}/txos/address/${address}/unspent?limit=${limit}&offset=${offset}&`;
 
 	if (collectionId) {
@@ -130,13 +130,18 @@ export const fetchNftUtxos = async (
 			script: string;
 			vout: number;
 			txid: string;
-		}) => ({
-			origin: utxo.origin.outpoint,
-			script: utxo.script,
-			vout: utxo.vout,
-			txid: utxo.txid,
-			satoshis: 1,
-		}),
+		}) => {
+			const nftUtxo = {
+				origin: utxo.origin.outpoint,
+				script: utxo.script,
+				vout: utxo.vout,
+				txid: utxo.txid,
+				satoshis: 1,
+			} as NftUtxo;
+			if (collectionId) {
+				nftUtxo.collectionId = collectionId;
+			}
+		},
 	);
 
 	return nftUtxos as NftUtxo[];
