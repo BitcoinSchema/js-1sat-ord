@@ -102,8 +102,8 @@ export const fetchNftUtxos = async (
 	nftUtxos = nftUtxos.filter(
 		(u: {
 			satoshis: number;
-			data: { list: { price: number; payout: string } | undefined };
-		}) => u.satoshis === 1 && !u.data.list,
+			data: { list: { price: number; payout: string } | undefined } | null;
+		}) => u.satoshis === 1 && !u.data?.list,
 	);
 
 	const outpoints = nftUtxos.map(
