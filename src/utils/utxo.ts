@@ -115,7 +115,7 @@ export const fetchNftUtxos = async (
 		headers: {
 			"Content-Type": "application/json",
 		},
-		body: JSON.stringify({ outpoints }),
+		body: JSON.stringify([...outpoints]),
 	});
 
 	if (!nftRes.ok) {
