@@ -122,7 +122,7 @@ export const fetchNftUtxos = async (
 		throw new Error(`Error fetching NFT scripts for ${address}`);
 	}
 
-	const nfts = await nftRes.json();
+	const nfts = (await nftRes.json() || [])
 
 	nftUtxos = nfts.map(
 		(utxo: {
@@ -141,6 +141,7 @@ export const fetchNftUtxos = async (
 			if (collectionId) {
 				nftUtxo.collectionId = collectionId;
 			}
+			return nftUtxo;
 		},
 	);
 
