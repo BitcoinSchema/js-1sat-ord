@@ -18,14 +18,13 @@ export declare const inputFromB64Utxo: (utxo: Utxo, unlockScriptTemplate: {
 export declare const fetchPayUtxos: (address: string) => Promise<Utxo[]>;
 /**
  * Fetches NFT utxos from the API
- * @param {string} tokenId - Token id
  * @param {string} address - Address to fetch utxos for
  * @param {string} [collectionId] - Optional. Collection id (collection insciprtion origin)
  * @param {number} [limit=10] - Optional. Number of utxos to fetch. Default is 10
  * @param {number} [offset=0] - Optional. Offset for fetching utxos. Default is 0
  * @returns {Promise<Utxo[]>} Array of NFT utxos
  */
-export declare const fetchNftUtxos: (tokenId: string, address: string, collectionId?: string, limit?: number, offset?: number) => Promise<Utxo[]>;
+export declare const fetchNftUtxos: (address: string, collectionId?: string, limit?: number, offset?: number) => Promise<Utxo[]>;
 /**
  * Fetches token utxos from the API
  * @param {TokenType} protocol - Token protocol. Either BSV20 or BSV21
