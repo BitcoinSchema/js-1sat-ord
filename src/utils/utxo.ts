@@ -110,7 +110,7 @@ export const fetchNftUtxos = async (
 		(utxo: { txid: string; vout: number }) => `${utxo.txid}_${utxo.vout}`,
 	);
 	// Fetch the scripts up to the limit
-	const nftRes = await fetch(`${API_HOST}/txos/outpoints`, {
+	const nftRes = await fetch(`${API_HOST}/txos/outpoints?script=true`, {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
