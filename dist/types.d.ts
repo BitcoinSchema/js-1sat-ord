@@ -35,6 +35,21 @@ export type Utxo = {
     script: string;
 };
 /**
+ * @typedef {Object} NftUtxo
+ * @property {string} collectionId - Optional. Collection id of the NFT
+ * @property {string} contentType - Media type of the NFT
+ * @property {string} creatorBapId - Optional. Creator BAP id of the NFT
+ * @property {string} origin - Origin address of the NFT
+ * @property {number} satoshis - Always 1
+ */
+export interface NftUtxo extends Utxo {
+    collectionId?: string;
+    contentType: string;
+    creatorBapId?: string;
+    origin: string;
+    satoshis: 1;
+}
+/**
  * @typedef {Object} TokenUtxo
  * @property {string} amt - Number of tokens as a string
  * @property {string} id - Token id -  either tick or id depending on protocol
