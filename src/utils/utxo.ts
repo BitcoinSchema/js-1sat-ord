@@ -86,7 +86,7 @@ export const fetchNftUtxos = async (
 			},
 		};
 		const b64Query = Buffer.from(JSON.stringify(query)).toString("base64");
-		url += `query=${b64Query}`;
+		url += `q=${b64Query}`;
 	}
 
 	console.log({ url });
