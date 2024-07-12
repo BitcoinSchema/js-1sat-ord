@@ -1,7 +1,7 @@
-import type { CreateOrdinalsConfig, CreateOrdinalsResult } from "./types";
+import type { CreateOrdinalsConfig, CreateOrdinalsResult, CreateOrdinalsCollectionConfig, CreateOrdinalsCollectionItemConfig } from "./types";
 /**
  * Creates a transaction with inscription outputs
- * @param {CreateOrdinalsConfig} config - Configuration object for creating ordinals
+ * @param {CreateOrdinalsConfig | CreateOrdinalsCollectionConfig | CreateOrdinalsCollectionItemConfig} config - Configuration object for creating ordinals
  * @param {Utxo[]} config.utxos - Utxos to spend (with base64 encoded scripts)
  * @param {Destination[]} config.destinations - Array of destinations with addresses and inscriptions
  * @param {PrivateKey} config.paymentPk - Private key to sign utxos
@@ -12,4 +12,4 @@ import type { CreateOrdinalsConfig, CreateOrdinalsResult } from "./types";
  * @param {Payment[]} config.additionalPayments - Optional. Additional payments to include in the transaction
  * @returns {Promise<CreateOrdinalsResult>} Transaction with inscription outputs
  */
-export declare const createOrdinals: (config: CreateOrdinalsConfig) => Promise<CreateOrdinalsResult>;
+export declare const createOrdinals: (config: CreateOrdinalsConfig | CreateOrdinalsCollectionConfig | CreateOrdinalsCollectionItemConfig) => Promise<CreateOrdinalsResult>;

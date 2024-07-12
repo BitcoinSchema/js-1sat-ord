@@ -156,6 +156,66 @@ export type CreateOrdinalsConfig = {
 	additionalPayments?: Payment[];
 };
 
+/**
+ * Configuration object for creating an ordinals collection
+ * @typedef {Object} CreateOrdinalsCollectionConfig
+ * @property metaData - MAP (Magic Attribute Protocol) metadata for the collection
+ * @property metaData.type - "ord"
+ * @property metaData.subType - "collection"
+ * @property metaData.name - Collection name
+ * @property metaData.subTypeData - JSON stringified CollectionSubTypeData
+ * @property [metaData.royalties] - Optional. Royalties address
+ * @property [metaData.previewUrl] - Optional. Preview URL
+ */
+export interface  CreateOrdinalsCollectionConfig extends CreateOrdinalsConfig {
+	metaData: MAP & {
+		type: "ord",
+		name: string,
+		subType: "collection",
+		subTypeData: string, // JSON stringified CollectionSubTypeData
+		royalties?: string,
+		previewUrl?: string,
+	};
+}
+
+export interface CollectionSubTypeData {
+	description: string;
+	quantity: number;
+	rarityLabels: string;
+	traits: string;
+}
+
+/**
+ * Configuration object for creating an ordinals collection item
+ * @typedef {Object} CreateOrdinalsCollectionItemConfig
+ * @property metaData - MAP (Magic Attribute Protocol) metadata for the collection item
+ * @property metaData.type - "ord"
+ * @property metaData.subType - "collectionItem"
+ * @property metaData.name - Collection item name
+ * @property metaData.subTypeData - JSON stringified CollectionItemSubTypeData
+ * @property [metaData.royalties] - Optional. Royalties address
+ * @property [metaData.previewUrl] - Optional. Preview URL
+ */
+export interface CreateOrdinalsCollectionItemConfig extends CreateOrdinalsConfig {
+	metaData: MAP & {
+		type: "ord",
+		name: string,
+		subType: "collectionItem",
+		subTypeData: string, // JSON stringified CollectionItemSubTypeData
+		royalties?: string,
+		previewUrl?: string,
+	};
+}
+
+export interface CollectionItemSubTypeData {
+	collectionId: string;
+	mintNumner: number;
+	rank: number;
+	rarityLabel: string;
+	traits: string;
+	attachments: string;
+}
+
 export type SendOrdinalsResult = {
 	tx: Transaction;
 	spentOutpoints: string[];

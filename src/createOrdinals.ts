@@ -1,19 +1,11 @@
-import {
-	type PrivateKey,
-	Transaction,
-	SatoshisPerKilobyte,
-	P2PKH,
-} from "@bsv/sdk";
+import { Transaction, SatoshisPerKilobyte, P2PKH } from "@bsv/sdk";
 import OrdP2PKH from "./templates/ordP2pkh";
 import type {
 	Utxo,
-	Destination,
-	MAP,
-	LocalSigner,
-	RemoteSigner,
-	Payment,
 	CreateOrdinalsConfig,
 	CreateOrdinalsResult,
+	CreateOrdinalsCollectionConfig,
+	CreateOrdinalsCollectionItemConfig,
 } from "./types";
 import { inputFromB64Utxo } from "./utils/utxo";
 import { DEFAULT_SAT_PER_KB } from "./constants";
@@ -21,7 +13,7 @@ import { signData } from "./signData";
 
 /**
  * Creates a transaction with inscription outputs
- * @param {CreateOrdinalsConfig} config - Configuration object for creating ordinals
+ * @param {CreateOrdinalsConfig | CreateOrdinalsCollectionConfig | CreateOrdinalsCollectionItemConfig} config - Configuration object for creating ordinals
  * @param {Utxo[]} config.utxos - Utxos to spend (with base64 encoded scripts)
  * @param {Destination[]} config.destinations - Array of destinations with addresses and inscriptions
  * @param {PrivateKey} config.paymentPk - Private key to sign utxos
@@ -33,7 +25,10 @@ import { signData } from "./signData";
  * @returns {Promise<CreateOrdinalsResult>} Transaction with inscription outputs
  */
 export const createOrdinals = async (
-	config: CreateOrdinalsConfig,
+	config:
+		| CreateOrdinalsConfig
+		| CreateOrdinalsCollectionConfig
+		| CreateOrdinalsCollectionItemConfig,
 ): Promise<CreateOrdinalsResult> => {
 	const {
 		utxos,
@@ -88,8 +83,6 @@ export const createOrdinals = async (
 		});
 	}
 
-	let payChangeVout: number | undefined;
-
 	// Calculate total input and output amounts
 	const totalInput = utxos.reduce(
 		(sum, utxo) => sum + BigInt(utxo.satoshis),
@@ -118,9 +111,7 @@ export const createOrdinals = async (
 			txid: "", // txid is not known yet,
 			vout: tx.outputs.length,
 			satoshis: 0, // change output amount is not known yet
-			script: Buffer.from(changeScript.toHex(), "hex").toString(
-				"base64",
-			),
+			script: Buffer.from(changeScript.toHex(), "hex").toString("base64"),
 		};
 
 		tx.addOutput(changeOutput);
