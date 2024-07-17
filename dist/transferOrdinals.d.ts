@@ -12,7 +12,7 @@ import { type TransferOrdTokensConfig, type TransferOrdTokensResult } from "./ty
  * @param {string} config.changeAddress - Optional. Address to send payment change to, if any. If not provided, defaults to paymentPk address
  * @param {string} config.tokenChangeAddress - Optional. Address to send token change to, if any. If not provided, defaults to ordPk address
  * @param {number} config.satsPerKb - Optional. Satoshis per kilobyte for fee calculation. Default is DEFAULT_SAT_PER_KB
- * @param {MAP} config.metaData - Optional. MAP (Magic Attribute Protocol) metadata to include in inscriptions
+ * @param {PreMAP} config.metaData - Optional. MAP (Magic Attribute Protocol) metadata to include in inscriptions
  * @param {LocalSigner | RemoteSigner} config.signer - Optional. Signer object to sign the transaction
  * @param {Payment[]} config.additionalPayments - Optional. Additional payments to include in the transaction
  * @returns {Promise<TransferOrdTokensResult>} Transaction with token transfer outputs

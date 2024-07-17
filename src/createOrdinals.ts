@@ -10,6 +10,7 @@ import type {
 import { inputFromB64Utxo } from "./utils/utxo";
 import { DEFAULT_SAT_PER_KB } from "./constants";
 import { signData } from "./signData";
+import stringifyMetaData from "./utils/subtypeData";
 
 /**
  * Creates a transaction with inscription outputs
@@ -19,7 +20,7 @@ import { signData } from "./signData";
  * @param {PrivateKey} config.paymentPk - Private key to sign utxos
  * @param {string} config.changeAddress - Optional. Address to send change to. If not provided, defaults to paymentPk address
  * @param {number} config.satsPerKb - Optional. Satoshis per kilobyte for fee calculation. Default is DEFAULT_SAT_PER_KB
- * @param {MAP} config.metaData - Optional. MAP (Magic Attribute Protocol) metadata to include in inscriptions
+ * @param {PreMAP} config.metaData - Optional. MAP (Magic Attribute Protocol) metadata to include in inscriptions
  * @param {LocalSigner | RemoteSigner} config.signer - Optional. Local or remote signer (used for data signature)
  * @param {Payment[]} config.additionalPayments - Optional. Additional payments to include in the transaction
  * @returns {Promise<CreateOrdinalsResult>} Transaction with inscription outputs
@@ -64,13 +65,22 @@ export const createOrdinals = async (
 			throw new Error("Inscription is required for all destinations");
 		}
 
+		// remove any undefined fields from metadata
+		if (metaData) {
+			for(const key of Object.keys(metaData)) {
+				if (metaData[key] === undefined) {
+					delete metaData[key];
+				}
+			}
+		}
+
 		tx.addOutput({
 			satoshis: 1,
 			lockingScript: new OrdP2PKH().lock(
 				destination.address,
 				destination.inscription.dataB64,
 				destination.inscription.contentType,
-				metaData,
+				stringifyMetaData(metaData),
 			),
 		});
 	}

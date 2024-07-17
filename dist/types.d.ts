@@ -74,11 +74,6 @@ export type IconInscription = {
     dataB64: string;
     contentType: ImageContentType;
 };
-export type MAP = {
-    app: string;
-    type: string;
-    [prop: string]: string;
-};
 export type Payment = {
     to: string;
     amount: number;
@@ -116,16 +111,66 @@ export type CreateOrdinalsResult = {
     spentOutpoints: string[];
     payChange?: Utxo;
 };
+/**
+ * MAP (Magic Attribute Protocol) metadata object with stringified values for writing to the blockchain
+ * @typedef {Object} MAP
+ * @property {string} app - Application identifier
+ * @property {string} type - Metadata type
+ * @property {string} [prop] - Optional. Additional metadata properties
+ */
+export type MAP = {
+    app: string;
+    type: string;
+    [prop: string]: string;
+};
+export type PreMAP = {
+    app: string;
+    type: string;
+    [prop: string]: unknown;
+    royalties?: Royalty[];
+    subTypeData?: CollectionSubTypeData | CollectionItemSubTypeData;
+};
 export type CreateOrdinalsConfig = {
     utxos: Utxo[];
     destinations: Destination[];
     paymentPk: PrivateKey;
     changeAddress?: string;
     satsPerKb?: number;
-    metaData?: MAP;
+    metaData?: PreMAP;
     signer?: LocalSigner | RemoteSigner;
     additionalPayments?: Payment[];
 };
+export declare enum RoytaltyType {
+    Paymail = "paymail",
+    Address = "address",
+    Script = "script"
+}
+/**
+ * Royalty object
+ * @typedef {Object} Royalty
+ * @property {RoytaltyType} type - Royalty type, string, one of "paymail", "address", "script"
+ * @property {string} destination - Royalty destination
+ * @property {string} percentage - Royalty percentage as a string float 0-1
+ */
+export type Royalty = {
+    type: RoytaltyType;
+    destination: string;
+    percentage: string;
+};
+export interface CreateOrdinalsMetadata extends PreMAP {
+    type: "ord";
+    name: string;
+    previewUrl?: string;
+}
+export interface CreateOrdinalsCollectionMetadata extends CreateOrdinalsMetadata {
+    subType: "collection";
+    subTypeData: CollectionSubTypeData;
+    royalties?: Royalty[];
+}
+export interface CreateOrdinalsCollectionItemMetadata extends CreateOrdinalsMetadata {
+    subType: "collectionItem";
+    subTypeData: CollectionItemSubTypeData;
+}
 /**
  * Configuration object for creating an ordinals collection
  * @typedef {Object} CreateOrdinalsCollectionConfig
@@ -138,20 +183,32 @@ export type CreateOrdinalsConfig = {
  * @property [metaData.previewUrl] - Optional. Preview URL
  */
 export interface CreateOrdinalsCollectionConfig extends CreateOrdinalsConfig {
-    metaData: MAP & {
-        type: "ord";
-        name: string;
-        subType: "collection";
-        subTypeData: string;
-        royalties?: string;
-        previewUrl?: string;
-    };
+    metaData: CreateOrdinalsCollectionMetadata;
 }
+export type CollectionTraits = {
+    [trait: string]: CollectionTrait;
+};
+export type CollectionTrait = {
+    values: string[];
+    occurancePercentages: string[];
+};
+export type Rarity = {
+    [key: string]: string;
+};
+export type RarityLabels = Rarity[];
 export interface CollectionSubTypeData {
     description: string;
     quantity: number;
-    rarityLabels: string;
-    traits: string;
+    rarityLabels: RarityLabels;
+    traits: CollectionTraits;
+}
+export interface CreateOrdinalsCollectionItemMetadata extends PreMAP {
+    type: "ord";
+    name: string;
+    subType: "collectionItem";
+    subTypeData: CollectionItemSubTypeData;
+    royalties?: Royalty[];
+    previewUrl?: string;
 }
 /**
  * Configuration object for creating an ordinals collection item
@@ -165,23 +222,38 @@ export interface CollectionSubTypeData {
  * @property [metaData.previewUrl] - Optional. Preview URL
  */
 export interface CreateOrdinalsCollectionItemConfig extends CreateOrdinalsConfig {
-    metaData: MAP & {
-        type: "ord";
-        name: string;
-        subType: "collectionItem";
-        subTypeData: string;
-        royalties?: string;
-        previewUrl?: string;
-    };
+    metaData: CreateOrdinalsCollectionItemMetadata;
 }
+/**
+ * Subtype data for an ordinals collection item
+ * @typedef {Object} CollectionItemSubTypeData
+ * @property {string} collectionId - Collection id
+ * @property {number} mintNumner - Mint number
+ * @property {number} rank - Rank
+ * @property {string} rarityLabel - Rarity label
+ * @property {string} traits - traits object
+ * @property {string} attachments - array of attachment objects
+ */
 export interface CollectionItemSubTypeData {
     collectionId: string;
-    mintNumner: number;
-    rank: number;
-    rarityLabel: string;
-    traits: string;
-    attachments: string;
+    mintNumber?: number;
+    rank?: number;
+    rarityLabel?: RarityLabels;
+    traits?: CollectionItemTraits;
+    attachments?: CollectionItemAttachment[];
 }
+export type CollectionItemTraits = {
+    name: string;
+    value: string;
+    rarityLabel?: string;
+    occurancePercentrage?: string;
+};
+export type CollectionItemAttachment = {
+    name: string;
+    description?: string;
+    "content-type": string;
+    url: string;
+};
 export type SendOrdinalsResult = {
     tx: Transaction;
     spentOutpoints: string[];
@@ -195,7 +267,7 @@ export type SendOrdinalsConfig = {
     destinations: Destination[];
     changeAddress?: string;
     satsPerKb?: number;
-    metaData?: MAP;
+    metaData?: PreMAP;
     signer?: LocalSigner | RemoteSigner;
     additionalPayments?: Payment[];
     enforceUniformSend?: boolean;
@@ -242,7 +314,7 @@ export type TransferOrdTokensConfig = {
     changeAddress?: string;
     tokenChangeAddress?: string;
     satsPerKb?: number;
-    metaData?: MAP;
+    metaData?: PreMAP;
     signer?: LocalSigner | RemoteSigner;
     additionalPayments?: Payment[];
 };
