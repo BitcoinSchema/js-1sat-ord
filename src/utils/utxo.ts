@@ -89,7 +89,6 @@ export const fetchNftUtxos = async (
 		url += `q=${b64Query}`;
 	}
 
-	console.log({ url });
 	const res = await fetch(url);
 	if (!res.ok) {
 		throw new Error(`Error fetching NFT utxos for ${address}`);
@@ -161,7 +160,6 @@ export const fetchTokenUtxos = async (
 	address: string,
 ): Promise<TokenUtxo[]> => {
 	const url = `${API_HOST}/bsv20/${address}/${protocol === TokenType.BSV20 ? "tick" : "id"}/${tokenId}?bsv20=true&listing=false`;
-	console.log({ url });
 	const res = await fetch(url);
 	if (!res.ok) {
 		throw new Error(`Error fetching ${protocol} utxos`);

@@ -24,12 +24,19 @@ export const validateSubTypeData = (
           return new Error("Rarity labels must be an array");
         }
         // make sure keys and values are strings
-        if (!collectionData.rarityLabels.every(({ key, value }) => typeof key === "string" && typeof value === "string")) {
-          return new Error("Invalid rarity labels");
+        if (!collectionData.rarityLabels.every((label) => {
+          return Object.values(label).every(value => typeof value === 'string');
+        })) {
+          return new Error(`Invalid rarity labels ${collectionData.rarityLabels}`);
         }
       }
-      if (!collectionData.traits) {
-        return new Error("Collection traits are required");
+      if (collectionData.traits ) {
+        if (typeof collectionData.traits !== "object") {
+        return new Error("Collection traits must be an object");
+        }
+        if (collectionData.traits && !Object.keys(collectionData.traits).every(key => typeof key === 'string' && typeof collectionData.traits[key] === 'object')) {
+          return new Error("Collection traits must be a valid CollectionTraits object");
+        }
       }
     }
     if (subType === "collectionItem") {
