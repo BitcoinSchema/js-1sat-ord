@@ -40,7 +40,7 @@ export const inputFromB64Utxo = (
  * @param {string} address - Address to fetch utxos for
  * @returns {Promise<Utxo[]>} Array of pay utxos
  */
-export const fetchPayUtxos = async (address: string): Promise<Utxo[]> => {
+export const fetchPayUtxos = async (address: string, scriptEncoding: "hex" | "base64" | "asm" = "base64"): Promise<Utxo[]> => {
 	const payUrl = `${API_HOST}/txos/address/${address}/unspent?bsv20=false`;
 	console.log({ payUrl });
 	const payRes = await fetch(payUrl);
@@ -58,7 +58,7 @@ export const fetchPayUtxos = async (address: string): Promise<Utxo[]> => {
 		txid: utxo.txid,
 		vout: utxo.vout,
 		satoshis: utxo.satoshis,
-		script: Buffer.from(p2pkhScript.toBinary()).toString("base64"),
+		script: scriptEncoding === "hex" || scriptEncoding === "base64" ? Buffer.from(p2pkhScript.toBinary()).toString(scriptEncoding) : p2pkhScript.toASM(),
 	}));
 	return payUtxos as Utxo[];
 };

@@ -15,7 +15,7 @@ export declare const inputFromB64Utxo: (utxo: Utxo, unlockScriptTemplate: {
  * @param {string} address - Address to fetch utxos for
  * @returns {Promise<Utxo[]>} Array of pay utxos
  */
-export declare const fetchPayUtxos: (address: string) => Promise<Utxo[]>;
+export declare const fetchPayUtxos: (address: string, scriptEncoding?: "hex" | "base64" | "asm") => Promise<Utxo[]>;
 /**
  * Fetches NFT utxos from the API
  * @param {string} address - Address to fetch utxos for
