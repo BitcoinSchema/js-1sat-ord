@@ -5,6 +5,7 @@ import {
 	type TransactionInput,
 	Utils,
 	P2PKH,
+  Script,
 } from "@bsv/sdk";
 import { type NftUtxo, TokenType, type TokenUtxo, type Utxo } from "../types";
 import { API_HOST } from "../constants";
@@ -69,6 +70,7 @@ export const fetchPayUtxos = async (address: string, scriptEncoding: "hex" | "ba
  * @param {string} [collectionId] - Optional. Collection id (collection insciprtion origin)
  * @param {number} [limit=10] - Optional. Number of utxos to fetch. Default is 10
  * @param {number} [offset=0] - Optional. Offset for fetching utxos. Default is 0
+ * @param {string} [scriptEncoding="base64"] - Optional. Encoding for the script. Default is base64. Options are hex, base64, or asm.
  * @returns {Promise<Utxo[]>} Array of NFT utxos
  */
 export const fetchNftUtxos = async (
@@ -76,6 +78,7 @@ export const fetchNftUtxos = async (
 	collectionId?: string,
 	limit = 10,
 	offset = 0,
+  scriptEncoding: "hex" | "base64" | "asm" = "base64",
 ): Promise<NftUtxo[]> => {
 	let url = `${API_HOST}/txos/address/${address}/unspent?limit=${limit}&offset=${offset}&`;
 
@@ -130,9 +133,15 @@ export const fetchNftUtxos = async (
 			vout: number;
 			txid: string;
 		}) => {
+      let script = utxo.script;
+      if (scriptEncoding === "hex") {
+        script = Buffer.from(script, "base64").toString("hex");
+      } else if (scriptEncoding === "asm") {
+        script = Script.fromHex(Buffer.from(script, "base64").toString("hex")).toASM();
+      }
 			const nftUtxo = {
 				origin: utxo.origin.outpoint,
-				script: utxo.script,
+				script,
 				vout: utxo.vout,
 				txid: utxo.txid,
 				satoshis: 1,

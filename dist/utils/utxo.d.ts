@@ -22,9 +22,10 @@ export declare const fetchPayUtxos: (address: string, scriptEncoding?: "hex" | "
  * @param {string} [collectionId] - Optional. Collection id (collection insciprtion origin)
  * @param {number} [limit=10] - Optional. Number of utxos to fetch. Default is 10
  * @param {number} [offset=0] - Optional. Offset for fetching utxos. Default is 0
+ * @param {string} [scriptEncoding="base64"] - Optional. Encoding for the script. Default is base64. Options are hex, base64, or asm.
  * @returns {Promise<Utxo[]>} Array of NFT utxos
  */
-export declare const fetchNftUtxos: (address: string, collectionId?: string, limit?: number, offset?: number) => Promise<NftUtxo[]>;
+export declare const fetchNftUtxos: (address: string, collectionId?: string, limit?: number, offset?: number, scriptEncoding?: "hex" | "base64" | "asm") => Promise<NftUtxo[]>;
 /**
  * Fetches token utxos from the API
  * @param {TokenType} protocol - Token protocol. Either BSV20 or BSV21
