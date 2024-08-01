@@ -81,7 +81,7 @@ export type Payment = {
 export type TokenInscription = {
     p: "bsv-20";
     amt: string;
-    op: "transfer" | "mint" | "deploy+mint";
+    op: "transfer" | "mint" | "deploy+mint" | "burn";
 };
 export interface MintTokenInscription extends TokenInscription {
     op: "mint";
@@ -94,7 +94,7 @@ export interface DeployMintTokenInscription extends TokenInscription {
 export interface TransferTokenInscription extends TokenInscription {
     p: "bsv-20";
     amt: string;
-    op: "transfer";
+    op: "transfer" | "burn";
 }
 export interface TransferBSV20Inscription extends TransferTokenInscription {
     tick: string;
@@ -317,5 +317,6 @@ export type TransferOrdTokensConfig = {
     metaData?: PreMAP;
     signer?: LocalSigner | RemoteSigner;
     additionalPayments?: Payment[];
+    burn?: boolean;
 };
 export {};

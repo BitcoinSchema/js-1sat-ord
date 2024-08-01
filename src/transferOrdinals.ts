@@ -28,6 +28,7 @@ import { sendOrdinals } from "./sendOrdinals";
  * @param {PreMAP} config.metaData - Optional. MAP (Magic Attribute Protocol) metadata to include in inscriptions
  * @param {LocalSigner | RemoteSigner} config.signer - Optional. Signer object to sign the transaction
  * @param {Payment[]} config.additionalPayments - Optional. Additional payments to include in the transaction
+ * @param {burn} config.burn - Optional. Set to true to burn the tokens.
  * @returns {Promise<TransferOrdTokensResult>} Transaction with token transfer outputs
  */
 export const transferOrdTokens = async (config: TransferOrdTokensConfig): Promise<TransferOrdTokensResult> => {
@@ -45,6 +46,7 @@ export const transferOrdTokens = async (config: TransferOrdTokensConfig): Promis
 		metaData,
 		signer,
 		additionalPayments = [],
+    burn = false
 	} = config;
 
 	// calculate change amount
@@ -87,7 +89,7 @@ export const transferOrdTokens = async (config: TransferOrdTokensConfig): Promis
 	const destinations: Destination[] = distributions.map((dest) => {
 		const transferInscription: TransferTokenInscription = {
 			p: "bsv-20",
-			op: "transfer",
+			op: burn ? "burn" : "transfer",
 			amt: dest.amt,
 		}
     let inscription: TransferBSV20Inscription | TransferBSV21Inscription;
