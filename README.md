@@ -159,6 +159,7 @@ const config: TransferBsv21TokenConfig = {
 const result = await transferOrdToken(config);
 ```
 
+Note: To burn tokens you can set the optional `burn`  parameter to `true`
 ### Send Utxos
 
 Sends utxos to the given destination:
