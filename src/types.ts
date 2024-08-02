@@ -1,4 +1,4 @@
-import type { PrivateKey, Transaction } from "@bsv/sdk";
+import type { PrivateKey, Script, Transaction } from "@bsv/sdk";
 import type { AuthToken } from "sigma-protocol";
 
 // biome-ignore lint/complexity/noBannedTypes: Reserved for future use
@@ -18,9 +18,17 @@ export type Destination = {
 	inscription?: Inscription;
 };
 
+//jsdoc
+/**
+ * @typedef {Object} Listing
+ * @property {string} payAddress - Address to send the payment upon purchase
+ * @property {string} price - Listing price in satoshis
+ * @property {String} ordAddress - Where to return a listed ordinal upon cancel.
+ */
 export type Listing = {
-  address: string;
+  payAddress: string;
   price: number;
+  ordAddress: string;
 }
 
 /**
@@ -379,14 +387,19 @@ export type TransferOrdTokensConfig = {
 
 export type CreateOrdListingsConfig = {
 	utxos: Utxo[];
-	destinations: Destination[];
+	listings: Listing[];
   royalty: number;
 	paymentPk: PrivateKey;
 	changeAddress?: string;
 	satsPerKb?: number;
-	metaData?: PreMAP; // can we add metadata on  listings?
-	signer?: LocalSigner | RemoteSigner;
 	additionalPayments?: Payment[];
+}
+
+export type CancelOrdListingsConfig = {
+  utxos: Utxo[],
+  paymentPk: PrivateKey;
+  ordPk: PrivateKey;
+  listingScript: Script;
 }
 
 export type CraeteOrdTokenListingsConfig = {
