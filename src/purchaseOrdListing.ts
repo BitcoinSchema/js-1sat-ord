@@ -4,6 +4,7 @@ import { P2PKH, SatoshisPerKilobyte, Script, Transaction } from "@bsv/sdk";
 import { DEFAULT_SAT_PER_KB } from "./constants"
 import type { PurchaseOrdListingConfig, Utxo } from "./types";
 import { inputFromB64Utxo } from "./utils/utxo";
+import OrdLock from "./templates/ordLock";
 
 export const purchaseOrdListings = async (config: PurchaseOrdListingConfig) => {
 const { utxos, 
@@ -21,6 +22,7 @@ const { utxos,
   // Add the locked ordinal we're purchasing
   tx.addInput({
     unlockingScript: Script.fromHex(Buffer.from(listingUtxo.script, 'base64').toString('hex')),
+    unlockingScriptTemplate: new OrdLock().purchaseListing(),
     sourceOutputIndex: listingUtxo.vout,
     sequence: 0xffffffff,
   });
