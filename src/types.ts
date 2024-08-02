@@ -18,6 +18,11 @@ export type Destination = {
 	inscription?: Inscription;
 };
 
+export type Listing = {
+  address: string;
+  price: number;
+}
+
 /**
  * @typedef {Object} Distribution
  * @property {string} address - Destination address. Must be a Ordinals address (BSV address for recieving 1Sat ordinals tokens).
@@ -370,4 +375,30 @@ export type TransferOrdTokensConfig = {
 	signer?: LocalSigner | RemoteSigner;
 	additionalPayments?: Payment[];
   burn?: boolean;
+}
+
+export type CreateOrdListingsConfig = {
+	utxos: Utxo[];
+	destinations: Destination[];
+  royalty: number;
+	paymentPk: PrivateKey;
+	changeAddress?: string;
+	satsPerKb?: number;
+	metaData?: PreMAP; // can we add metadata on  listings?
+	signer?: LocalSigner | RemoteSigner;
+	additionalPayments?: Payment[];
+}
+
+export type CraeteOrdTokenListingsConfig = {
+  protocol: TokenType;
+  tokenID: string;
+  utxos: Utxo[];
+  inputTokens: TokenUtxo[];
+  distributions: Distribution[];
+  paymentPk: PrivateKey;
+  ordPk: PrivateKey;
+  changeAddress?: string;
+  tokenChangeAddress: string;
+  satsPerKb?: number;
+  additionalPayments: Payment[];
 }
