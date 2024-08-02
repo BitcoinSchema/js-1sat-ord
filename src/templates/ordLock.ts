@@ -1,10 +1,12 @@
 import {
+	BigNumber,
 	LockingScript,
 	OP,
 	P2PKH,
 	PrivateKey,
 	Script,
 	Transaction,
+	TransactionSignature,
 	UnlockingScript,
 	Utils,
 } from "@bsv/sdk";
@@ -34,16 +36,11 @@ export default class OrdLock {
 		price: number,
 	): Script {
 		const cancelPkh = Utils.fromBase58Check(ordAddress).data as number[];
-		// const payOut = 
-		const priceBuf = Buffer.alloc(34)
-		priceBuf.writeBigUint64LE(BigInt(price))
-
-		const payScriptBin = new P2PKH().lock(Utils.fromBase58Check(payAddress).data);
-		const payOut = Array.from(priceBuf).concat([25]).concat(payScriptBin.toBinary())
+		const payPkh = Utils.fromBase58Check(payAddress).data as number[];
 
 		return Script.fromHex(oLockPrefix)
 			.writeBin(cancelPkh)
-			.writeBin(payOut)
+			.writeBin(OrdLock.buildOutput(price, new P2PKH().lock(payPkh).toBinary()))
 			.writeScript(Script.fromHex(oLockSuffix))
 	}
 
@@ -60,7 +57,7 @@ export default class OrdLock {
 		const p2pkh = new P2PKH().unlock(privateKey, signOutputs, anyoneCanPay, sourceSatoshis, lockingScript)
 		return {
 			sign: async (tx: Transaction, inputIndex: number) => {
-				return (await p2pkh.sign(tx, inputIndex)).writeOpCode(OP.OP_0)
+				return (await p2pkh.sign(tx, inputIndex)).writeOpCode(OP.OP_1)
 			},
 			estimateLength: async () => {
 				return 107
@@ -68,28 +65,65 @@ export default class OrdLock {
 		}
 	}
 
-	// purchaseListing(): {
-	// 	sign: (tx: Transaction, inputIndex: number) => Promise<UnlockingScript>
-	// 	estimateLength: () => Promise<number>
-	// } {
-	// 	return {
-	// 		sign: async (tx: Transaction, inputIndex: number) => {
-	// 			// Script.from_asm_string(
-	// 			// 	`${purchaseTx.get_output(0)!.to_hex()} ${purchaseTx
-	// 			// 	  .get_output(2)!
-	// 			// 	  .to_hex()}${purchaseTx
-	// 			// 		.get_output(3)!
-	// 			// 		.to_hex()} ${Buffer.from(preimage).toString(
-	// 			// 		  "hex"
-	// 			// 		)} OP_0`
-	// 			//   )
-	// 			// return (await p2pkh.sign(tx, inputIndex)).writeOpCode(OP.OP_0)
-	// 			const script = new Script()
-	// 				.wri
-	// 		},
-	// 		estimateLength: async () => {
-	// 			return 107
-	// 		}
-	// 	}
-	// }
+	purchaseListing(
+		sourceSatoshis?: number,
+		lockingScript?: Script
+	): {
+		sign: (tx: Transaction, inputIndex: number) => Promise<UnlockingScript>
+		estimateLength: (tx: Transaction, inputIndex: number) => Promise<number>
+	} {
+		const purchase = {
+			sign: async (tx: Transaction, inputIndex: number) => {
+				if (tx.outputs.length < 2) {
+					throw new Error("Malformed transaction")
+				}
+				const script = new UnlockingScript()
+					.writeBin(OrdLock.buildOutput(
+						tx.outputs[0].satoshis || 0,
+						tx.outputs[0].lockingScript.toBinary()
+					))
+				if(tx.outputs.length > 2) {
+					const writer = new Utils.Writer()
+					for(const output of tx.outputs.slice(2)) {
+						writer.write(OrdLock.buildOutput(output.satoshis || 0, output.lockingScript.toBinary()))
+					}
+					script.writeBin(writer.toArray())
+				} else {
+					script.writeOpCode(OP.OP_0)
+				}
+
+				const input = tx.inputs[inputIndex]
+				const preimage = TransactionSignature.format({
+					sourceTXID: input.sourceTXID || input.sourceTransaction!.id('hex'),
+					sourceOutputIndex: input.sourceOutputIndex,
+					sourceSatoshis: sourceSatoshis || 
+					input.sourceTransaction!.outputs[input.sourceOutputIndex].satoshis!,
+					transactionVersion: tx.version,
+					otherInputs: [],
+					inputIndex,
+					outputs: tx.outputs,
+					inputSequence: input.sequence,
+					subscript: lockingScript || input.sourceTransaction!.outputs[input.sourceOutputIndex].lockingScript,
+					lockTime: tx.lockTime,
+					scope: TransactionSignature.SIGHASH_ALL |
+						TransactionSignature.SIGHASH_ANYONECANPAY |
+						TransactionSignature.SIGHASH_FORKID
+				  });
+
+				return script.writeBin(preimage).writeOpCode(OP.OP_0)
+			},
+			estimateLength: async (tx: Transaction, inputIndex: number) => {
+				return (await purchase.sign(tx, inputIndex)).toBinary().length
+			}
+		}
+		return purchase
+	}
+
+	static buildOutput(satoshis: number, script: number[]): number[] {
+		const writer = new Utils.Writer()
+		writer.writeUInt64LEBn(new BigNumber(satoshis))
+		writer.writeVarIntNum(script.length)
+		writer.write(script)
+		return writer.toArray()
+	}
 }
