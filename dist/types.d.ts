@@ -13,6 +13,17 @@ export type Destination = {
     inscription?: Inscription;
 };
 /**
+ * @typedef {Object} Listing
+ * @property {string} payAddress - Address to send the payment upon purchase
+ * @property {string} price - Listing price in satoshis
+ * @property {String} ordAddress - Where to return a listed ordinal upon cancel.
+ */
+export type Listing = {
+    payAddress: string;
+    price: number;
+    ordAddress: string;
+};
+/**
  * @typedef {Object} Distribution
  * @property {string} address - Destination address. Must be a Ordinals address (BSV address for recieving 1Sat ordinals tokens).
  * @property {string} amt - Number of tokens as a string, considering decimals. Not display format. Ex. 100000000 for 1 token with 8 decimal places.
@@ -318,5 +329,44 @@ export type TransferOrdTokensConfig = {
     signer?: LocalSigner | RemoteSigner;
     additionalPayments?: Payment[];
     burn?: boolean;
+};
+export type CreateOrdListingsConfig = {
+    utxos: Utxo[];
+    listings: Listing[];
+    royalty: number;
+    paymentPk: PrivateKey;
+    changeAddress?: string;
+    satsPerKb?: number;
+    additionalPayments?: Payment[];
+};
+export type PurchaseOrdListingConfig = {
+    utxos: Utxo[];
+    paymentPk: PrivateKey;
+    listingUtxo: Utxo;
+    ordAddress: string;
+    changeAddress?: string;
+    satsPerKb?: number;
+    additionalPayments?: Payment[];
+};
+export type CancelOrdListingsConfig = {
+    utxos: Utxo[];
+    paymentPk: PrivateKey;
+    ordPk: PrivateKey;
+    listingUtxos: Utxo[];
+    changeAddress?: string;
+    satsPerKb?: number;
+};
+export type CraeteOrdTokenListingsConfig = {
+    protocol: TokenType;
+    tokenID: string;
+    utxos: Utxo[];
+    inputTokens: TokenUtxo[];
+    distributions: Distribution[];
+    paymentPk: PrivateKey;
+    ordPk: PrivateKey;
+    changeAddress?: string;
+    tokenChangeAddress: string;
+    satsPerKb?: number;
+    additionalPayments: Payment[];
 };
 export {};

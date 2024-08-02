@@ -32,7 +32,6 @@ export const inputFromB64Utxo = (
 		},
 		unlockScriptTemplate,
 	);
-	input.sourceTXID = utxo.txid;
 	return input;
 };
 
