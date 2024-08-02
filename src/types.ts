@@ -410,6 +410,7 @@ export type CancelOrdListingsConfig = {
   paymentPk: PrivateKey;
   ordPk: PrivateKey;
   listingUtxos: Utxo[];
+  changeAddress?: string;
   satsPerKb?: number;
 }
 

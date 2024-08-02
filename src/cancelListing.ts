@@ -1,13 +1,13 @@
 // TODO: Cancel listing for NFT and FT
 
 import { P2PKH, SatoshisPerKilobyte, Script, Transaction } from "@bsv/sdk";
-import type { CancelOrdListingsConfig } from "./types"
+import type { CancelOrdListingsConfig, Utxo } from "./types"
 import { inputFromB64Utxo } from "./utils/utxo";
 import { DEFAULT_SAT_PER_KB } from "./constants";
 import OrdLock from "./templates/ordLock";
 
 export const cancelOrdListings = async (config: CancelOrdListingsConfig) => {
-const { utxos, listingUtxos, ordPk, paymentPk, satsPerKb = DEFAULT_SAT_PER_KB } = config
+const { utxos, listingUtxos, ordPk, paymentPk, changeAddress, satsPerKb = DEFAULT_SAT_PER_KB } = config
 
 const modelOrFee = new SatoshisPerKilobyte(satsPerKb);
 const tx = new Transaction();
@@ -38,12 +38,66 @@ for (const listingUtxo of listingUtxos) {
 
   // Outputs
   // Add cancel outputs returning listed ordinals
-  for (const utxo of listingUtxos) {
+  for (const _ of listingUtxos) {
     tx.addOutput({
       satoshis: 1,
       lockingScript: new P2PKH().lock(ordPk.toAddress().toString()),
     });
   }
+
+
+	// Calculate total input and output amounts
+	const totalInput = utxos.reduce(
+		(sum, utxo) => sum + BigInt(utxo.satoshis),
+		0n,
+	);
+	const totalOutput = tx.outputs.reduce(
+		(sum, output) => sum + BigInt(output.satoshis || 0),
+		0n,
+	);
+
+	// Estimate fee
+	const estimatedFee = await modelOrFee.computeFee(tx);
+
+	// Check if change is needed
+	let payChange: Utxo | undefined;
+	if (totalInput > totalOutput + BigInt(estimatedFee)) {
+		const changeScript = new P2PKH().lock(
+			changeAddress || paymentPk.toAddress().toString(),
+		);
+		const changeOutput = {
+			lockingScript: changeScript,
+			change: true,
+		};
+		// Add change output
+		payChange = {
+			txid: "", // txid is not known yet,
+			vout: tx.outputs.length,
+			satoshis: 0, // change output amount is not known yet
+			script: Buffer.from(changeScript.toHex(), "hex").toString("base64"),
+		};
+
+    
+		tx.addOutput(changeOutput);
+	}
+
+  	// Calculate fee
+	await tx.fee(modelOrFee);
+
+	// Sign the transaction
+	await tx.sign();
+
+	if (payChange) {
+		const changeOutput = tx.outputs[tx.outputs.length - 1];
+		payChange.satoshis = changeOutput.satoshis as number;
+		payChange.txid = tx.id("hex") as string;
+	}
+
+  return {
+		tx,
+		spentOutpoints: utxos.map((utxo) => `${utxo.txid}_${utxo.vout}`),
+		payChange,
+	};
 }
 
 // const cancelTx = new Transaction(1, 0);
