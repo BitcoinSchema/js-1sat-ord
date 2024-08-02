@@ -1,11 +1,47 @@
 // TODO: Cancel listing for NFT and FT
 
+import { P2PKH, SatoshisPerKilobyte, Script, Transaction } from "@bsv/sdk";
 import type { CancelOrdListingsConfig } from "./types"
+import { inputFromB64Utxo } from "./utils/utxo";
+import { DEFAULT_SAT_PER_KB } from "./constants";
 
 export const cancelOrdListings = async (config: CancelOrdListingsConfig) => {
-const { utxos, listingScript, ordPk, paymentPk } = config
+const { utxos, listingUtxos, ordPk, paymentPk, satsPerKb = DEFAULT_SAT_PER_KB } = config
 
+const modelOrFee = new SatoshisPerKilobyte(satsPerKb);
+const tx = new Transaction();
 
+  // Inputs
+  // Add the locked ordinals we're cancelling
+for (const listingUtxo of listingUtxos) {
+
+  tx.addInput({
+    unlockingScript: Script.fromHex(Buffer.from(listingUtxo.script, 'base64').toString('hex')),
+    sourceOutputIndex: listingUtxo.vout,
+    sequence: 0xffffffff,
+  })
+}
+
+  for (const utxo of utxos) {
+    const input = inputFromB64Utxo(utxo, new P2PKH().unlock(paymentPk));
+    tx.addInput(input);
+  }
+
+  // Warn if creating many inscriptions at once
+  if (listingUtxos.length > 100) {
+    console.warn(
+      "Creating many inscriptions at once can be slow. Consider using multiple transactions instead.",
+    );
+  }
+
+  // Outputs
+  // Add cancel outputs returning listed ordinals
+  for (const utxo of listingUtxos) {
+    tx.addOutput({
+      satoshis: 1,
+      lockingScript: new P2PKH().lock(ordPk.toAddress().toString()),
+    });
+  }
 }
 
 // const cancelTx = new Transaction(1, 0);

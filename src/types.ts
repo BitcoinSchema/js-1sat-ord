@@ -399,7 +399,8 @@ export type CancelOrdListingsConfig = {
   utxos: Utxo[],
   paymentPk: PrivateKey;
   ordPk: PrivateKey;
-  listingScript: Script;
+  listingUtxos: Utxo[];
+  satsPerKb?: number;
 }
 
 export type CraeteOrdTokenListingsConfig = {

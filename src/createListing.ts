@@ -4,6 +4,7 @@ import { P2PKH, SatoshisPerKilobyte, Transaction } from "@bsv/sdk";
 import { DEFAULT_SAT_PER_KB } from "./constants";
 import type { CraeteOrdTokenListingsConfig, CreateOrdListingsConfig, Utxo } from "./types";
 import { inputFromB64Utxo } from "./utils/utxo";
+import OrdLock from "./templates/ordLock";
 
 
 export const createOrdListings = async (config: CreateOrdListingsConfig) => {
@@ -17,7 +18,7 @@ export const createOrdListings = async (config: CreateOrdListingsConfig) => {
 	} = config;
 
   const modelOrFee = new SatoshisPerKilobyte(satsPerKb);
-	let tx = new Transaction();
+	const tx = new Transaction();
   
   	// Inputs
 	for (const utxo of utxos) {
@@ -32,14 +33,14 @@ export const createOrdListings = async (config: CreateOrdListingsConfig) => {
 		);
 	}
 
-  	// Outputs
-    // Add listing outputs
-    for (const listing of listings) {
-      tx.addOutput({
-        satoshis: 1,
-        lockingScript: new OrdLock().lock(listing.payAddress, listing.ordAddress, listing.price)
-      })
-    }
+  // Outputs
+  // Add listing outputs
+  for (const listing of listings) {
+    tx.addOutput({
+      satoshis: 1,
+      lockingScript: new OrdLock().lock(listing.payAddress, listing.ordAddress, listing.price)
+    })
+  }
 
 	// Add additional payments if any
 	for (const p of additionalPayments) {
@@ -48,7 +49,6 @@ export const createOrdListings = async (config: CreateOrdListingsConfig) => {
 			lockingScript: new P2PKH().lock(p.to),
 		});
 	}
-
 
 	// Calculate total input and output amounts
 	const totalInput = utxos.reduce(
@@ -88,7 +88,6 @@ export const createOrdListings = async (config: CreateOrdListingsConfig) => {
   	// Calculate fee
 	await tx.fee(modelOrFee);
 
-
 	// Sign the transaction
 	await tx.sign();
 
@@ -103,10 +102,10 @@ export const createOrdListings = async (config: CreateOrdListingsConfig) => {
 		spentOutpoints: utxos.map((utxo) => `${utxo.txid}_${utxo.vout}`),
 		payChange,
 	};
-  
+
 }
 
-export const createOrdTokenListings = async (config: CraeteOrdTokenListingsConfig) {
+export const createOrdTokenListings = async (config: CraeteOrdTokenListingsConfig) => {
   
 }
 
