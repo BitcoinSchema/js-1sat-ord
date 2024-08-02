@@ -4,6 +4,7 @@ import { P2PKH, SatoshisPerKilobyte, Script, Transaction } from "@bsv/sdk";
 import type { CancelOrdListingsConfig } from "./types"
 import { inputFromB64Utxo } from "./utils/utxo";
 import { DEFAULT_SAT_PER_KB } from "./constants";
+import OrdLock from "./templates/ordLock";
 
 export const cancelOrdListings = async (config: CancelOrdListingsConfig) => {
 const { utxos, listingUtxos, ordPk, paymentPk, satsPerKb = DEFAULT_SAT_PER_KB } = config
@@ -17,6 +18,7 @@ for (const listingUtxo of listingUtxos) {
 
   tx.addInput({
     unlockingScript: Script.fromHex(Buffer.from(listingUtxo.script, 'base64').toString('hex')),
+    unlockingScriptTemplate: new OrdLock().cancelListing(ordPk),
     sourceOutputIndex: listingUtxo.vout,
     sequence: 0xffffffff,
   })

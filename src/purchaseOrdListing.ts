@@ -4,7 +4,6 @@ import { P2PKH, SatoshisPerKilobyte, Script, Transaction } from "@bsv/sdk";
 import { DEFAULT_SAT_PER_KB } from "./constants"
 import type { PurchaseOrdListingConfig, Utxo } from "./types";
 import { inputFromB64Utxo } from "./utils/utxo";
-import OrdLock from "./templates/ordLock";
 
 export const purchaseOrdListings = async (config: PurchaseOrdListingConfig) => {
 const { utxos, 
@@ -100,7 +99,7 @@ const { utxos,
 		spentOutpoints: utxos.map((utxo) => `${utxo.txid}_${utxo.vout}`),
 		payChange,
 	};
-  
+
 }
   // create a transaction that will purchase the artifact, once funded
   // const purchaseTx = new Transaction(1, 0);
