@@ -17,7 +17,6 @@ export const purchaseOrdListings = async (config: PurchaseOrdListingConfig) => {
 
 	const modelOrFee = new SatoshisPerKilobyte(satsPerKb);
 	const tx = new Transaction();
-	const spentOutpoints: string[] = [];
 
 	// Inputs
 	// Add the locked ordinal we're purchasing
@@ -30,7 +29,6 @@ export const purchaseOrdListings = async (config: PurchaseOrdListingConfig) => {
 		sourceOutputIndex: listingUtxo.vout,
 		sequence: 0xffffffff,
 	});
-	spentOutpoints.push(`${listingUtxo.txid}_${listingUtxo.vout}`);
 
 	// Outputs
 	// Add the purchased output
@@ -47,25 +45,6 @@ export const purchaseOrdListings = async (config: PurchaseOrdListingConfig) => {
 		});
 	}
 
-	let totalSatsIn = 0n;
-	const totalSatsOut = tx.outputs.reduce(
-		(total, out) => total + BigInt(out.satoshis || 0),
-		0n,
-	);
-	let fee = 0;
-	for (const utxo of utxos) {
-		const input = inputFromB64Utxo(utxo, new P2PKH().unlock(paymentPk));
-		spentOutpoints.push(`${utxo.txid}_${utxo.vout}`);
-
-		tx.addInput(input);
-		// stop adding inputs if the total amount is enough
-		totalSatsIn += BigInt(utxo.satoshis);
-		fee = await modelOrFee.computeFee(tx);
-
-		if (totalSatsIn >= totalSatsOut + BigInt(fee)) {
-			break;
-		}
-	}
 
 	// add change to the outputs
 	let payChange: Utxo | undefined;
@@ -77,6 +56,33 @@ export const purchaseOrdListings = async (config: PurchaseOrdListingConfig) => {
 		change: true,
 	};
 	tx.addOutput(changeOut);
+
+  
+	let totalSatsIn = 0n;
+	const totalSatsOut = tx.outputs.reduce(
+		(total, out) => total + BigInt(out.satoshis || 0),
+		0n,
+	);
+	let fee = 0;
+	for (const utxo of utxos) {
+		const input = inputFromB64Utxo(utxo, new P2PKH().unlock(paymentPk));
+
+		tx.addInput(input);
+		// stop adding inputs if the total amount is enough
+		totalSatsIn += BigInt(utxo.satoshis);
+		fee = await modelOrFee.computeFee(tx);
+
+		if (totalSatsIn >= totalSatsOut + BigInt(fee)) {
+			break;
+		}
+	}
+
+  // make sure we have enough
+	if (totalSatsIn < totalSatsOut + BigInt(fee)) {
+		throw new Error(
+			`Not enough funds to purchase listing. Total sats in: ${totalSatsIn}, Total sats out: ${totalSatsOut}, Fee: ${fee}`,
+		);
+	}
 
 	// estimate the cost of the transaction and assign change value
 	await tx.fee(modelOrFee);
@@ -106,7 +112,7 @@ export const purchaseOrdListings = async (config: PurchaseOrdListingConfig) => {
 
 	return {
 		tx,
-		spentOutpoints: utxos.map((utxo) => `${utxo.txid}_${utxo.vout}`),
+		spentOutpoints: tx.inputs.map((i) => `${i.sourceTXID}_${i.sourceOutputIndex}`),
 		payChange,
 	};
 };

@@ -1,91 +1,117 @@
 // TODO: Cancel listing for NFT and FT
 
 import { P2PKH, SatoshisPerKilobyte, Script, Transaction } from "@bsv/sdk";
-import type { CancelOrdListingsConfig, Utxo } from "./types"
+import type { CancelOrdListingsConfig, Utxo } from "./types";
 import { inputFromB64Utxo } from "./utils/utxo";
 import { DEFAULT_SAT_PER_KB } from "./constants";
 import OrdLock from "./templates/ordLock";
 
 export const cancelOrdListings = async (config: CancelOrdListingsConfig) => {
-const { utxos, listingUtxos, ordPk, paymentPk, changeAddress, satsPerKb = DEFAULT_SAT_PER_KB } = config
+	const {
+		utxos,
+		listingUtxos,
+		ordPk,
+		paymentPk,
+		changeAddress,
+    additionalPayments,
+		satsPerKb = DEFAULT_SAT_PER_KB,
+	} = config;
 
-const modelOrFee = new SatoshisPerKilobyte(satsPerKb);
-const tx = new Transaction();
+	const modelOrFee = new SatoshisPerKilobyte(satsPerKb);
+	const tx = new Transaction();
 
-  // Inputs
-  // Add the locked ordinals we're cancelling
-for (const listingUtxo of listingUtxos) {
-
-  tx.addInput({
-    unlockingScript: Script.fromHex(Buffer.from(listingUtxo.script, 'base64').toString('hex')),
-    unlockingScriptTemplate: new OrdLock().cancelListing(ordPk),
-    sourceOutputIndex: listingUtxo.vout,
-    sequence: 0xffffffff,
-  })
-}
-
-  for (const utxo of utxos) {
-    const input = inputFromB64Utxo(utxo, new P2PKH().unlock(paymentPk));
-    tx.addInput(input);
-  }
-
-  // Warn if creating many inscriptions at once
-  if (listingUtxos.length > 100) {
-    console.warn(
-      "Creating many inscriptions at once can be slow. Consider using multiple transactions instead.",
-    );
-  }
-
-  // Outputs
-  // Add cancel outputs returning listed ordinals
-  for (const _ of listingUtxos) {
-    tx.addOutput({
-      satoshis: 1,
-      lockingScript: new P2PKH().lock(ordPk.toAddress().toString()),
-    });
-  }
-
-
-	// Calculate total input and output amounts
-	const totalInput = utxos.reduce(
-		(sum, utxo) => sum + BigInt(utxo.satoshis),
-		0n,
-	);
-	const totalOutput = tx.outputs.reduce(
-		(sum, output) => sum + BigInt(output.satoshis || 0),
-		0n,
-	);
-
-	// Estimate fee
-	const estimatedFee = await modelOrFee.computeFee(tx);
-
-	// Check if change is needed
-	let payChange: Utxo | undefined;
-	if (totalInput > totalOutput + BigInt(estimatedFee)) {
-		const changeScript = new P2PKH().lock(
-			changeAddress || paymentPk.toAddress().toString(),
-		);
-		const changeOutput = {
-			lockingScript: changeScript,
-			change: true,
-		};
-		// Add change output
-		payChange = {
-			txid: "", // txid is not known yet,
-			vout: tx.outputs.length,
-			satoshis: 0, // change output amount is not known yet
-			script: Buffer.from(changeScript.toHex(), "hex").toString("base64"),
-		};
-
-    
-		tx.addOutput(changeOutput);
+	// Inputs
+	// Add the locked ordinals we're cancelling
+	for (const listingUtxo of listingUtxos) {
+		tx.addInput({
+			unlockingScript: Script.fromHex(
+				Buffer.from(listingUtxo.script, "base64").toString("hex"),
+			),
+			unlockingScriptTemplate: new OrdLock().cancelListing(ordPk),
+			sourceOutputIndex: listingUtxo.vout,
+			sequence: 0xffffffff,
+		});
+		// Add cancel outputs returning listed ordinals
+		tx.addOutput({
+			satoshis: 1,
+			lockingScript: new P2PKH().lock(ordPk.toAddress().toString()),
+		});
 	}
 
-  	// Calculate fee
+  	// Add additional payments if any
+	for (const p of additionalPayments) {
+		tx.addOutput({
+			satoshis: p.amount,
+			lockingScript: new P2PKH().lock(p.to),
+		});
+	}
+
+
+	// Warn if creating many inscriptions at once
+	if (listingUtxos.length > 100) {
+		console.warn(
+			"Creating many inscriptions at once can be slow. Consider using multiple transactions instead.",
+		);
+	}
+
+
+
+	// add change to the outputs
+	let payChange: Utxo | undefined;
+
+	const change = changeAddress || paymentPk.toAddress().toString();
+	const changeScript = new P2PKH().lock(change);
+	const changeOut = {
+		lockingScript: changeScript,
+		change: true,
+	};
+	tx.addOutput(changeOut);
+
+	let totalSatsIn = 0n;
+	const totalSatsOut = tx.outputs.reduce(
+		(total, out) => total + BigInt(out.satoshis || 0),
+		0n,
+	);
+	let fee = 0;
+	for (const utxo of utxos) {
+		const input = inputFromB64Utxo(utxo, new P2PKH().unlock(paymentPk));
+
+		tx.addInput(input);
+		// stop adding inputs if the total amount is enough
+		totalSatsIn += BigInt(utxo.satoshis);
+		fee = await modelOrFee.computeFee(tx);
+
+		if (totalSatsIn >= totalSatsOut + BigInt(fee)) {
+			break;
+		}
+	}
+
+  // make sure we have enough
+	if (totalSatsIn < totalSatsOut + BigInt(fee)) {
+		throw new Error(
+			`Not enough funds to purchase listing. Total sats in: ${totalSatsIn}, Total sats out: ${totalSatsOut}, Fee: ${fee}`,
+		);
+	}
+
+	// estimate the cost of the transaction and assign change value
 	await tx.fee(modelOrFee);
 
 	// Sign the transaction
 	await tx.sign();
+
+	// check for change
+	const payChangeOutIdx = tx.outputs.findIndex((o) => o.change);
+	if (payChangeOutIdx !== -1) {
+		const changeOutput = tx.outputs[payChangeOutIdx];
+		payChange = {
+			satoshis: changeOutput.satoshis as number,
+			txid: tx.id("hex") as string,
+			vout: payChangeOutIdx,
+			script: Buffer.from(changeOutput.lockingScript.toBinary()).toString(
+				"base64",
+			),
+		};
+	}
 
 	if (payChange) {
 		const changeOutput = tx.outputs[tx.outputs.length - 1];
@@ -93,12 +119,12 @@ for (const listingUtxo of listingUtxos) {
 		payChange.txid = tx.id("hex") as string;
 	}
 
-  return {
+	return {
 		tx,
-		spentOutpoints: utxos.map((utxo) => `${utxo.txid}_${utxo.vout}`),
+		spentOutpoints: tx.inputs.map((i) => `${i.sourceTXID}_${i.sourceOutputIndex}`),
 		payChange,
 	};
-}
+};
 
 // const cancelTx = new Transaction(1, 0);
 
