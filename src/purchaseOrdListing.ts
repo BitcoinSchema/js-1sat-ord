@@ -95,6 +95,11 @@ const { utxos,
 		payChange.txid = tx.id("hex") as string;
 	}
 
+  return {
+		tx,
+		spentOutpoints: utxos.map((utxo) => `${utxo.txid}_${utxo.vout}`),
+		payChange,
+	};
   
 }
   // create a transaction that will purchase the artifact, once funded
