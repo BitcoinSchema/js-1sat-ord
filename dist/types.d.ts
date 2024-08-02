@@ -22,6 +22,7 @@ export type Listing = {
     payAddress: string;
     price: number;
     ordAddress: string;
+    listingUtxo: Utxo;
 };
 /**
  * @typedef {Object} Distribution
@@ -335,6 +336,7 @@ export type CreateOrdListingsConfig = {
     listings: Listing[];
     royalty: number;
     paymentPk: PrivateKey;
+    ordPk: PrivateKey;
     changeAddress?: string;
     satsPerKb?: number;
     additionalPayments?: Payment[];
@@ -353,6 +355,7 @@ export type CancelOrdListingsConfig = {
     paymentPk: PrivateKey;
     ordPk: PrivateKey;
     listingUtxos: Utxo[];
+    additionalPayments: Payment[];
     changeAddress?: string;
     satsPerKb?: number;
 };
