@@ -12,7 +12,7 @@ export const createOrdListings = async (config: CreateOrdListingsConfig) => {
 		utxos,
 		listings,
 		paymentPk,
-		changeAddress,
+		changeAddress = paymentPk.toAddress().toString(),
 		satsPerKb = DEFAULT_SAT_PER_KB,
 		additionalPayments = [],
 	} = config;
@@ -66,9 +66,7 @@ export const createOrdListings = async (config: CreateOrdListingsConfig) => {
 	// Check if change is needed
 	let payChange: Utxo | undefined;
 	if (totalInput > totalOutput + BigInt(estimatedFee)) {
-		const changeScript = new P2PKH().lock(
-			changeAddress || paymentPk.toAddress().toString(),
-		);
+		const changeScript = new P2PKH().lock(changeAddress);
 		const changeOutput = {
 			lockingScript: changeScript,
 			change: true,

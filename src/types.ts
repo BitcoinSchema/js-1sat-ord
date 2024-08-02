@@ -395,6 +395,16 @@ export type CreateOrdListingsConfig = {
 	additionalPayments?: Payment[];
 }
 
+export type PurchaseOrdListingConfig = {
+  utxos: Utxo[];
+  paymentPk: PrivateKey;
+  listingUtxo: Utxo;
+  ordAddress: string;
+  changeAddress?: string;
+  satsPerKb?: number;
+  additionalPayments?: Payment[],
+}
+
 export type CancelOrdListingsConfig = {
   utxos: Utxo[],
   paymentPk: PrivateKey;
