@@ -205,6 +205,7 @@ Creates a listing using an "Ordinal Lock" script. Can be purchased by anyone by 
 const listings = [{
   payAddress: addressToReceivePayment;
   price: 100000; // price in satoshis
+  listingUtxo,
   ordAddress: returnAddressForCancel;
 }]
 
@@ -212,6 +213,7 @@ const config: CreateOrdListingsConfig = {
   utxos: [utxo],
   listings,
   paymentPk,
+  ordPk,
 }
 
 const { tx } = await createOrdListings(config);
