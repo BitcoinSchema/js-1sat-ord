@@ -10,6 +10,7 @@ import {
 	UnlockingScript,
 	Utils,
 } from "@bsv/sdk";
+import { toHex } from "../utils/strings";
 
 export const oLockPrefix =
 	"2097dfd76851bf465e8f715593b217714858bbe9570ff3bd5e33840a34e20ff0262102ba79df5f8ae7604a9830f03c7933028186aede0675a16f025dc4f8be8eec0382201008ce7480da41702918d1ec8e6849ba32b4d65b1e40dc669c31a1e6306b266c0000";
@@ -34,11 +35,28 @@ export default class OrdLock {
 		ordAddress: string,
 		payAddress: string,
 		price: number,
+		b64File?: string | undefined,
+		mediaType?: string | undefined,
 	): Script {
 		const cancelPkh = Utils.fromBase58Check(ordAddress).data as number[];
 		const payPkh = Utils.fromBase58Check(payAddress).data as number[];
 
-		return Script.fromHex(oLockPrefix)
+		let script = new Script()
+		if (b64File !== undefined && mediaType !== undefined) {
+			const ordHex = toHex("ord");
+			const fsBuffer = Buffer.from(b64File, "base64");
+			const fileHex = fsBuffer.toString("hex").trim();
+			if (!fileHex) {
+				throw new Error("Invalid file data");
+			}
+			const fileMediaType = toHex(mediaType);
+			if (!fileMediaType) {
+				throw new Error("Invalid media type");
+			}
+			script = Script.fromASM(`OP_0 OP_IF ${ordHex} OP_1 ${fileMediaType} OP_0 ${fileHex} OP_ENDIF`);
+		}
+		
+		return script.writeScript(Script.fromHex(oLockPrefix))
 			.writeBin(cancelPkh)
 			.writeBin(OrdLock.buildOutput(price, new P2PKH().lock(payPkh).toBinary()))
 			.writeScript(Script.fromHex(oLockSuffix))
