@@ -1,8 +1,18 @@
 import { P2PKH, SatoshisPerKilobyte, Script, Transaction } from "@bsv/sdk";
 import { DEFAULT_SAT_PER_KB } from "./constants";
-import type { PurchaseOrdListingConfig, PurchaseOrdTokenListingConfig, Utxo } from "./types";
+import {
+	TokenType,
+	type Inscription,
+	type PurchaseOrdListingConfig,
+	type PurchaseOrdTokenListingConfig,
+	type TransferBSV20Inscription,
+	type TransferBSV21Inscription,
+	type TransferTokenInscription,
+	type Utxo,
+} from "./types";
 import { inputFromB64Utxo } from "./utils/utxo";
 import OrdLock from "./templates/ordLock";
+import OrdP2PKH from "./templates/ordP2pkh";
 
 export const purchaseOrdListings = async (config: PurchaseOrdListingConfig) => {
 	const {
@@ -45,7 +55,6 @@ export const purchaseOrdListings = async (config: PurchaseOrdListingConfig) => {
 		});
 	}
 
-
 	// add change to the outputs
 	let payChange: Utxo | undefined;
 
@@ -56,7 +65,6 @@ export const purchaseOrdListings = async (config: PurchaseOrdListingConfig) => {
 		change: true,
 	};
 	tx.addOutput(changeOut);
-
 
 	let totalSatsIn = 0n;
 	const totalSatsOut = tx.outputs.reduce(
@@ -77,7 +85,7 @@ export const purchaseOrdListings = async (config: PurchaseOrdListingConfig) => {
 		}
 	}
 
-  // make sure we have enough
+	// make sure we have enough
 	if (totalSatsIn < totalSatsOut + BigInt(fee)) {
 		throw new Error(
 			`Not enough funds to purchase listing. Total sats in: ${totalSatsIn}, Total sats out: ${totalSatsOut}, Fee: ${fee}`,
@@ -112,26 +120,32 @@ export const purchaseOrdListings = async (config: PurchaseOrdListingConfig) => {
 
 	return {
 		tx,
-		spentOutpoints: tx.inputs.map((i) => `${i.sourceTXID}_${i.sourceOutputIndex}`),
+		spentOutpoints: tx.inputs.map(
+			(i) => `${i.sourceTXID}_${i.sourceOutputIndex}`,
+		),
 		payChange,
 	};
 };
 
-export const purchaseOrdTokenListing = async (config: PurchaseOrdTokenListingConfig) => { 
-const { protocol,
-  tokenID,
-  utxos,
-  paymentPk,
-  listingUtxo,
-  ordAddress,
-  changeAddress,
-  satsPerKb = DEFAULT_SAT_PER_KB,
-  additionalPayments = [] } = config;
+export const purchaseOrdTokenListing = async (
+	config: PurchaseOrdTokenListingConfig,
+) => {
+	const {
+		protocol,
+		tokenID,
+		utxos,
+		paymentPk,
+		listingUtxo,
+		ordAddress,
+		changeAddress,
+		satsPerKb = DEFAULT_SAT_PER_KB,
+		additionalPayments = [],
+	} = config;
 
-  const modelOrFee = new SatoshisPerKilobyte(satsPerKb);
+	const modelOrFee = new SatoshisPerKilobyte(satsPerKb);
 	const tx = new Transaction();
 
-  	// Inputs
+	// Inputs
 	// Add the locked ordinal we're purchasing
 	tx.addInput({
 		unlockingScriptTemplate: new OrdLock().purchaseListing(
@@ -142,9 +156,34 @@ const { protocol,
 		sourceOutputIndex: listingUtxo.vout,
 		sequence: 0xffffffff,
 	});
+	// Outputs
+	const transferInscription: TransferTokenInscription = {
+		p: "bsv-20",
+		op: "transfer",
+		amt: listingUtxo.amt,
+	};
+	let inscription: TransferBSV20Inscription | TransferBSV21Inscription;
+	if (protocol === TokenType.BSV20) {
+		inscription = {
+			...transferInscription,
+			tick: tokenID,
+		} as TransferBSV20Inscription;
+	} else if (protocol === TokenType.BSV21) {
+		inscription = {
+			...transferInscription,
+			id: tokenID,
+		} as TransferBSV21Inscription;
+	} else {
+		throw new Error("Invalid protocol");
+	}
+	const dataB64 = Buffer.from(JSON.stringify(inscription)).toString("base64");
 
-  // Outputs
-  // Add the purchased output
-
-
-}
+	// Add the purchased output
+	tx.addOutput({
+		satoshis: 1,
+		lockingScript: new OrdP2PKH().lock(ordAddress, {
+			dataB64,
+			contentType: "bsv-20",
+		}),
+	});
+};

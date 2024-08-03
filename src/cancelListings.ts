@@ -1,5 +1,3 @@
-// TODO: Cancel listing for NFT and FT
-
 import { P2PKH, SatoshisPerKilobyte, Script, Transaction } from "@bsv/sdk";
 import {
 	TokenType,
