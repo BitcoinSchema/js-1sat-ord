@@ -1,4 +1,4 @@
-import type { PrivateKey, Transaction } from "@bsv/sdk";
+import type { PrivateKey, Script, Transaction } from "@bsv/sdk";
 import type { AuthToken } from "sigma-protocol";
 
 // biome-ignore lint/complexity/noBannedTypes: Reserved for future use
@@ -17,6 +17,35 @@ export type Destination = {
 	address: string;
 	inscription?: Inscription;
 };
+
+/**
+ * @typedef {Object} Listing
+ * @property {string} payAddress - Address to send the payment upon purchase
+ * @property {string} price - Listing price in satoshis
+ * @property {String} ordAddress - Where to return a listed ordinal upon cancel.
+ * @property {Utxo} listingUtxo - Utxo of the listing
+ */
+export type Listing = {
+	payAddress: string;
+	price: number;
+	ordAddress: string;
+	listingUtxo: Utxo;
+}
+
+/**
+ * @typedef {Object} TokenListing
+ * @property {string} payAddress - Address to send the payment upon purchase
+ * @property {string} price - Listing price in satoshis
+ * @property {String} ordAddress - Where to return a listed ordinal upon cancel.
+ * @property {TokenUtxo} listingUtxo - Utxo of the listing
+ */
+export type TokenListing = {
+	payAddress: string;
+	price: number;
+	amt: bigint;
+	ordAddress: string;
+	listingUtxo: TokenUtxo;
+}
 
 /**
  * @typedef {Object} Distribution
@@ -217,7 +246,7 @@ export interface CreateOrdinalsCollectionItemMetadata extends CreateOrdinalsMeta
  * @property [metaData.royalties] - Optional. Royalties address
  * @property [metaData.previewUrl] - Optional. Preview URL
  */
-export interface  CreateOrdinalsCollectionConfig extends CreateOrdinalsConfig {
+export interface CreateOrdinalsCollectionConfig extends CreateOrdinalsConfig {
 	metaData: CreateOrdinalsCollectionMetadata
 }
 
@@ -231,7 +260,7 @@ export type CollectionTrait = {
 };
 
 export type Rarity = {
-  [key:string]: string;
+	[key: string]: string;
 }
 
 export type RarityLabels = Rarity[]
@@ -243,12 +272,12 @@ export interface CollectionSubTypeData {
 }
 
 export interface CreateOrdinalsCollectionItemMetadata extends PreMAP {
-		type: "ord",
-		name: string,
-		subType: "collectionItem",
-		subTypeData: CollectionItemSubTypeData, // JSON stringified CollectionItemSubTypeData
-		royalties?: Royalty[],
-		previewUrl?: string,	
+	type: "ord",
+	name: string,
+	subType: "collectionItem",
+	subTypeData: CollectionItemSubTypeData, // JSON stringified CollectionItemSubTypeData
+	royalties?: Royalty[],
+	previewUrl?: string,
 }
 
 /**
@@ -292,7 +321,7 @@ export type CollectionItemTraits = {
 	occurancePercentrage?: string;
 };
 
-export type CollectionItemAttachment 	= {
+export type CollectionItemAttachment = {
 	name: string;
 	description?: string;
 	"content-type": string;
@@ -369,5 +398,76 @@ export type TransferOrdTokensConfig = {
 	metaData?: PreMAP;
 	signer?: LocalSigner | RemoteSigner;
 	additionalPayments?: Payment[];
-  burn?: boolean;
+	burn?: boolean;
 }
+
+export type CreateOrdListingsConfig = {
+	utxos: Utxo[];
+	listings: Listing[];
+	royalty: number;
+	paymentPk: PrivateKey;
+	ordPk: PrivateKey,
+	changeAddress?: string;
+	satsPerKb?: number;
+	additionalPayments?: Payment[];
+}
+
+export type PurchaseOrdListingConfig = {
+	utxos: Utxo[];
+	paymentPk: PrivateKey;
+	listingUtxo: Utxo;
+	ordAddress: string;
+	changeAddress?: string;
+	satsPerKb?: number;
+	additionalPayments?: Payment[],
+}
+
+export type PurchaseOrdTokenListingConfig = {
+	protocol: TokenType;
+	tokenID: string;
+	utxos: Utxo[];
+	paymentPk: PrivateKey;
+	listingUtxo: TokenUtxo;
+	ordAddress: string;
+	changeAddress?: string;
+	satsPerKb?: number;
+	additionalPayments?: Payment[],
+}
+
+export type CancelOrdListingsConfig = {
+	utxos: Utxo[],
+	paymentPk: PrivateKey;
+	ordPk: PrivateKey;
+	listingUtxos: Utxo[];
+	additionalPayments: Payment[];
+	changeAddress?: string;
+	satsPerKb?: number;
+}
+
+export interface CancelOrdTokenListingsConfig extends CancelOrdListingsConfig {
+	utxos: Utxo[],
+	paymentPk: PrivateKey;
+	ordPk: PrivateKey;
+	listingUtxos: TokenUtxo[];
+	additionalPayments: Payment[];
+	changeAddress?: string;
+	satsPerKb?: number;
+	protocol: TokenType,
+	tokenID: string;
+	ordAddress?: string;
+}
+
+export interface CreateOrdTokenListingsConfig {
+	utxos: Utxo[];
+	listings: TokenListing[];
+	paymentPk: PrivateKey;
+	ordPk: PrivateKey,
+	changeAddress?: string;
+	satsPerKb?: number;
+	additionalPayments?: Payment[];
+	protocol: TokenType;
+	tokenID: string;
+	inputTokens: TokenUtxo[];
+	tokenChangeAddress: string;
+}
+

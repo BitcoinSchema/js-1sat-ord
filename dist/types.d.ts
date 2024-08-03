@@ -13,6 +13,33 @@ export type Destination = {
     inscription?: Inscription;
 };
 /**
+ * @typedef {Object} Listing
+ * @property {string} payAddress - Address to send the payment upon purchase
+ * @property {string} price - Listing price in satoshis
+ * @property {String} ordAddress - Where to return a listed ordinal upon cancel.
+ * @property {Utxo} listingUtxo - Utxo of the listing
+ */
+export type Listing = {
+    payAddress: string;
+    price: number;
+    ordAddress: string;
+    listingUtxo: Utxo;
+};
+/**
+ * @typedef {Object} TokenListing
+ * @property {string} payAddress - Address to send the payment upon purchase
+ * @property {string} price - Listing price in satoshis
+ * @property {String} ordAddress - Where to return a listed ordinal upon cancel.
+ * @property {TokenUtxo} listingUtxo - Utxo of the listing
+ */
+export type TokenListing = {
+    payAddress: string;
+    price: number;
+    amt: bigint;
+    ordAddress: string;
+    listingUtxo: TokenUtxo;
+};
+/**
  * @typedef {Object} Distribution
  * @property {string} address - Destination address. Must be a Ordinals address (BSV address for recieving 1Sat ordinals tokens).
  * @property {string} amt - Number of tokens as a string, considering decimals. Not display format. Ex. 100000000 for 1 token with 8 decimal places.
@@ -319,4 +346,68 @@ export type TransferOrdTokensConfig = {
     additionalPayments?: Payment[];
     burn?: boolean;
 };
+export type CreateOrdListingsConfig = {
+    utxos: Utxo[];
+    listings: Listing[];
+    royalty: number;
+    paymentPk: PrivateKey;
+    ordPk: PrivateKey;
+    changeAddress?: string;
+    satsPerKb?: number;
+    additionalPayments?: Payment[];
+};
+export type PurchaseOrdListingConfig = {
+    utxos: Utxo[];
+    paymentPk: PrivateKey;
+    listingUtxo: Utxo;
+    ordAddress: string;
+    changeAddress?: string;
+    satsPerKb?: number;
+    additionalPayments?: Payment[];
+};
+export type PurchaseOrdTokenListingConfig = {
+    protocol: TokenType;
+    tokenID: string;
+    utxos: Utxo[];
+    paymentPk: PrivateKey;
+    listingUtxo: TokenUtxo;
+    ordAddress: string;
+    changeAddress?: string;
+    satsPerKb?: number;
+    additionalPayments?: Payment[];
+};
+export type CancelOrdListingsConfig = {
+    utxos: Utxo[];
+    paymentPk: PrivateKey;
+    ordPk: PrivateKey;
+    listingUtxos: Utxo[];
+    additionalPayments: Payment[];
+    changeAddress?: string;
+    satsPerKb?: number;
+};
+export interface CancelOrdTokenListingsConfig extends CancelOrdListingsConfig {
+    utxos: Utxo[];
+    paymentPk: PrivateKey;
+    ordPk: PrivateKey;
+    listingUtxos: TokenUtxo[];
+    additionalPayments: Payment[];
+    changeAddress?: string;
+    satsPerKb?: number;
+    protocol: TokenType;
+    tokenID: string;
+    ordAddress?: string;
+}
+export interface CreateOrdTokenListingsConfig {
+    utxos: Utxo[];
+    listings: TokenListing[];
+    paymentPk: PrivateKey;
+    ordPk: PrivateKey;
+    changeAddress?: string;
+    satsPerKb?: number;
+    additionalPayments?: Payment[];
+    protocol: TokenType;
+    tokenID: string;
+    inputTokens: TokenUtxo[];
+    tokenChangeAddress: string;
+}
 export {};

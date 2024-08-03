@@ -6,6 +6,10 @@ description: js-1sat-ord
 
 A Javascript library for creating and managing 1Sat Ordinal inscriptions and transactions. Uses `@bsv/sdk` under the hood.
 
+It provides functions for listing, cancelling and purchasing Ordinal Lock transactions.
+
+It also privides helpers for fetching utxos for payments, nfts, and tokens.
+
 ### Install
 
 Install the library, and it's peer dependency. We recommend using Bun for the best performance, but you can also use Yarn or npm:
@@ -50,7 +54,25 @@ const utxo: Utxo = {
  const utxos = await fetchPayUtxos(payAddress)
  ```
 
+For NFTUtxos:
 
+```ts
+import { fetchNftUtxos } from "js-1sat-ord"
+
+// collectionId is optional
+const collectionId = "1611d956f397caa80b56bc148b4bce87b54f39b234aeca4668b4d5a7785eb9fa_0"
+const nftUtxos = await fetchNftUtxos(ordAddress, collectionId)
+```
+
+For Token Utxos:
+
+```ts
+import { fetchTokenUtxos, type TokenType } from "js-1sat-ord"
+
+const protocol = TokenType.BSV21;
+const tokenId = "e6d40ba206340aa94ed40fe1a8adcd722c08c9438b2c1dd16b4527d561e848a2_0";
+const tokenUtxos = await fetchTokenUtxos(protocol, tokenId, ordAddress);
+```
 
 #### Prepare Inscription
 
@@ -176,9 +198,51 @@ const config: SendUtxosConfig = {
 const { tx } = await sendUtxos(config);
 ```
 
+### Create Ordinal Listings 
+Creates a listing using an "Ordinal Lock" script. Can be purchased by anyone by sending a specific amount to the provided address.
+
+```ts
+const listings = [{
+  payAddress: addressToReceivePayment;
+  price: 100000; // price in satoshis
+  listingUtxo,
+  ordAddress: returnAddressForCancel;
+}]
+
+const config: CreateOrdListingsConfig = {
+  utxos: [utxo],
+  listings,
+  paymentPk,
+  ordPk,
+}
+
+const { tx } = await createOrdListings(config);
+```
+
+### Purchase Ordinal Listing
+
+```ts
+const config: PurchaseOrdListingConfig ={
+  utxos: [utxo], 
+  paymentPk, 
+  listingUtxo, 
+  ordAddress,
+};
+
+const { tx } = await purchaseOrdListing(config);
+```
+
+### Cancel Ordinal Listings
+Spends the ordinal lock without payment, returning the ordinal to the address specified in the listing contract.
+
+```ts
+const config: CancelOrdListingsConfig = { utxos, listingUtxos, ordPk, paymentPk };
+const { tx } = await cancelOrdListings(config);
+```
+
 ### Additional Configuration Options
 
-Each function accepts additional configuration options not shown in the examples above. These include:
+Each function accepts additional configuration options not shown in the examples above. These may include:
 
 - `changeAddress`: Address to send change to (if not provided, defaults to the payment key's address)
 - `satsPerKb`: Satoshis per kilobyte for fee calculation
