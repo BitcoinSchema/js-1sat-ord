@@ -1,10 +1,20 @@
 // TODO: Cancel listing for NFT and FT
 
 import { P2PKH, SatoshisPerKilobyte, Script, Transaction } from "@bsv/sdk";
-import type { CancelOrdListingsConfig, Utxo } from "./types";
+import {
+	TokenType,
+	type CancelOrdListingsConfig,
+	type CancelOrdTokenListingsConfig,
+	type Destination,
+	type TransferBSV20Inscription,
+	type TransferBSV21Inscription,
+	type TransferTokenInscription,
+	type Utxo,
+} from "./types";
 import { inputFromB64Utxo } from "./utils/utxo";
 import { DEFAULT_SAT_PER_KB } from "./constants";
 import OrdLock from "./templates/ordLock";
+import OrdP2PKH from "./templates/ordP2pkh";
 
 export const cancelOrdListings = async (config: CancelOrdListingsConfig) => {
 	const {
@@ -13,7 +23,7 @@ export const cancelOrdListings = async (config: CancelOrdListingsConfig) => {
 		ordPk,
 		paymentPk,
 		changeAddress,
-    additionalPayments,
+		additionalPayments,
 		satsPerKb = DEFAULT_SAT_PER_KB,
 	} = config;
 
@@ -38,7 +48,7 @@ export const cancelOrdListings = async (config: CancelOrdListingsConfig) => {
 		});
 	}
 
-  	// Add additional payments if any
+	// Add additional payments if any
 	for (const p of additionalPayments) {
 		tx.addOutput({
 			satoshis: p.amount,
@@ -46,15 +56,12 @@ export const cancelOrdListings = async (config: CancelOrdListingsConfig) => {
 		});
 	}
 
-
 	// Warn if creating many inscriptions at once
 	if (listingUtxos.length > 100) {
 		console.warn(
 			"Creating many inscriptions at once can be slow. Consider using multiple transactions instead.",
 		);
 	}
-
-
 
 	// add change to the outputs
 	let payChange: Utxo | undefined;
@@ -86,7 +93,7 @@ export const cancelOrdListings = async (config: CancelOrdListingsConfig) => {
 		}
 	}
 
-  // make sure we have enough
+	// make sure we have enough
 	if (totalSatsIn < totalSatsOut + BigInt(fee)) {
 		throw new Error(
 			`Not enough funds to purchase listing. Total sats in: ${totalSatsIn}, Total sats out: ${totalSatsOut}, Fee: ${fee}`,
@@ -121,9 +128,83 @@ export const cancelOrdListings = async (config: CancelOrdListingsConfig) => {
 
 	return {
 		tx,
-		spentOutpoints: tx.inputs.map((i) => `${i.sourceTXID}_${i.sourceOutputIndex}`),
+		spentOutpoints: tx.inputs.map(
+			(i) => `${i.sourceTXID}_${i.sourceOutputIndex}`,
+		),
 		payChange,
 	};
+};
+
+export const cancelOrdTokenListings = async (
+	config: CancelOrdTokenListingsConfig,
+) => {
+	const {
+		protocol,
+		tokenID,
+		ordAddress,
+		changeAddress,
+		paymentPk,
+		ordPk,
+		additionalPayments,
+		listingUtxos,
+		utxos,
+		satsPerKb = DEFAULT_SAT_PER_KB,
+	} = config;
+
+	const modelOrFee = new SatoshisPerKilobyte(satsPerKb);
+	const tx = new Transaction();
+
+	// Inputs
+	// Add the locked ordinals we're cancelling
+	for (const listingUtxo of listingUtxos) {
+		tx.addInput({
+			unlockingScript: Script.fromHex(
+				Buffer.from(listingUtxo.script, "base64").toString("hex"),
+			),
+			unlockingScriptTemplate: new OrdLock().cancelListing(ordPk),
+			sourceOutputIndex: listingUtxo.vout,
+			sequence: 0xffffffff,
+		});
+
+		const transferInscription: TransferTokenInscription = {
+			p: "bsv-20",
+			op: "transfer",
+			amt: listingUtxo.amt,
+		};
+		let inscription: TransferBSV20Inscription | TransferBSV21Inscription;
+		if (protocol === TokenType.BSV20) {
+			inscription = {
+				...transferInscription,
+				tick: tokenID,
+			} as TransferBSV20Inscription;
+		} else if (protocol === TokenType.BSV21) {
+			inscription = {
+				...transferInscription,
+				id: tokenID,
+			} as TransferBSV21Inscription;
+		} else {
+			throw new Error("Invalid protocol");
+		}
+
+		const destination: Destination = {
+			address: ordAddress || ordPk.toAddress().toString(),
+			inscription: {
+				dataB64: Buffer.from(JSON.stringify(inscription)).toString("base64"),
+				contentType: "application/bsv-20",
+			},
+		};
+
+		tx.addOutput({
+			satoshis: 1,
+			lockingScript: new OrdP2PKH().lock(
+				destination.address,
+				destination.inscription?.dataB64 as string,
+				destination.inscription?.contentType as string,
+			),
+		});
+	}
+
+  6
 };
 
 // const cancelTx = new Transaction(1, 0);

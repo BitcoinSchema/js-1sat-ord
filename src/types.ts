@@ -1,5 +1,6 @@
 import type { PrivateKey, Script, Transaction } from "@bsv/sdk";
 import type { AuthToken } from "sigma-protocol";
+import { createOrdTokenListings } from "./createListings";
 
 // biome-ignore lint/complexity/noBannedTypes: Reserved for future use
 type Signer = {};
@@ -417,16 +418,27 @@ export type CancelOrdListingsConfig = {
   satsPerKb?: number;
 }
 
-export type CraeteOrdTokenListingsConfig = {
-  protocol: TokenType;
-  tokenID: string;
-  utxos: Utxo[];
-  inputTokens: TokenUtxo[];
-  distributions: Distribution[];
+export interface CancelOrdTokenListingsConfig extends CancelOrdListingsConfig {
+  utxos: Utxo[],
   paymentPk: PrivateKey;
   ordPk: PrivateKey;
-  changeAddress?: string;
-  tokenChangeAddress: string;
-  satsPerKb?: number;
+  listingUtxos: TokenUtxo[];
   additionalPayments: Payment[];
+  changeAddress?: string;
+  satsPerKb?: number;
+  protocol: TokenType,
+  tokenID: string;
+  ordAddress?: string;
+}
+
+export interface CreateOrdTokenListingsConfig extends CreateOrdListingsConfig {
+  protocol: TokenType;
+  tokenID: string;
+  inputTokens: TokenUtxo[];
+  tokenChangeAddress: string;
+}
+
+export interface PurchaseOrdTokenListingConfig extends PurchaseOrdListingConfig {
+  protocol: TokenType;
+  tokenID: string;
 }

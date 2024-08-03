@@ -1,11 +1,11 @@
 import {
 	BigNumber,
-	LockingScript,
+	type LockingScript,
 	OP,
 	P2PKH,
-	PrivateKey,
+	type PrivateKey,
 	Script,
-	Transaction,
+	type Transaction,
 	TransactionSignature,
 	UnlockingScript,
 	Utils,
@@ -65,7 +65,7 @@ export default class OrdLock {
 	cancelListing(
 		privateKey: PrivateKey,
 		signOutputs: 'all' | 'none' | 'single' = 'all',
-		anyoneCanPay: boolean = false,
+		anyoneCanPay = false,
 		sourceSatoshis?: number,
 		lockingScript?: Script
 	): {
@@ -110,18 +110,30 @@ export default class OrdLock {
 					script.writeOpCode(OP.OP_0)
 				}
 
-				const input = tx.inputs[inputIndex]
+        const input = tx.inputs[inputIndex]
+        let sourceSats: number
+        if (!sourceSatoshis && input.sourceTransaction) {
+          sourceSats = input.sourceTransaction.outputs[input.sourceOutputIndex].satoshis as number
+        } else if (!sourceSatoshis) {
+          throw new Error("sourceTransaction or sourceSatoshis is required")
+        }
+        sourceSats = sourceSatoshis as number
+        
+        const sourceTXID = (input.sourceTXID || input.sourceTransaction?.id('hex')) as string
+        let subscript = lockingScript as LockingScript
+        if (!lockingScript) {
+          subscript = input.sourceTransaction?.outputs[input.sourceOutputIndex].lockingScript as LockingScript
+        }
 				const preimage = TransactionSignature.format({
-					sourceTXID: input.sourceTXID || input.sourceTransaction!.id('hex'),
+					sourceTXID,
 					sourceOutputIndex: input.sourceOutputIndex,
-					sourceSatoshis: sourceSatoshis || 
-					input.sourceTransaction!.outputs[input.sourceOutputIndex].satoshis!,
+					sourceSatoshis: sourceSats,
 					transactionVersion: tx.version,
 					otherInputs: [],
 					inputIndex,
 					outputs: tx.outputs,
 					inputSequence: input.sequence,
-					subscript: lockingScript || input.sourceTransaction!.outputs[input.sourceOutputIndex].lockingScript,
+					subscript,
 					lockTime: tx.lockTime,
 					scope: TransactionSignature.SIGHASH_ALL |
 						TransactionSignature.SIGHASH_ANYONECANPAY |

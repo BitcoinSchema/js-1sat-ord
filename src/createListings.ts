@@ -9,7 +9,7 @@ import {
 } from "@bsv/sdk";
 import { DEFAULT_SAT_PER_KB } from "./constants";
 import type {
-	CraeteOrdTokenListingsConfig,
+	CreateOrdTokenListingsConfig,
 	CreateOrdListingsConfig,
 	Utxo,
 } from "./types";
@@ -18,6 +18,7 @@ import OrdLock from "./templates/ordLock";
 import OrdP2PKH from "./templates/ordP2pkh";
 const { toArray } = Utils;
 
+// TODO: Handle royalty
 export const createOrdListings = async (config: CreateOrdListingsConfig) => {
 	const {
 		utxos,
@@ -27,6 +28,7 @@ export const createOrdListings = async (config: CreateOrdListingsConfig) => {
 		changeAddress,
 		satsPerKb = DEFAULT_SAT_PER_KB,
 		additionalPayments = [],
+    royalty
 	} = config;
 
 	const modelOrFee = new SatoshisPerKilobyte(satsPerKb);
@@ -147,5 +149,7 @@ export const createOrdListings = async (config: CreateOrdListingsConfig) => {
 };
 
 export const createOrdTokenListings = async (
-	config: CraeteOrdTokenListingsConfig,
-) => {};
+	config: CreateOrdTokenListingsConfig,
+) => {
+	const { protocol, tokenID, ordPk, royalty, paymentPk, additionalPayments, listings, changeAddress, tokenChangeAddress } = config;
+};
