@@ -16,9 +16,11 @@ import OrdP2PKH from "./templates/ordP2pkh";
 
 export const purchaseOrdListings = async (config: PurchaseOrdListingConfig) => {
 	const {
+		protocol,
+		tokenID,
 		utxos,
 		paymentPk,
-		listingUtxo,
+		listing,
 		ordAddress,
 		changeAddress,
 		additionalPayments = [],
@@ -32,19 +34,41 @@ export const purchaseOrdListings = async (config: PurchaseOrdListingConfig) => {
 	// Add the locked ordinal we're purchasing
 	tx.addInput({
 		unlockingScriptTemplate: new OrdLock().purchaseListing(
-			1,
-			Script.fromHex(Buffer.from(listingUtxo.script, "base64").toString("hex")),
+			listing.listingUtxo.satoshis,
+			Script.fromHex(Buffer.from(listing.listingUtxo.script, "base64").toString("hex")),
 		),
-		sourceTXID: listingUtxo.txid,
-		sourceOutputIndex: listingUtxo.vout,
+		sourceTXID: listing.listingUtxo.txid,
+		sourceOutputIndex: listing.listingUtxo.vout,
 		sequence: 0xffffffff,
 	});
 
 	// Outputs
 	// Add the purchased output
+	const transferInscription: TransferTokenInscription = {
+		p: "bsv-20",
+		op: "transfer",
+		amt: listing.listingUtxo.amt,
+	};
+	let inscription: TransferBSV20Inscription | TransferBSV21Inscription;
+	if (protocol === TokenType.BSV20) {
+		inscription = {
+			...transferInscription,
+			tick: tokenID,
+		} as TransferBSV20Inscription;
+	} else if (protocol === TokenType.BSV21) {
+		inscription = {
+			...transferInscription,
+			id: tokenID,
+		} as TransferBSV21Inscription;
+	} else {
+		throw new Error("Invalid protocol");
+	}
 	tx.addOutput({
 		satoshis: 1,
-		lockingScript: new P2PKH().lock(ordAddress),
+		lockingScript: new OrdP2PKH().lock(ordAddress, {
+			dataB64: JSON.stringify(inscription),
+			contentType: "application/bsv-20"
+		}),
 	});
 
 	// Add additional payments if any

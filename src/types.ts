@@ -412,9 +412,11 @@ export type CreateOrdListingsConfig = {
 }
 
 export type PurchaseOrdListingConfig = {
+	protocol: TokenType;
+	tokenID: string;
 	utxos: Utxo[];
 	paymentPk: PrivateKey;
-	listingUtxo: Utxo;
+	listing: TokenListing;
 	ordAddress: string;
 	changeAddress?: string;
 	satsPerKb?: number;
