@@ -186,4 +186,60 @@ export const purchaseOrdTokenListing = async (
 			contentType: "bsv-20",
 		}),
 	});
+
+
+	// add change to the outputs
+	let payChange: Utxo | undefined;
+
+	const change = changeAddress || paymentPk.toAddress().toString();
+	const changeScript = new P2PKH().lock(change);
+	const changeOut = {
+		lockingScript: changeScript,
+		change: true,
+	};
+	tx.addOutput(changeOut);
+
+	let totalSatsIn = 0n;
+	const totalSatsOut = tx.outputs.reduce(
+		(total, out) => total + BigInt(out.satoshis || 0),
+		0n,
+	);
+	let fee = 0;
+	for (const utxo of utxos) {
+		const input = inputFromB64Utxo(utxo, new P2PKH().unlock(paymentPk));
+
+		tx.addInput(input);
+		// stop adding inputs if the total amount is enough
+		totalSatsIn += BigInt(utxo.satoshis);
+		fee = await modelOrFee.computeFee(tx);
+
+		if (totalSatsIn >= totalSatsOut + BigInt(fee)) {
+			break;
+		}
+	}
+
+	// make sure we have enough
+	if (totalSatsIn < totalSatsOut + BigInt(fee)) {
+		throw new Error(
+			`Not enough funds to purchase token listing. Total sats in: ${totalSatsIn}, Total sats out: ${totalSatsOut}, Fee: ${fee}`,
+		);
+	}
+
+	// estimate the cost of the transaction and assign change value
+	await tx.fee(modelOrFee);
+
+	// Sign the transaction
+	await tx.sign();
+
+	if (payChange) {
+		const changeOutput = tx.outputs[tx.outputs.length - 1];
+		payChange.satoshis = changeOutput.satoshis as number;
+		payChange.txid = tx.id("hex") as string;
+	}
+
+  return {
+		tx,
+		spentOutpoints: utxos.map((utxo) => `${utxo.txid}_${utxo.vout}`),
+		payChange,
+	};
 };
