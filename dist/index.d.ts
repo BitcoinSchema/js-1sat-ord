@@ -8,7 +8,7 @@ import OrdP2PKH from "./templates/ordP2pkh";
 import OrdLock from "./templates/ordLock";
 import stringifyMetaData from "./utils/subtypeData";
 import { createOrdListings } from "./createListings";
-import { cancelOrdListings } from "./cancelListing";
+import { cancelOrdListings } from "./cancelListings";
 import { purchaseOrdListings } from "./purchaseOrdListing";
 export * from './types';
 export { createOrdinals, sendOrdinals, sendUtxos, transferOrdTokens, fetchPayUtxos, fetchNftUtxos, fetchTokenUtxos, validateSubTypeData, OrdP2PKH, OrdLock, stringifyMetaData, createOrdListings, cancelOrdListings, purchaseOrdListings };

@@ -57,8 +57,8 @@ describe("cancelOrdListings", () => {
 });
 
 describe("cancelOrdTokenListings", () => {
-  const paymentPk = PrivateKey.fromWif("KzwfqdfecMRtpg65j2BeRtixboNR37fSCDr8QbndV6ySEPT4xibW");
-  const ordPk = PrivateKey.fromWif("L1Xo9Zp5Ld9JcYGvkzVgGYbKvmwXj4zYJu9hDwp1uQANQQhXCmVc");
+  const paymentPk = PrivateKey.fromWif("KwE2RgUthyfEZbzrS3EEgSRVr1NodBc9B3vPww6oSGChDuWS6Heb");
+  const ordPk = PrivateKey.fromWif("L5mDYNS6Dqjy72LA66sJ6V7APxgKF3DHXUagKbf7q4ctv9c9Rwpb");
   const address = paymentPk.toAddress().toString();
 
   const utxos: Utxo[] = [{
