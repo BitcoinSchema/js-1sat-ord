@@ -1,17 +1,14 @@
 import {
-	type Destination,
 	TokenType,
 	type TransferBSV20Inscription,
 	type TransferTokenInscription,
 	type TransferBSV21Inscription,
 	type TransferOrdTokensConfig,
 	type TransferOrdTokensResult,
-	type SendOrdinalsConfig,
 	type TokenUtxo,
-	Utxo,
+	type Utxo,
 } from "./types";
 import { DEFAULT_SAT_PER_KB } from "./constants";
-import { sendOrdinals } from "./sendOrdinals";
 import { P2PKH, SatoshisPerKilobyte, Script, Transaction, Utils } from "@bsv/sdk";
 import OrdP2PKH from "./templates/ordP2pkh";
 import { inputFromB64Utxo } from "./utils/utxo";
