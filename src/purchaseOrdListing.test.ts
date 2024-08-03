@@ -128,7 +128,6 @@ describe("purchaseOrdTokenListing", () => {
       additionalPayments: [{ to: address, amount: 1000 }],
     };
     const { tx } = await purchaseOrdTokenListing(configWithPayments);
-
     expect(tx.outputs).toHaveLength(3); // 1 for token transfer, 1 for payment, 1 for change
   });
 

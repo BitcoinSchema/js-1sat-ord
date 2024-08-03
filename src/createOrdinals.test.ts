@@ -1,4 +1,4 @@
-import { PrivateKey, Transaction } from "@bsv/sdk";
+import { PrivateKey, Script, Transaction, Utils } from "@bsv/sdk";
 import { createOrdinals } from "./createOrdinals";
 import type { CreateOrdinalsConfig, Utxo, Destination, IconInscription, Inscription, PreMAP } from "./types";
 
@@ -93,8 +93,9 @@ describe("createOrdinals", () => {
       changeAddress: customChangeAddress,
     };
     const { tx, payChange } = await createOrdinals(config);
-
-    expect(payChange?.script).toContain(customChangeAddress);
+    expect(payChange).toBeDefined();
+    const changeScript = Script.fromBinary(Utils.toArray(payChange?.script, 'base64'))
+    expect(Utils.toBase58Check(changeScript.chunks[2].data as number[])).toEqual(customChangeAddress);
   });
 
   // test("create ordinals with signer", async () => {

@@ -202,7 +202,7 @@ export const createOrdTokenListings = async (
 		const transferInscription: TransferTokenInscription = {
 			p: "bsv-20",
 			op: "transfer",
-			amt: listing.listingUtxo.amt,
+			amt: listing.amt.toString(),
 		};
 		let inscription: TransferBSV20Inscription | TransferBSV21Inscription;
 		if (protocol === TokenType.BSV20) {
@@ -231,7 +231,7 @@ export const createOrdTokenListings = async (
 				},
 			),
 		});
-		totalAmtOut += BigInt(listing.listingUtxo.amt);
+		totalAmtOut += listing.amt;
 	}
 
 	for (const token of inputTokens) {
@@ -279,7 +279,7 @@ export const createOrdTokenListings = async (
 		}
 
 		const lockingScript = new OrdP2PKH().lock(tokenChangeAddress, {
-			dataB64: JSON.stringify(inscription),
+			dataB64: Buffer.from(JSON.stringify(inscription)).toString('base64'),
 			contentType: "application/bsv-20",
 		});
 		const vout = tx.outputs.length;

@@ -56,7 +56,6 @@ describe("createOrdListings", () => {
       additionalPayments: [{ to: address, amount: 1000 }],
     };
     const { tx } = await createOrdListings(config);
-    console.log("create listing rawtx", tx.toHex());
     expect(tx.outputs).toHaveLength(3); // 1 for listing, 1 for additional payment, 1 for change
   });
 
@@ -93,6 +92,7 @@ describe("createOrdTokenListings", () => {
   const listings: TokenListing[] = [{
     payAddress: address,
     ordAddress: ordPk.toAddress().toString(),
+    amt: 1000n,
     price: 5000,
     listingUtxo: inputTokens[0],
   }];

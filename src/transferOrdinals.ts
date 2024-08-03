@@ -145,7 +145,7 @@ export const transferOrdTokens = async (config: TransferOrdTokensConfig): Promis
 		const lockingScript = new OrdP2PKH().lock(
 			tokenChangeAddress || ordPk.toAddress().toString(), 
 			{
-				dataB64: JSON.stringify(inscription),
+				dataB64: Buffer.from(JSON.stringify(inscription)).toString('base64'),
 				contentType: "application/bsv-20",
 			}
 		);

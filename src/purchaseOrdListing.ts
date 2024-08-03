@@ -64,7 +64,7 @@ export const purchaseOrdListings = async (config: PurchaseOrdListingConfig) => {
 	tx.addOutput({
 		satoshis: 1,
 		lockingScript: new OrdP2PKH().lock(ordAddress, {
-			dataB64: JSON.stringify(inscription),
+			dataB64: Buffer.from(JSON.stringify(inscription)).toString('base64'),
 			contentType: "application/bsv-20"
 		}),
 	});
@@ -214,6 +214,13 @@ export const purchaseOrdTokenListing = async (
 		}),
 	});
 
+	// Add additional payments if any
+	for (const p of additionalPayments) {
+		tx.addOutput({
+			satoshis: p.amount,
+			lockingScript: new P2PKH().lock(p.to),
+		});
+	}
 
 	// add change to the outputs
 	let payChange: Utxo | undefined;
@@ -263,6 +270,19 @@ export const purchaseOrdTokenListing = async (
 
 	// Sign the transaction
 	await tx.sign();
+
+	const payChangeOutIdx = tx.outputs.findIndex((o) => o.change);
+	if (payChangeOutIdx !== -1) {
+		const changeOutput = tx.outputs[payChangeOutIdx];
+		payChange = {
+			satoshis: changeOutput.satoshis as number,
+			txid: tx.id("hex") as string,
+			vout: payChangeOutIdx,
+			script: Buffer.from(changeOutput.lockingScript.toBinary()).toString(
+				"base64",
+			),
+		};
+	}
 
 	if (payChange) {
 		const changeOutput = tx.outputs[tx.outputs.length - 1];

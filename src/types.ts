@@ -42,6 +42,7 @@ export type Listing = {
 export type TokenListing = {
 	payAddress: string;
 	price: number;
+	amt: bigint;
 	ordAddress: string;
 	listingUtxo: TokenUtxo;
 }

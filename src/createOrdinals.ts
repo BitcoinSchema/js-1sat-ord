@@ -41,28 +41,16 @@ export const createOrdinals = async (
 		signer,
 		additionalPayments = [],
 	} = config;
-
-	const modelOrFee = new SatoshisPerKilobyte(satsPerKb);
-	let tx = new Transaction();
-
-	// Inputs
-	for (const utxo of utxos) {
-		const input = inputFromB64Utxo(utxo, new P2PKH().unlock(
-			paymentPk, 
-			"all",
-			true, 
-			utxo.satoshis,
-			Script.fromBinary(Utils.toArray(utxo.script, 'base64'))
-		));
-		tx.addInput(input);
-	}
-
+	
 	// Warn if creating many inscriptions at once
 	if (destinations.length > 100) {
 		console.warn(
 			"Creating many inscriptions at once can be slow. Consider using multiple transactions instead.",
 		);
 	}
+
+	const modelOrFee = new SatoshisPerKilobyte(satsPerKb);
+	let tx = new Transaction();
 
 	// Outputs
 	// Add inscription outputs
@@ -98,42 +86,58 @@ export const createOrdinals = async (
 		});
 	}
 
-	// Calculate total input and output amounts
-	const totalInput = utxos.reduce(
-		(sum, utxo) => sum + BigInt(utxo.satoshis),
-		0n,
-	);
-	const totalOutput = tx.outputs.reduce(
-		(sum, output) => sum + BigInt(output.satoshis || 0),
-		0n,
-	);
-
-	// Estimate fee
-	const estimatedFee = await modelOrFee.computeFee(tx);
-
-	// Check if change is needed
 	let payChange: Utxo | undefined;
-	if (totalInput > totalOutput + BigInt(estimatedFee)) {
-		const changeScript = new P2PKH().lock(
-			changeAddress || paymentPk.toAddress().toString(),
-		);
-		const changeOutput = {
-			lockingScript: changeScript,
-			change: true,
-		};
-		// Add change output
-		payChange = {
-			txid: "", // txid is not known yet,
-			vout: tx.outputs.length,
-			satoshis: 0, // change output amount is not known yet
-			script: Buffer.from(changeScript.toHex(), "hex").toString("base64"),
-		};
+	const change = changeAddress || paymentPk.toAddress().toString();
+	const changeScript = new P2PKH().lock(change);
+	const changeOut = {
+		lockingScript: changeScript,
+		change: true,
+	};
+	tx.addOutput(changeOut);
 
-		tx.addOutput(changeOutput);
+	let totalSatsIn = 0n;
+	const totalSatsOut = tx.outputs.reduce(
+		(total, out) => total + BigInt(out.satoshis || 0),
+		0n,
+	);
+
+	if(signer) {
+		const utxo = utxos.pop() as Utxo
+		tx.addInput(inputFromB64Utxo(utxo, new P2PKH().unlock(
+			paymentPk, 
+			"all",
+			true, 
+			utxo.satoshis,
+			Script.fromBinary(Utils.toArray(utxo.script, 'base64'))
+		)));
+		totalSatsIn += BigInt(utxo.satoshis);
+		tx = await signData(tx, signer);
 	}
 
-	if (signer) {
-		tx = await signData(tx, signer);
+	let fee = 0;
+	for (const utxo of utxos) {
+		if (totalSatsIn >= totalSatsOut + BigInt(fee)) {
+			break;
+		}
+		const input = inputFromB64Utxo(utxo, new P2PKH().unlock(
+			paymentPk, 
+			"all",
+			true, 
+			utxo.satoshis,
+			Script.fromBinary(Utils.toArray(utxo.script, 'base64'))
+		));
+
+		tx.addInput(input);
+		// stop adding inputs if the total amount is enough
+		totalSatsIn += BigInt(utxo.satoshis);
+		fee = await modelOrFee.computeFee(tx);
+	}
+
+	// make sure we have enough
+	if (totalSatsIn < totalSatsOut + BigInt(fee)) {
+		throw new Error(
+			`Not enough funds to purchase listing. Total sats in: ${totalSatsIn}, Total sats out: ${totalSatsOut}, Fee: ${fee}`,
+		);
 	}
 
 	// Calculate fee
@@ -141,6 +145,19 @@ export const createOrdinals = async (
 
 	// Sign the transaction
 	await tx.sign();
+
+	const payChangeOutIdx = tx.outputs.findIndex((o) => o.change);
+	if (payChangeOutIdx !== -1) {
+		const changeOutput = tx.outputs[payChangeOutIdx];
+		payChange = {
+			satoshis: changeOutput.satoshis as number,
+			txid: tx.id("hex") as string,
+			vout: payChangeOutIdx,
+			script: Buffer.from(changeOutput.lockingScript.toBinary()).toString(
+				"base64",
+			),
+		};
+	}
 
 	if (payChange) {
 		const changeOutput = tx.outputs[tx.outputs.length - 1];
