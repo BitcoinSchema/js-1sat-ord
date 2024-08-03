@@ -3,7 +3,7 @@ import {
 	P2PKH,
 	type Script,
 } from "@bsv/sdk";
-import type { MAP } from "../types";
+import type { Inscription, MAP } from "../types";
 import { toHex } from "../utils/strings";
 import { MAP_PREFIX } from "../constants";
 
@@ -18,28 +18,26 @@ export default class OrdP2PKH extends P2PKH {
 	 * Creates a 1Sat Ordinal + P2PKH locking script for a given address string
 	 *
 	 * @param {string} address - An destination address for the Ordinal.
-	 * @param {string} [b64File] - Base64 encoded file data.
-	 * @param {string} [mediaType] - Media type of the file.
+	 * @param {Object} [inscription] - Base64 encoded file data and Content type of the file.
 	 * @param {MAP} [metaData] - (optional) MAP Metadata to be included in OP_RETURN.
 	 * @returns {LockingScript} - A P2PKH locking script.
 	 */
 	// unlock method inherits from p2pkh
 	lock(
 		address: string,
-		b64File?: string | undefined,
-		mediaType?: string | undefined,
+    inscription?: Inscription,
 		metaData?: MAP | undefined,
 	): Script {
 		let ordAsm = "";
 		// This can be omitted for reinscriptions that just update metadata
-		if (b64File !== undefined && mediaType !== undefined) {
+		if (inscription?.dataB64 !== undefined && inscription?.contentType !== undefined) {
 			const ordHex = toHex("ord");
-			const fsBuffer = Buffer.from(b64File, "base64");
+			const fsBuffer = Buffer.from(inscription.dataB64, "base64");
 			const fileHex = fsBuffer.toString("hex").trim();
 			if (!fileHex) {
 				throw new Error("Invalid file data");
 			}
-			const fileMediaType = toHex(mediaType);
+			const fileMediaType = toHex(inscription.contentType);
 			if (!fileMediaType) {
 				throw new Error("Invalid media type");
 			}

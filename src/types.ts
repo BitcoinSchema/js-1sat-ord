@@ -1,6 +1,5 @@
 import type { PrivateKey, Script, Transaction } from "@bsv/sdk";
 import type { AuthToken } from "sigma-protocol";
-import { createOrdTokenListings } from "./createListings";
 
 // biome-ignore lint/complexity/noBannedTypes: Reserved for future use
 type Signer = {};
@@ -19,18 +18,32 @@ export type Destination = {
 	inscription?: Inscription;
 };
 
-//jsdoc
 /**
  * @typedef {Object} Listing
  * @property {string} payAddress - Address to send the payment upon purchase
  * @property {string} price - Listing price in satoshis
  * @property {String} ordAddress - Where to return a listed ordinal upon cancel.
+ * @property {Utxo} listingUtxo - Utxo of the listing
  */
 export type Listing = {
   payAddress: string;
   price: number;
   ordAddress: string;
-  listingUtxo: Utxo
+  listingUtxo: Utxo;
+}
+
+/**
+ * @typedef {Object} TokenListing
+ * @property {string} payAddress - Address to send the payment upon purchase
+ * @property {string} price - Listing price in satoshis
+ * @property {String} ordAddress - Where to return a listed ordinal upon cancel.
+ * @property {TokenUtxo} listingUtxo - Utxo of the listing
+ */
+export type TokenListing = {
+  payAddress: string;
+  price: number;
+  ordAddress: string;
+  listingUtxo: TokenUtxo;
 }
 
 /**
@@ -431,7 +444,15 @@ export interface CancelOrdTokenListingsConfig extends CancelOrdListingsConfig {
   ordAddress?: string;
 }
 
-export interface CreateOrdTokenListingsConfig extends CreateOrdListingsConfig {
+export interface CreateOrdTokenListingsConfig {
+  utxos: Utxo[];
+	listings: TokenListing[];
+  royalty: number;
+	paymentPk: PrivateKey;
+  ordPk: PrivateKey,
+	changeAddress?: string;
+	satsPerKb?: number;
+	additionalPayments?: Payment[];
   protocol: TokenType;
   tokenID: string;
   inputTokens: TokenUtxo[];

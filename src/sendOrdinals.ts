@@ -80,8 +80,7 @@ export const sendOrdinals = async (
 		) {
 			s = new OrdP2PKH().lock(
 				destination.address,
-				destination.inscription.dataB64,
-				destination.inscription.contentType,
+				destination.inscription,
 				stringifyMetaData(config.metaData),
 			);
 		} else {

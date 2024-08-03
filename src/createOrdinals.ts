@@ -78,8 +78,7 @@ export const createOrdinals = async (
 			satoshis: 1,
 			lockingScript: new OrdP2PKH().lock(
 				destination.address,
-				destination.inscription.dataB64,
-				destination.inscription.contentType,
+				destination.inscription,
 				stringifyMetaData(metaData),
 			),
 		});

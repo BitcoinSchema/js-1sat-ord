@@ -8,6 +8,7 @@ import type {
 	DeployBsv21TokenConfig,
 	DeployBsv21TokenResult,
 	DeployMintTokenInscription,
+	Inscription,
 	Utxo,
 } from "./types";
 import { inputFromB64Utxo } from "./utils/utxo";
@@ -57,11 +58,7 @@ export const deployBsv21Token = async (
 			throw iconError;
 		}
 		// add icon inscription to the transaction
-		const iconScript = new OrdP2PKH().lock(
-			destinationAddress,
-			icon.dataB64,
-			icon.contentType,
-		);
+		const iconScript = new OrdP2PKH().lock(destinationAddress, icon);
 		const iconOut = {
 			satoshis: 1,
 			lockingScript: iconScript,
@@ -90,11 +87,10 @@ export const deployBsv21Token = async (
 	const b64File = Buffer.from(JSON.stringify(fileData)).toString("base64");
 	const sendTxOut = {
 		satoshis: 1,
-		lockingScript: new OrdP2PKH().lock(
-			destinationAddress,
-			b64File,
-			"application/bsv-20",
-		),
+		lockingScript: new OrdP2PKH().lock(destinationAddress, {
+			dataB64: b64File,
+			contentType: "application/bsv-20",
+		} as Inscription),
 	};
 	tx.addOutput(sendTxOut);
 
@@ -166,7 +162,9 @@ export const deployBsv21Token = async (
 
 	return {
 		tx,
-		spentOutpoints: tx.inputs.map((i) => `${i.sourceTXID}_${i.sourceOutputIndex}`),
+		spentOutpoints: tx.inputs.map(
+			(i) => `${i.sourceTXID}_${i.sourceOutputIndex}`,
+		),
 		payChange,
 	};
 };
