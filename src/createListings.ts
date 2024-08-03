@@ -160,16 +160,13 @@ export const createOrdTokenListings = async (
 		tokenID,
 		ordPk,
 		paymentPk,
-		additionalPayments,
+		additionalPayments = [],
 		changeAddress,
 		tokenChangeAddress,
 		inputTokens,
 		listings,
 		satsPerKb = DEFAULT_SAT_PER_KB,
 	} = config;
-
-	const modelOrFee = new SatoshisPerKilobyte(satsPerKb);
-	const tx = new Transaction();
 
 	// Warn if creating many inscriptions at once
 	if (listings.length > 100) {
@@ -193,6 +190,8 @@ export const createOrdTokenListings = async (
 		throw new Error("Input tokens do not match the provided tokenID");
 	}
 
+	const modelOrFee = new SatoshisPerKilobyte(satsPerKb);
+	const tx = new Transaction();
 	// Outputs
 	// Add listing outputs
 	for (const listing of listings) {
@@ -291,6 +290,14 @@ export const createOrdTokenListings = async (
 			vout,
 			amt: changeAmt.toString(),
 		};
+	}
+
+	// Add additional payments if any
+	for (const p of additionalPayments) {
+		tx.addOutput({
+			satoshis: p.amount,
+			lockingScript: new P2PKH().lock(p.to),
+		});
 	}
 
 	// add change to the outputs
