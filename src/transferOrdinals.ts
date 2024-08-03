@@ -3,7 +3,7 @@ import {
 	TokenType,
 	type TransferBSV20Inscription,
 	type TransferTokenInscription,
-  type TransferBSV21Inscription,
+	type TransferBSV21Inscription,
 	type TransferOrdTokensConfig,
 	type TransferOrdTokensResult,
 	type SendOrdinalsConfig,
@@ -46,7 +46,7 @@ export const transferOrdTokens = async (config: TransferOrdTokensConfig): Promis
 		metaData,
 		signer,
 		additionalPayments = [],
-    burn = false
+		burn = false
 	} = config;
 
 	// calculate change amount
@@ -54,12 +54,12 @@ export const transferOrdTokens = async (config: TransferOrdTokensConfig): Promis
 	let totalAmtIn = 0n;
 	let totalAmtOut = 0n;
 
-  // Ensure these inputs are for the expected token
-	if(!inputTokens.every(
+	// Ensure these inputs are for the expected token
+	if (!inputTokens.every(
 		(token) => token.id === tokenID,
 	)) {
-    throw new Error("Input tokens do not match the provided tokenID");
-  }
+		throw new Error("Input tokens do not match the provided tokenID");
+	}
 
 	for (const token of inputTokens) {
 		totalAmtIn += BigInt(token.amt);
@@ -92,20 +92,20 @@ export const transferOrdTokens = async (config: TransferOrdTokensConfig): Promis
 			op: burn ? "burn" : "transfer",
 			amt: dest.amt,
 		}
-    let inscription: TransferBSV20Inscription | TransferBSV21Inscription;
+		let inscription: TransferBSV20Inscription | TransferBSV21Inscription;
 		if (protocol === TokenType.BSV20) {
-      inscription = {
-        ...transferInscription,
-        tick: tokenID,
-      } as TransferBSV20Inscription;
+			inscription = {
+				...transferInscription,
+				tick: tokenID,
+			} as TransferBSV20Inscription;
 		} else if (protocol === TokenType.BSV21) {
-      inscription = {
-        ...transferInscription,
-        id: tokenID,
-      } as TransferBSV21Inscription;
-    } else {
-      throw new Error("Invalid protocol");
-    }
+			inscription = {
+				...transferInscription,
+				id: tokenID,
+			} as TransferBSV21Inscription;
+		} else {
+			throw new Error("Invalid protocol");
+		}
 
 		return {
 			address: dest.address,
@@ -131,12 +131,12 @@ export const transferOrdTokens = async (config: TransferOrdTokensConfig): Promis
 	};
 
 	const { tx, spentOutpoints, payChange } = await sendOrdinals(sendOrdinalsConfig);
-	
+
 	// find the tokenChangeVout by looking for the destination with the tokenChangeAddress
 	const tokenChangeVout = destinations.findIndex(
 		(d) => d.address === (tokenChangeAddress || ordPk.toAddress().toString())
 	);
-	
+
 	let tokenChange: TokenUtxo | undefined;
 	if (tokenChangeVout !== -1) {
 		tokenChange = {
