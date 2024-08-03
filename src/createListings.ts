@@ -1,5 +1,3 @@
-// TODO: Create listing for NFT and FT
-
 import {
 	P2PKH,
 	SatoshisPerKilobyte,
