@@ -7,23 +7,21 @@ import type { CreateOrdinalsConfig } from "./types";
 import { P2PKH } from "@bsv/sdk";
 
 test("test build inscription", () => {
-	const b64Data = "# Hello World!";
-	const insc = new OrdP2PKH().lock(
-		"18qHtzaMU5PxJ2Yfuw8yJvDCbULrv1Xsdx",
-		b64Data,
-		"text/markdown",
-	);
+	const dataB64 = "# Hello World!";
+	const insc = new OrdP2PKH().lock("18qHtzaMU5PxJ2Yfuw8yJvDCbULrv1Xsdx", {
+		dataB64,
+		contentType: "text/markdown",
+	});
 	expect(insc.toASM()).toBe(
 		"OP_0 OP_IF 6f7264 OP_1 746578742f6d61726b646f776e OP_0 1de965a16a2b95 OP_ENDIF OP_DUP OP_HASH160 55eaf379d85b0ab99cf5bbfc38a583eafee11683 OP_EQUALVERIFY OP_CHECKSIG",
 	);
 });
 
 test("test build inscription w metadata", () => {
-	const b64Data = "# Hello world!";
+	const dataB64 = "# Hello world!";
 	const insc = new OrdP2PKH().lock(
 		"18qHtzaMU5PxJ2Yfuw8yJvDCbULrv1Xsdx",
-		b64Data,
-		"text/markdown",
+		{ dataB64, contentType: "text/markdown" },
 		{
 			app: "js-1sat-ord-test",
 			type: "test",
@@ -44,7 +42,10 @@ test("create and send ordinal inscription", async () => {
 			satoshis: 100000,
 			txid: "ecb483eda58f26da1b1f8f15b782b1186abdf9c6399a1c3e63e0d429d5092a41",
 			vout: 0,
-      script: Buffer.from(new P2PKH().lock(changeAddress).toHex(), 'hex').toString('base64'),
+			script: Buffer.from(
+				new P2PKH().lock(changeAddress).toHex(),
+				"hex",
+			).toString("base64"),
 		},
 	];
 
@@ -58,11 +59,11 @@ test("create and send ordinal inscription", async () => {
 		},
 	];
 
-  const createOrdinalsConfig: CreateOrdinalsConfig = {
-    utxos,
-    destinations,
-    paymentPk,
-  }
+	const createOrdinalsConfig: CreateOrdinalsConfig = {
+		utxos,
+		destinations,
+		paymentPk,
+	};
 	const { tx } = await createOrdinals(createOrdinalsConfig);
 	console.log({ createOrdinal: tx.toHex() });
 
@@ -135,13 +136,13 @@ test("create and send ordinal inscription", async () => {
 		},
 	];
 
-  const sendConfig: SendOrdinalsConfig = {
-    paymentUtxos: utxos,
-    ordinals,
-    paymentPk,
-    ordPk: paymentPk,
-    destinations,
-  }
+	const sendConfig: SendOrdinalsConfig = {
+		paymentUtxos: utxos,
+		ordinals,
+		paymentPk,
+		ordPk: paymentPk,
+		destinations,
+	};
 	const { tx: tx3 } = await sendOrdinals(sendConfig);
 	console.log({ sendSentOrdinal: tx3.toHex() });
 });
