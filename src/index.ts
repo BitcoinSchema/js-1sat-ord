@@ -8,7 +8,7 @@ import OrdP2PKH from "./templates/ordP2pkh";
 import OrdLock from "./templates/ordLock";
 import stringifyMetaData from "./utils/subtypeData";
 import { createOrdListings } from "./createListings";
-import { cancelOrdListings } from "./cancelListing";
+import { cancelOrdListings } from "./cancelListings";
 import { purchaseOrdListings } from "./purchaseOrdListing";
 
 export * from './types';
