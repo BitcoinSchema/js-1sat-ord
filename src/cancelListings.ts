@@ -27,6 +27,13 @@ export const cancelOrdListings = async (config: CancelOrdListingsConfig) => {
 		satsPerKb = DEFAULT_SAT_PER_KB,
 	} = config;
 
+	// Warn if creating many inscriptions at once
+	if (listingUtxos.length > 100) {
+		console.warn(
+			"Creating many inscriptions at once can be slow. Consider using multiple transactions instead.",
+		);
+	}
+	
 	const modelOrFee = new SatoshisPerKilobyte(satsPerKb);
 	const tx = new Transaction();
 
@@ -34,9 +41,7 @@ export const cancelOrdListings = async (config: CancelOrdListingsConfig) => {
 	// Add the locked ordinals we're cancelling
 	for (const listingUtxo of listingUtxos) {
 		tx.addInput({
-			unlockingScript: Script.fromHex(
-				Buffer.from(listingUtxo.script, "base64").toString("hex"),
-			),
+			sourceTXID: listingUtxo.txid,
 			unlockingScriptTemplate: new OrdLock().cancelListing(ordPk),
 			sourceOutputIndex: listingUtxo.vout,
 			sequence: 0xffffffff,
@@ -54,13 +59,6 @@ export const cancelOrdListings = async (config: CancelOrdListingsConfig) => {
 			satoshis: p.amount,
 			lockingScript: new P2PKH().lock(p.to),
 		});
-	}
-
-	// Warn if creating many inscriptions at once
-	if (listingUtxos.length > 100) {
-		console.warn(
-			"Creating many inscriptions at once can be slow. Consider using multiple transactions instead.",
-		);
 	}
 
 	// add change to the outputs
@@ -150,6 +148,19 @@ export const cancelOrdTokenListings = async (
 		utxos,
 		satsPerKb = DEFAULT_SAT_PER_KB,
 	} = config;
+	// calculate change amount
+	let totalAmtIn = 0;
+
+	if (listingUtxos.length > 100) {
+		console.warn(
+			"Creating many inscriptions at once can be slow. Consider using multiple transactions instead.",
+		);
+	}
+
+	// Ensure these inputs are for the expected token
+	if (!listingUtxos.every((token) => token.id === tokenID)) {
+		throw new Error("Input tokens do not match the provided tokenID");
+	}
 
 	const modelOrFee = new SatoshisPerKilobyte(satsPerKb);
 	const tx = new Transaction();
@@ -158,53 +169,129 @@ export const cancelOrdTokenListings = async (
 	// Add the locked ordinals we're cancelling
 	for (const listingUtxo of listingUtxos) {
 		tx.addInput({
-			unlockingScript: Script.fromHex(
-				Buffer.from(listingUtxo.script, "base64").toString("hex"),
-			),
-			unlockingScriptTemplate: new OrdLock().cancelListing(ordPk),
+			sourceTXID: listingUtxo.txid,
 			sourceOutputIndex: listingUtxo.vout,
 			sequence: 0xffffffff,
+			unlockingScriptTemplate: new OrdLock().cancelListing(ordPk),
 		});
+		totalAmtIn += parseInt(listingUtxo.amt);
+	}
+	
+	const transferInscription: TransferTokenInscription = {
+		p: "bsv-20",
+		op: "transfer",
+		amt: totalAmtIn.toString(),
+	};
+	let inscription: TransferBSV20Inscription | TransferBSV21Inscription;
+	if (protocol === TokenType.BSV20) {
+		inscription = {
+			...transferInscription,
+			tick: tokenID,
+		} as TransferBSV20Inscription;
+	} else if (protocol === TokenType.BSV21) {
+		inscription = {
+			...transferInscription,
+			id: tokenID,
+		} as TransferBSV21Inscription;
+	} else {
+		throw new Error("Invalid protocol");
+	}
 
-		const transferInscription: TransferTokenInscription = {
-			p: "bsv-20",
-			op: "transfer",
-			amt: listingUtxo.amt,
-		};
-		let inscription: TransferBSV20Inscription | TransferBSV21Inscription;
-		if (protocol === TokenType.BSV20) {
-			inscription = {
-				...transferInscription,
-				tick: tokenID,
-			} as TransferBSV20Inscription;
-		} else if (protocol === TokenType.BSV21) {
-			inscription = {
-				...transferInscription,
-				id: tokenID,
-			} as TransferBSV21Inscription;
-		} else {
-			throw new Error("Invalid protocol");
-		}
+	const destination: Destination = {
+		address: ordAddress || ordPk.toAddress().toString(),
+		inscription: {
+			dataB64: Buffer.from(JSON.stringify(inscription)).toString("base64"),
+			contentType: "application/bsv-20",
+		},
+	};
 
-		const destination: Destination = {
-			address: ordAddress || ordPk.toAddress().toString(),
-			inscription: {
-				dataB64: Buffer.from(JSON.stringify(inscription)).toString("base64"),
-				contentType: "application/bsv-20",
-			},
-		};
+	tx.addOutput({
+		satoshis: 1,
+		lockingScript: new OrdP2PKH().lock(
+			destination.address,
+			destination.inscription?.dataB64 as string,
+			destination.inscription?.contentType as string,
+		),
+	});
 
+	// Add additional payments if any
+	for (const p of additionalPayments) {
 		tx.addOutput({
-			satoshis: 1,
-			lockingScript: new OrdP2PKH().lock(
-				destination.address,
-				destination.inscription?.dataB64 as string,
-				destination.inscription?.contentType as string,
-			),
+			satoshis: p.amount,
+			lockingScript: new P2PKH().lock(p.to),
 		});
 	}
 
-  6
+	// add change to the outputs
+	let payChange: Utxo | undefined;
+
+	const change = changeAddress || paymentPk.toAddress().toString();
+	const changeScript = new P2PKH().lock(change);
+	const changeOut = {
+		lockingScript: changeScript,
+		change: true,
+	};
+	tx.addOutput(changeOut);
+
+	let totalSatsIn = 0n;
+	const totalSatsOut = tx.outputs.reduce(
+		(total, out) => total + BigInt(out.satoshis || 0),
+		0n,
+	);
+	let fee = 0;
+	for (const utxo of utxos) {
+		const input = inputFromB64Utxo(utxo, new P2PKH().unlock(paymentPk));
+
+		tx.addInput(input);
+		// stop adding inputs if the total amount is enough
+		totalSatsIn += BigInt(utxo.satoshis);
+		fee = await modelOrFee.computeFee(tx);
+
+		if (totalSatsIn >= totalSatsOut + BigInt(fee)) {
+			break;
+		}
+	}
+
+	// make sure we have enough
+	if (totalSatsIn < totalSatsOut + BigInt(fee)) {
+		throw new Error(
+			`Not enough funds to purchase listing. Total sats in: ${totalSatsIn}, Total sats out: ${totalSatsOut}, Fee: ${fee}`,
+		);
+	}
+
+	// estimate the cost of the transaction and assign change value
+	await tx.fee(modelOrFee);
+
+	// Sign the transaction
+	await tx.sign();
+
+	// check for change
+	const payChangeOutIdx = tx.outputs.findIndex((o) => o.change);
+	if (payChangeOutIdx !== -1) {
+		const changeOutput = tx.outputs[payChangeOutIdx];
+		payChange = {
+			satoshis: changeOutput.satoshis as number,
+			txid: tx.id("hex") as string,
+			vout: payChangeOutIdx,
+			script: Buffer.from(changeOutput.lockingScript.toBinary()).toString(
+				"base64",
+			),
+		};
+	}
+
+	if (payChange) {
+		const changeOutput = tx.outputs[tx.outputs.length - 1];
+		payChange.satoshis = changeOutput.satoshis as number;
+		payChange.txid = tx.id("hex") as string;
+	}
+
+	return {
+		tx,
+		spentOutpoints: tx.inputs.map(
+			(i) => `${i.sourceTXID}_${i.sourceOutputIndex}`,
+		),
+		payChange,
+	};
 };
 
 // const cancelTx = new Transaction(1, 0);
