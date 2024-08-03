@@ -17,6 +17,7 @@ import {
 	type TransferBSV20Inscription,
 	type TransferBSV21Inscription,
 	TokenType,
+	TokenUtxo,
 } from "./types";
 import { inputFromB64Utxo } from "./utils/utxo";
 import OrdLock from "./templates/ordLock";
@@ -157,16 +158,16 @@ export const createOrdTokenListings = async (
 	config: CreateOrdTokenListingsConfig,
 ) => {
 	const {
-    utxos,
+		utxos,
 		protocol,
 		tokenID,
 		ordPk,
-		royalty,
 		paymentPk,
 		additionalPayments,
-		listings,
 		changeAddress,
 		tokenChangeAddress,
+		inputTokens,
+		listings,
 		satsPerKb = DEFAULT_SAT_PER_KB,
 	} = config;
 
@@ -180,24 +181,24 @@ export const createOrdTokenListings = async (
 		);
 	}
 
+	// Ensure these inputs are for the expected token
+	if (!inputTokens.every((token) => token.id === tokenID)) {
+		throw new Error("Input tokens do not match the provided tokenID");
+	}
+
+	// calculate change amount
+	let changeAmt = 0n;
+	let totalAmtIn = 0n;
+	let totalAmtOut = 0n;
+
+	// Ensure these inputs are for the expected token
+	if (!inputTokens.every((token) => token.id === tokenID)) {
+		throw new Error("Input tokens do not match the provided tokenID");
+	}
+
 	// Outputs
 	// Add listing outputs
 	for (const listing of listings) {
-		const inputScriptBinary = toArray(listing.listingUtxo.script, "base64");
-		const inputScript = Script.fromBinary(inputScriptBinary);
-		tx.addInput({
-			unlockingScriptTemplate: new OrdP2PKH().unlock(
-				ordPk,
-				"all",
-				true,
-				listing.listingUtxo.satoshis,
-				inputScript,
-			),
-			sourceTXID: listing.listingUtxo.txid,
-			sourceOutputIndex: listing.listingUtxo.vout,
-			sequence: 0xffffffff,
-		});
-
 		const transferInscription: TransferTokenInscription = {
 			p: "bsv-20",
 			op: "transfer",
@@ -230,9 +231,73 @@ export const createOrdTokenListings = async (
 				},
 			),
 		});
+		totalAmtOut += BigInt(listing.listingUtxo.amt)
 	}
+	
+	for(const token of inputTokens) {
+		const inputScriptBinary = toArray(token.script, "base64");
+		const inputScript = Script.fromBinary(inputScriptBinary);
+		tx.addInput({
+			unlockingScriptTemplate: new OrdP2PKH().unlock(
+				ordPk,
+				"all",
+				true,
+				token.satoshis,
+				inputScript,
+			),
+			sourceTXID: token.txid,
+			sourceOutputIndex: token.vout,
+			sequence: 0xffffffff,
+		});
 
-  // TODO: Handle token change
+		totalAmtIn += BigInt(token.amt);
+	}
+	changeAmt = totalAmtIn - totalAmtOut
+
+	let tokenChange: TokenUtxo | undefined
+	// check that you have enough tokens to send and return change
+	if (changeAmt < 0n) {
+		throw new Error("Not enough tokens to send");
+	} else if (changeAmt > 0n) {
+		const transferInscription: TransferTokenInscription = {
+			p: "bsv-20",
+			op: "transfer",
+			amt: changeAmt.toString(),
+		};
+		let inscription: TransferBSV20Inscription | TransferBSV21Inscription;
+		if (protocol === TokenType.BSV20) {
+			inscription = {
+				...transferInscription,
+				tick: tokenID,
+			} as TransferBSV20Inscription;
+		} else if (protocol === TokenType.BSV21) {
+			inscription = {
+				...transferInscription,
+				id: tokenID,
+			} as TransferBSV21Inscription;
+		} else {
+			throw new Error("Invalid protocol");
+		}
+
+		const lockingScript = new OrdP2PKH().lock(
+			tokenChangeAddress,
+			{
+				dataB64: JSON.stringify(inscription),
+				contentType: 'application/bsv-20'
+			}
+		)
+		const vout = tx.outputs.length;
+		tx.addOutput({lockingScript, satoshis: 1});
+		tokenChange = {
+			id: tokenID,
+			satoshis: 1,
+			script: Buffer.from(lockingScript.toBinary()).toString('base64'),
+			txid: '',
+			vout,
+			amt: changeAmt.toString(),
+
+		}
+	}
 
 	// add change to the outputs
 	let payChange: Utxo | undefined;
@@ -277,13 +342,17 @@ export const createOrdTokenListings = async (
 	// Sign the transaction
 	await tx.sign();
 
+	const txid = tx.id("hex") as string
+	if(tokenChange) {
+		tokenChange.txid = txid
+	}
 	// check for change
 	const payChangeOutIdx = tx.outputs.findIndex((o) => o.change);
 	if (payChangeOutIdx !== -1) {
 		const changeOutput = tx.outputs[payChangeOutIdx];
 		payChange = {
 			satoshis: changeOutput.satoshis as number,
-			txid: tx.id("hex") as string,
+			txid,
 			vout: payChangeOutIdx,
 			script: Buffer.from(changeOutput.lockingScript.toBinary()).toString(
 				"base64",
@@ -297,11 +366,11 @@ export const createOrdTokenListings = async (
 		payChange.txid = tx.id("hex") as string;
 	}
 
-  return {
+	return {
 		tx,
 		spentOutpoints: tx.inputs.map((i) => `${i.sourceTXID}_${i.sourceOutputIndex}`),
 		payChange,
 		tokenChange,
 	}
-  
+
 };

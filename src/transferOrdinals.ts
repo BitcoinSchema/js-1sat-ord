@@ -55,9 +55,7 @@ export const transferOrdTokens = async (config: TransferOrdTokensConfig): Promis
 	let totalAmtOut = 0n;
 
 	// Ensure these inputs are for the expected token
-	if (!inputTokens.every(
-		(token) => token.id === tokenID,
-	)) {
+	if (!inputTokens.every((token) => token.id === tokenID)) {
 		throw new Error("Input tokens do not match the provided tokenID");
 	}
 
