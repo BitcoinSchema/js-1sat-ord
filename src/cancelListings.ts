@@ -21,7 +21,7 @@ export const cancelOrdListings = async (config: CancelOrdListingsConfig) => {
 		ordPk,
 		paymentPk,
 		changeAddress,
-		additionalPayments,
+		additionalPayments = [],
 		satsPerKb = DEFAULT_SAT_PER_KB,
 	} = config;
 
