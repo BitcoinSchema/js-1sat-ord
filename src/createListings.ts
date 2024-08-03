@@ -12,12 +12,11 @@ import {
 	type CreateOrdTokenListingsConfig,
 	type CreateOrdListingsConfig,
 	type Utxo,
-	type TokenInscription,
 	type TransferTokenInscription,
 	type TransferBSV20Inscription,
 	type TransferBSV21Inscription,
 	TokenType,
-	TokenUtxo,
+	type TokenUtxo,
 } from "./types";
 import { inputFromB64Utxo } from "./utils/utxo";
 import OrdLock from "./templates/ordLock";
