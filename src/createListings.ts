@@ -231,10 +231,10 @@ export const createOrdTokenListings = async (
 				},
 			),
 		});
-		totalAmtOut += BigInt(listing.listingUtxo.amt)
+		totalAmtOut += BigInt(listing.listingUtxo.amt);
 	}
-	
-	for(const token of inputTokens) {
+
+	for (const token of inputTokens) {
 		const inputScriptBinary = toArray(token.script, "base64");
 		const inputScript = Script.fromBinary(inputScriptBinary);
 		tx.addInput({
@@ -252,13 +252,14 @@ export const createOrdTokenListings = async (
 
 		totalAmtIn += BigInt(token.amt);
 	}
-	changeAmt = totalAmtIn - totalAmtOut
+	changeAmt = totalAmtIn - totalAmtOut;
 
-	let tokenChange: TokenUtxo | undefined
+	let tokenChange: TokenUtxo | undefined;
 	// check that you have enough tokens to send and return change
 	if (changeAmt < 0n) {
 		throw new Error("Not enough tokens to send");
-	} else if (changeAmt > 0n) {
+	}
+	if (changeAmt > 0n) {
 		const transferInscription: TransferTokenInscription = {
 			p: "bsv-20",
 			op: "transfer",
@@ -279,24 +280,20 @@ export const createOrdTokenListings = async (
 			throw new Error("Invalid protocol");
 		}
 
-		const lockingScript = new OrdP2PKH().lock(
-			tokenChangeAddress,
-			{
-				dataB64: JSON.stringify(inscription),
-				contentType: 'application/bsv-20'
-			}
-		)
+		const lockingScript = new OrdP2PKH().lock(tokenChangeAddress, {
+			dataB64: JSON.stringify(inscription),
+			contentType: "application/bsv-20",
+		});
 		const vout = tx.outputs.length;
-		tx.addOutput({lockingScript, satoshis: 1});
+		tx.addOutput({ lockingScript, satoshis: 1 });
 		tokenChange = {
 			id: tokenID,
 			satoshis: 1,
-			script: Buffer.from(lockingScript.toBinary()).toString('base64'),
-			txid: '',
+			script: Buffer.from(lockingScript.toBinary()).toString("base64"),
+			txid: "",
 			vout,
 			amt: changeAmt.toString(),
-
-		}
+		};
 	}
 
 	// add change to the outputs
@@ -342,9 +339,9 @@ export const createOrdTokenListings = async (
 	// Sign the transaction
 	await tx.sign();
 
-	const txid = tx.id("hex") as string
-	if(tokenChange) {
-		tokenChange.txid = txid
+	const txid = tx.id("hex") as string;
+	if (tokenChange) {
+		tokenChange.txid = txid;
 	}
 	// check for change
 	const payChangeOutIdx = tx.outputs.findIndex((o) => o.change);
@@ -368,9 +365,10 @@ export const createOrdTokenListings = async (
 
 	return {
 		tx,
-		spentOutpoints: tx.inputs.map((i) => `${i.sourceTXID}_${i.sourceOutputIndex}`),
+		spentOutpoints: tx.inputs.map(
+			(i) => `${i.sourceTXID}_${i.sourceOutputIndex}`,
+		),
 		payChange,
 		tokenChange,
-	}
-
+	};
 };
