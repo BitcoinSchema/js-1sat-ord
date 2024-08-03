@@ -3,8 +3,8 @@ import { cancelOrdListings, cancelOrdTokenListings } from "./cancelListings";
 import { type CancelOrdListingsConfig, type CancelOrdTokenListingsConfig, type Utxo, type TokenUtxo, TokenType } from "./types";
 
 describe("cancelOrdListings", () => {
-  const paymentPk = PrivateKey.fromWif("L4yaCdu1x37nVnuqSsBMePd6a8tDiU1ev9XE7fFqgumjcwh5Uox2");
-  const ordPk = PrivateKey.fromWif("L5aBnFuxypnFhvL9KdP93Guh9aT4roBbs9CkjgEBjBKoCcVpossf");
+  const paymentPk = PrivateKey.fromWif("KwE2RgUthyfEZbzrS3EEgSRVr1NodBc9B3vPww6oSGChDuWS6Heb");
+  const ordPk = PrivateKey.fromWif("L5mDYNS6Dqjy72LA66sJ6V7APxgKF3DHXUagKbf7q4ctv9c9Rwpb");
   const address = paymentPk.toAddress().toString();
 
   const utxos: Utxo[] = [{
