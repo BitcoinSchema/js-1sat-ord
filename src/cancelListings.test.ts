@@ -43,8 +43,8 @@ describe("cancelOrdListings", () => {
       additionalPayments: [{ to: address, amount: 1000 }],
     };
     const { tx } = await cancelOrdListings(config);
-
-    expect(tx.outputs).toHaveLength(4); // 1 for ordinal return, 1 for additional payment, 1 for change, 1 for fee
+    console.log("cancel rawtx", tx.toHex())
+    expect(tx.outputs).toHaveLength(3); // 1 for ordinal return, 1 for additional payment, 1 for change
   });
 
   test("cancel ord listings with insufficient funds", async () => {
@@ -102,8 +102,8 @@ describe("cancelOrdTokenListings", () => {
     };
     const { tx } = await cancelOrdTokenListings(bsv21Config);
 
-    expect(tx.outputs[0].lockingScript.toString()).toContain("bsv-20");
-    expect(tx.outputs[0].lockingScript.toString()).toContain("id");
+    expect(tx.outputs[0].lockingScript.toHex()).toContain(Buffer.from("bsv-20").toString('hex'));
+    expect(tx.outputs[0].lockingScript.toHex()).toContain(Buffer.from("id").toString('hex'));
   });
 
   test("cancel ord token listings with mismatched tokenID", async () => {
