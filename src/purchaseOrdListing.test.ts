@@ -22,9 +22,10 @@ describe("purchaseOrdListings", () => {
       amt: "1000",
       id: "e6d40ba206340aa94ed40fe1a8adcd722c08c9438b2c1dd16b4527d561e848a2_0"
     },
-    payAddress: "",
+    payAddress: address,
     price: 0,
-    ordAddress: ""
+    ordAddress: "",
+    amt: 1000n
   };
 
   const baseConfig: PurchaseOrdListingConfig = {
@@ -96,7 +97,7 @@ describe("purchaseOrdTokenListing", () => {
 
   const baseConfig: PurchaseOrdTokenListingConfig = {
     protocol: TokenType.BSV20,
-    tokenID: "TOKEN123",
+    tokenID: "e6d40ba206340aa94ed40fe1a8adcd722c08c9438b2c1dd16b4527d561e848a2_0",
     utxos,
     paymentPk,
     listingUtxo,
