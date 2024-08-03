@@ -57,18 +57,16 @@ export const createOrdListings = async (config: CreateOrdListingsConfig) => {
 		});
 		const inputScriptBinary = toArray(listing.listingUtxo.script, "base64");
 		const inputScript = Script.fromBinary(inputScriptBinary);
-		tx.addInput({
-			unlockingScriptTemplate: new OrdP2PKH().unlock(
+		tx.addInput(inputFromB64Utxo(
+			listing.listingUtxo,
+			new OrdP2PKH().unlock(
 				ordPk,
 				"all",
 				true,
 				listing.listingUtxo.satoshis,
 				inputScript,
 			),
-			sourceTXID: listing.listingUtxo.txid,
-			sourceOutputIndex: listing.listingUtxo.vout,
-			sequence: 0xffffffff,
-		});
+		));
 	}
 
 	// Add additional payments if any
@@ -239,18 +237,16 @@ export const createOrdTokenListings = async (
 	for (const token of inputTokens) {
 		const inputScriptBinary = toArray(token.script, "base64");
 		const inputScript = Script.fromBinary(inputScriptBinary);
-		tx.addInput({
-			unlockingScriptTemplate: new OrdP2PKH().unlock(
+		tx.addInput(inputFromB64Utxo(
+			token,
+			new OrdP2PKH().unlock(
 				ordPk,
 				"all",
 				true,
 				token.satoshis,
 				inputScript,
 			),
-			sourceTXID: token.txid,
-			sourceOutputIndex: token.vout,
-			sequence: 0xffffffff,
-		});
+		));
 
 		totalAmtIn += BigInt(token.amt);
 	}

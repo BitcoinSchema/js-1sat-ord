@@ -32,15 +32,13 @@ export const purchaseOrdListings = async (config: PurchaseOrdListingConfig) => {
 
 	// Inputs
 	// Add the locked ordinal we're purchasing
-	tx.addInput({
-		unlockingScriptTemplate: new OrdLock().purchaseListing(
+	tx.addInput(inputFromB64Utxo(
+		listing.listingUtxo,
+		new OrdLock().purchaseListing(
 			listing.listingUtxo.satoshis,
 			Script.fromHex(Buffer.from(listing.listingUtxo.script, "base64").toString("hex")),
 		),
-		sourceTXID: listing.listingUtxo.txid,
-		sourceOutputIndex: listing.listingUtxo.vout,
-		sequence: 0xffffffff,
-	});
+	));
 
 	// Outputs
 	// Add the purchased output
@@ -177,15 +175,14 @@ export const purchaseOrdTokenListing = async (
 
 	// Inputs
 	// Add the locked ordinal we're purchasing
-	tx.addInput({
-		unlockingScriptTemplate: new OrdLock().purchaseListing(
+	tx.addInput(inputFromB64Utxo(
+		listingUtxo,
+		new OrdLock().purchaseListing(
 			1,
 			Script.fromHex(Buffer.from(listingUtxo.script, "base64").toString("hex")),
 		),
-		sourceTXID: listingUtxo.txid,
-		sourceOutputIndex: listingUtxo.vout,
-		sequence: 0xffffffff,
-	});
+	));
+
 	// Outputs
 	const transferInscription: TransferTokenInscription = {
 		p: "bsv-20",

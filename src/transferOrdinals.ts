@@ -66,19 +66,17 @@ export const transferOrdTokens = async (config: TransferOrdTokensConfig): Promis
 	for (const token of inputTokens) {
 		const inputScriptBinary = Utils.toArray(token.script, "base64");
 		const inputScript = Script.fromBinary(inputScriptBinary);
-		tx.addInput({
-			unlockingScriptTemplate: new OrdP2PKH().unlock(
+		tx.addInput(inputFromB64Utxo(
+			token,
+			new OrdP2PKH().unlock(
 				ordPk,
 				"all",
 				true,
 				token.satoshis,
 				inputScript,
 			),
-			sourceTXID: token.txid,
-			sourceOutputIndex: token.vout,
-			sequence: 0xffffffff,
-		});
-
+		));
+	
 		totalAmtIn += BigInt(token.amt);
 	}
 

@@ -38,12 +38,16 @@ export const cancelOrdListings = async (config: CancelOrdListingsConfig) => {
 	// Inputs
 	// Add the locked ordinals we're cancelling
 	for (const listingUtxo of listingUtxos) {
-		tx.addInput({
-			sourceTXID: listingUtxo.txid,
-			unlockingScriptTemplate: new OrdLock().cancelListing(ordPk),
-			sourceOutputIndex: listingUtxo.vout,
-			sequence: 0xffffffff,
-		});
+		tx.addInput(inputFromB64Utxo(
+			listingUtxo,
+			new OrdLock().cancelListing(
+				ordPk,
+				"all",
+				true,
+				listingUtxo.satoshis,
+				Script.fromBinary(Utils.toArray(listingUtxo.script, 'base64'))
+			)
+		));
 		// Add cancel outputs returning listed ordinals
 		tx.addOutput({
 			satoshis: 1,
@@ -175,12 +179,16 @@ export const cancelOrdTokenListings = async (
 	// Inputs
 	// Add the locked ordinals we're cancelling
 	for (const listingUtxo of listingUtxos) {
-		tx.addInput({
-			sourceTXID: listingUtxo.txid,
-			sourceOutputIndex: listingUtxo.vout,
-			sequence: 0xffffffff,
-			unlockingScriptTemplate: new OrdLock().cancelListing(ordPk),
-		});
+		tx.addInput(inputFromB64Utxo(
+			listingUtxo,
+			new OrdLock().cancelListing(
+				ordPk,
+				"all",
+				true,
+				listingUtxo.satoshis,
+				Script.fromBinary(Utils.toArray(listingUtxo.script, 'base64'))
+			)
+		));
 		totalAmtIn += Number.parseInt(listingUtxo.amt);
 	}
 
