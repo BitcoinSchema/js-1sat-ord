@@ -1,6 +1,6 @@
 import { P2PKH, SatoshisPerKilobyte, Script, Transaction } from "@bsv/sdk";
 import { DEFAULT_SAT_PER_KB } from "./constants";
-import type { PurchaseOrdListingConfig, Utxo } from "./types";
+import type { PurchaseOrdListingConfig, PurchaseOrdTokenListingConfig, Utxo } from "./types";
 import { inputFromB64Utxo } from "./utils/utxo";
 import OrdLock from "./templates/ordLock";
 
@@ -57,7 +57,7 @@ export const purchaseOrdListings = async (config: PurchaseOrdListingConfig) => {
 	};
 	tx.addOutput(changeOut);
 
-  
+
 	let totalSatsIn = 0n;
 	const totalSatsOut = tx.outputs.reduce(
 		(total, out) => total + BigInt(out.satoshis || 0),
@@ -116,3 +116,35 @@ export const purchaseOrdListings = async (config: PurchaseOrdListingConfig) => {
 		payChange,
 	};
 };
+
+export const purchaseOrdTokenListing = async (config: PurchaseOrdTokenListingConfig) => { 
+const { protocol,
+  tokenID,
+  utxos,
+  paymentPk,
+  listingUtxo,
+  ordAddress,
+  changeAddress,
+  satsPerKb = DEFAULT_SAT_PER_KB,
+  additionalPayments = [] } = config;
+
+  const modelOrFee = new SatoshisPerKilobyte(satsPerKb);
+	const tx = new Transaction();
+
+  	// Inputs
+	// Add the locked ordinal we're purchasing
+	tx.addInput({
+		unlockingScriptTemplate: new OrdLock().purchaseListing(
+			1,
+			Script.fromHex(Buffer.from(listingUtxo.script, "base64").toString("hex")),
+		),
+		sourceTXID: listingUtxo.txid,
+		sourceOutputIndex: listingUtxo.vout,
+		sequence: 0xffffffff,
+	});
+
+  // Outputs
+  // Add the purchased output
+
+
+}

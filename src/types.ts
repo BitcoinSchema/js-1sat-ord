@@ -421,6 +421,18 @@ export type PurchaseOrdListingConfig = {
   additionalPayments?: Payment[],
 }
 
+export type PurchaseOrdTokenListingConfig = {
+  protocol: TokenType;
+  tokenID: string;
+  utxos: Utxo[];
+  paymentPk: PrivateKey;
+  listingUtxo: TokenUtxo;
+  ordAddress: string;
+  changeAddress?: string;
+  satsPerKb?: number;
+  additionalPayments?: Payment[],
+}
+
 export type CancelOrdListingsConfig = {
   utxos: Utxo[],
   paymentPk: PrivateKey;
@@ -459,7 +471,3 @@ export interface CreateOrdTokenListingsConfig {
   tokenChangeAddress: string;
 }
 
-export interface PurchaseOrdTokenListingConfig extends PurchaseOrdListingConfig {
-  protocol: TokenType;
-  tokenID: string;
-}
