@@ -2,8 +2,9 @@ import {
 	Transaction,
 	SatoshisPerKilobyte,
 	P2PKH,
-	type Script,
+	Script,
 	type TransactionOutput,
+	Utils,
 } from "@bsv/sdk";
 import { DEFAULT_SAT_PER_KB } from "./constants";
 import OrdP2PKH from "./templates/ordP2pkh";
@@ -54,7 +55,13 @@ export const sendOrdinals = async (
 
 		const input = inputFromB64Utxo(
 			ordUtxo,
-			new OrdP2PKH().unlock(config.ordPk),
+			new OrdP2PKH().unlock(
+				config.ordPk, 
+				"all",
+				true, 
+				ordUtxo.satoshis,
+				Script.fromBinary(Utils.toArray(ordUtxo.script, 'base64'))
+			),
 		);
 		spentOutpoints.push(`${ordUtxo.txid}_${ordUtxo.vout}`);
 		tx.addInput(input);
@@ -109,7 +116,13 @@ export const sendOrdinals = async (
 	);
 	let fee = 0;
 	for (const utxo of config.paymentUtxos) {
-		const input = inputFromB64Utxo(utxo, new P2PKH().unlock(config.paymentPk));
+		const input = inputFromB64Utxo(utxo, new P2PKH().unlock(
+			config.paymentPk, 
+			"all",
+			true, 
+			utxo.satoshis,
+			Script.fromBinary(Utils.toArray(utxo.script, 'base64'))
+		));
 		spentOutpoints.push(`${utxo.txid}_${utxo.vout}`);
 
 		tx.addInput(input);

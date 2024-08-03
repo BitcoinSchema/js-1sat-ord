@@ -189,7 +189,13 @@ export const transferOrdTokens = async (config: TransferOrdTokensConfig): Promis
 	);
 	let fee = 0;
 	for (const utxo of utxos) {
-		const input = inputFromB64Utxo(utxo, new P2PKH().unlock(paymentPk));
+		const input = inputFromB64Utxo(utxo, new P2PKH().unlock(
+			paymentPk, 
+			"all",
+			true, 
+			utxo.satoshis,
+			Script.fromBinary(Utils.toArray(utxo.script, 'base64'))
+		));
 
 		tx.addInput(input);
 		// stop adding inputs if the total amount is enough

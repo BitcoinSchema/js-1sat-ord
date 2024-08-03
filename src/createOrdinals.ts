@@ -1,4 +1,4 @@
-import { Transaction, SatoshisPerKilobyte, P2PKH } from "@bsv/sdk";
+import { Transaction, SatoshisPerKilobyte, P2PKH, Script, Utils } from "@bsv/sdk";
 import OrdP2PKH from "./templates/ordP2pkh";
 import type {
 	Utxo,
@@ -47,7 +47,13 @@ export const createOrdinals = async (
 
 	// Inputs
 	for (const utxo of utxos) {
-		const input = inputFromB64Utxo(utxo, new P2PKH().unlock(paymentPk));
+		const input = inputFromB64Utxo(utxo, new P2PKH().unlock(
+			paymentPk, 
+			"all",
+			true, 
+			utxo.satoshis,
+			Script.fromBinary(Utils.toArray(utxo.script, 'base64'))
+		));
 		tx.addInput(input);
 	}
 

@@ -4,6 +4,8 @@ import {
 	SatoshisPerKilobyte,
 	P2PKH,
 	type TransactionOutput,
+	Utils,
+	Script,
 } from "@bsv/sdk";
 import { DEFAULT_SAT_PER_KB } from "./constants";
 import type { SendUtxosConfig, SendUtxosResult, Utxo } from "./types";
@@ -51,7 +53,13 @@ export const sendUtxos = async (
 	);
 	let fee = 0;
 	for (const utxo of utxos) {
-		const input = inputFromB64Utxo(utxo, new P2PKH().unlock(paymentPk));
+		const input = inputFromB64Utxo(utxo, new P2PKH().unlock(
+			paymentPk, 
+			"all",
+			true, 
+			utxo.satoshis,
+			Script.fromBinary(Utils.toArray(utxo.script, 'base64'))
+		));
 		tx.addInput(input);
 
 		// stop adding inputs if the total amount is enough
