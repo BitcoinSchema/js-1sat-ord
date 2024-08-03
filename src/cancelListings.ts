@@ -176,7 +176,7 @@ export const cancelOrdTokenListings = async (
 		});
 		totalAmtIn += parseInt(listingUtxo.amt);
 	}
-	
+
 	const transferInscription: TransferTokenInscription = {
 		p: "bsv-20",
 		op: "transfer",
@@ -209,8 +209,7 @@ export const cancelOrdTokenListings = async (
 		satoshis: 1,
 		lockingScript: new OrdP2PKH().lock(
 			destination.address,
-			destination.inscription?.dataB64 as string,
-			destination.inscription?.contentType as string,
+			destination.inscription
 		),
 	});
 
