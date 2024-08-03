@@ -1,6 +1,6 @@
 import { Transaction } from "@bsv/sdk";
 import { type PurchaseOrdListingConfig, type PurchaseOrdTokenListingConfig, type Utxo } from "./types";
-export declare const purchaseOrdListings: (config: PurchaseOrdListingConfig) => Promise<{
+export declare const purchaseOrdListing: (config: PurchaseOrdListingConfig) => Promise<{
     tx: Transaction;
     spentOutpoints: string[];
     payChange: Utxo | undefined;

@@ -14,13 +14,11 @@ import { inputFromB64Utxo } from "./utils/utxo";
 import OrdLock from "./templates/ordLock";
 import OrdP2PKH from "./templates/ordP2pkh";
 
-export const purchaseOrdListings = async (config: PurchaseOrdListingConfig) => {
+export const purchaseOrdListing = async (config: PurchaseOrdListingConfig) => {
 	const {
-		protocol,
-		tokenID,
 		utxos,
 		paymentPk,
-		listing,
+		listingUtxo,
 		ordAddress,
 		changeAddress,
 		additionalPayments = [],
@@ -32,41 +30,21 @@ export const purchaseOrdListings = async (config: PurchaseOrdListingConfig) => {
 
 	// Inputs
 	// Add the locked ordinal we're purchasing
-	tx.addInput(inputFromB64Utxo(
-		listing.listingUtxo,
-		new OrdLock().purchaseListing(
-			listing.listingUtxo.satoshis,
-			Script.fromHex(Buffer.from(listing.listingUtxo.script, "base64").toString("hex")),
+  tx.addInput({
+		unlockingScriptTemplate: new OrdLock().purchaseListing(
+			1,
+			Script.fromHex(Buffer.from(listingUtxo.script, "base64").toString("hex")),
 		),
-	));
+		sourceTXID: listingUtxo.txid,
+		sourceOutputIndex: listingUtxo.vout,
+		sequence: 0xffffffff,
+	});
 
 	// Outputs
 	// Add the purchased output
-	const transferInscription: TransferTokenInscription = {
-		p: "bsv-20",
-		op: "transfer",
-		amt: listing.listingUtxo.amt,
-	};
-	let inscription: TransferBSV20Inscription | TransferBSV21Inscription;
-	if (protocol === TokenType.BSV20) {
-		inscription = {
-			...transferInscription,
-			tick: tokenID,
-		} as TransferBSV20Inscription;
-	} else if (protocol === TokenType.BSV21) {
-		inscription = {
-			...transferInscription,
-			id: tokenID,
-		} as TransferBSV21Inscription;
-	} else {
-		throw new Error("Invalid protocol");
-	}
-	tx.addOutput({
+  tx.addOutput({
 		satoshis: 1,
-		lockingScript: new OrdP2PKH().lock(ordAddress, {
-			dataB64: Buffer.from(JSON.stringify(inscription)).toString('base64'),
-			contentType: "application/bsv-20"
-		}),
+		lockingScript: new P2PKH().lock(ordAddress),
 	});
 
 	// Add additional payments if any
@@ -292,7 +270,7 @@ export const purchaseOrdTokenListing = async (
 
   return {
 		tx,
-		spentOutpoints: utxos.map((utxo) => `${utxo.txid}_${utxo.vout}`),
+		spentOutpoints: tx.inputs.map((i) => `${i.sourceTXID}_${i.sourceOutputIndex}`),
 		payChange,
 	};
 };
