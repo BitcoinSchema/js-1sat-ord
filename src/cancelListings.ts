@@ -174,7 +174,7 @@ export const cancelOrdTokenListings = async (
 			sequence: 0xffffffff,
 			unlockingScriptTemplate: new OrdLock().cancelListing(ordPk),
 		});
-		totalAmtIn += parseInt(listingUtxo.amt);
+		totalAmtIn += Number.parseInt(listingUtxo.amt);
 	}
 	
 	const transferInscription: TransferTokenInscription = {
