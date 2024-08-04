@@ -30,14 +30,14 @@ export type Listing = {
  * @property {string} payAddress - Address to send the payment upon purchase
  * @property {string} price - Listing price in satoshis
  * @property {String} ordAddress - Where to return a listed ordinal upon cancel.
- * @property {TokenUtxo} listingUtxo - Utxo of the listing
+ * @property {TokenUtxo} listingUtxo - Utxo of the listing (for cancel)
  */
 export type TokenListing = {
     payAddress: string;
     price: number;
     amt: bigint;
     ordAddress: string;
-    listingUtxo: TokenUtxo;
+    listingUtxo?: TokenUtxo;
 };
 /**
  * @typedef {Object} Distribution
