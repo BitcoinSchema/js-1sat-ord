@@ -10,7 +10,8 @@ import stringifyMetaData from "./utils/subtypeData";
 import { createOrdListings, createOrdTokenListings } from "./createListings";
 import { cancelOrdListings, cancelOrdTokenListings } from "./cancelListings";
 import { purchaseOrdListing, purchaseOrdTokenListing } from "./purchaseOrdListing";
+import { deployBsv21Token } from "./deployBsv21";
 
 export * from './types';
 
-export { createOrdinals, sendOrdinals, sendUtxos, transferOrdTokens, fetchPayUtxos, fetchNftUtxos, fetchTokenUtxos, validateSubTypeData, OrdP2PKH, OrdLock, stringifyMetaData, createOrdListings, cancelOrdListings, purchaseOrdListing, purchaseOrdTokenListing, cancelOrdTokenListings, createOrdTokenListings };
+export { createOrdinals, sendOrdinals, sendUtxos, transferOrdTokens, deployBsv21Token, fetchPayUtxos, fetchNftUtxos, fetchTokenUtxos, validateSubTypeData, OrdP2PKH, OrdLock, stringifyMetaData, createOrdListings, cancelOrdListings, purchaseOrdListing, purchaseOrdTokenListing, cancelOrdTokenListings, createOrdTokenListings };
