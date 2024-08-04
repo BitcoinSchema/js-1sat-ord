@@ -1,7 +1,9 @@
 import { P2PKH, PrivateKey } from "@bsv/sdk";
 import { deployBsv21Token } from "./deployBsv21";
 import type { Utxo, IconInscription, DeployBsv21TokenConfig } from "./types";
-import { ErrorIconProportions, ErrorOversizedIcon } from "./utils/icon";
+import { ErrorIconProportions, ErrorImageDimensionsUndefined, ErrorOversizedIcon } from "./utils/icon";
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 describe("deployBsv21Token", () => {
   const paymentPk = PrivateKey.fromWif("KzwfqdfecMRtpg65j2BeRtixboNR37fSCDr8QbndV6ySEPT4xibW");
@@ -22,7 +24,7 @@ describe("deployBsv21Token", () => {
   }];
 
   const sufficientUtxos: Utxo[] = [{
-    satoshis: 10,
+    satoshis: 30,
     txid: "ecb483eda58f26da1b1f8f15b782b1186abdf9c6399a1c3e63e0d429d5092a41",
     vout: 0,
     script: Buffer.from(new P2PKH().lock(address).toHex(), 'hex').toString('base64'),
@@ -101,5 +103,61 @@ describe("deployBsv21Token", () => {
     const config = { ...baseConfig, icon: oversizedIcon };
 
     await expect(deployBsv21Token(config)).rejects.toThrow(ErrorOversizedIcon.message);
+  });
+
+  test("deploy BSV21 token with SVG missing dimensions", async () => {
+    const invalidSvgIcon: IconInscription = {
+      dataB64: Buffer.from('<svg><rect width="100" height="100" style="fill:rgb(0,0,255);" /></svg>').toString('base64'),
+      contentType: "image/svg+xml"
+    };
+    const config = { ...baseConfig, icon: invalidSvgIcon };
+
+    await expect(deployBsv21Token(config)).rejects.toThrow(ErrorImageDimensionsUndefined.message);
+  });
+
+  test("deploy BSV21 token with SVG non-numeric dimensions", async () => {
+    const invalidSvgIcon: IconInscription = {
+      dataB64: Buffer.from('<svg width="auto" height="auto"><rect width="100" height="100" style="fill:rgb(0,0,255);" /></svg>').toString('base64'),
+      contentType: "image/svg+xml"
+    };
+    const config = { ...baseConfig, icon: invalidSvgIcon };
+
+    await expect(deployBsv21Token(config)).rejects.toThrow(ErrorImageDimensionsUndefined.message);
+  });
+
+  test("deploy BSV21 token with valid square SVG", async () => {
+    const validSvgIcon: IconInscription = {
+      dataB64: Buffer.from('<svg width="300" height="300"><rect width="300" height="300" style="fill:rgb(0,0,255);" /></svg>').toString('base64'),
+      contentType: "image/svg+xml"
+    };
+    const config = { ...baseConfig, icon: validSvgIcon };
+
+    const { tx } = await deployBsv21Token(config);
+    expect(tx).toBeDefined();
+    expect(tx.toHex()).toBeTruthy();
+  });
+
+  test("deploy BSV21 token with valid PNG", async () => {
+    const pngBuffer = readFileSync(join(__dirname, 'testdata', 'valid_300x300.png'));
+    const validPngIcon: IconInscription = {
+      dataB64: pngBuffer.toString('base64'),
+      contentType: "image/png"
+    };
+    const config = { ...baseConfig, icon: validPngIcon };
+
+    const { tx } = await deployBsv21Token(config);
+    expect(tx).toBeDefined();
+    expect(tx.toHex()).toBeTruthy();
+  });
+
+  test("deploy BSV21 token with invalid PNG dimensions", async () => {
+    const pngBuffer = readFileSync(join(__dirname, 'testdata', 'invalid_400x300.png'));
+    const invalidPngIcon: IconInscription = {
+      dataB64: pngBuffer.toString('base64'),
+      contentType: "image/png"
+    };
+    const config = { ...baseConfig, icon: invalidPngIcon };
+
+    await expect(deployBsv21Token(config)).rejects.toThrow(ErrorIconProportions.message);
   });
 });
