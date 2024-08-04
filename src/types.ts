@@ -128,6 +128,7 @@ export type TokenInscription = {
 	p: "bsv-20";
 	amt: string;
 	op: "transfer" | "mint" | "deploy+mint" | "burn";
+  dec?: string;
 };
 
 export interface MintTokenInscription extends TokenInscription {
@@ -354,6 +355,7 @@ export type DeployBsv21TokenResult = {
 
 export type DeployBsv21TokenConfig = {
 	symbol: string;
+  decimals: number;
 	icon: string | IconInscription;
 	utxos: Utxo[];
 	initialDistribution: Distribution;

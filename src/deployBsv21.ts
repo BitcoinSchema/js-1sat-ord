@@ -22,6 +22,7 @@ import { DEFAULT_SAT_PER_KB } from "./constants";
  * Deploys & Mints a BSV21 token to the given destination address
  * @param {DeployBsv21TokenConfig} config - Configuration object for deploying BSV21 token
  * @param {string} config.symbol - Token ticker symbol
+ * @param {number} config.decimals - Number of decimal places to display
  * @param {string | IconInscription} config.icon - outpoint (format: txid_vout) or Inscription. If Inscription, must be a valid image type
  * @param {Utxo[]} config.utxos - Payment Utxos available to spend. Will only consume what is needed.
  * @param {Distribution} config.initialDistribution - Initial distribution with addresses and total supply
@@ -38,6 +39,7 @@ export const deployBsv21Token = async (
 	const {
 		symbol,
 		icon,
+    decimals,
 		utxos,
 		initialDistribution,
 		paymentPk,
@@ -85,6 +87,10 @@ export const deployBsv21Token = async (
 		icon: iconValue,
 		amt: initialDistribution.amt,
 	};
+
+  if (decimals) {
+    fileData.dec = decimals.toString();
+  }
 
 	const b64File = Buffer.from(JSON.stringify(fileData)).toString("base64");
 	const sendTxOut = {

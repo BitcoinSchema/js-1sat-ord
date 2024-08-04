@@ -3,6 +3,7 @@ import type { DeployBsv21TokenConfig, DeployBsv21TokenResult } from "./types";
  * Deploys & Mints a BSV21 token to the given destination address
  * @param {DeployBsv21TokenConfig} config - Configuration object for deploying BSV21 token
  * @param {string} config.symbol - Token ticker symbol
+ * @param {number} config.decimals - Number of decimal places to display
  * @param {string | IconInscription} config.icon - outpoint (format: txid_vout) or Inscription. If Inscription, must be a valid image type
  * @param {Utxo[]} config.utxos - Payment Utxos available to spend. Will only consume what is needed.
  * @param {Distribution} config.initialDistribution - Initial distribution with addresses and total supply
