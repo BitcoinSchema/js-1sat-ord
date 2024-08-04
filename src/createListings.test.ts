@@ -94,7 +94,6 @@ describe("createOrdTokenListings", () => {
     ordAddress: ordPk.toAddress().toString(),
     amt: 1000n,
     price: 5000,
-    listingUtxo: inputTokens[0],
   }];
 
   const baseConfig: CreateOrdTokenListingsConfig = {
