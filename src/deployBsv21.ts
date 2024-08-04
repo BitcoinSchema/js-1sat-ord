@@ -79,6 +79,11 @@ export const deployBsv21Token = async (
 		);
 	}
 
+  if (decimals) {
+    // add decimals to the amount
+    initialDistribution.amt += "0".repeat(decimals);
+  }
+  
 	// Outputs
 	const fileData: DeployMintTokenInscription = {
 		p: "bsv-20",

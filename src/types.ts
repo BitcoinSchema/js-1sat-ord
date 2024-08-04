@@ -355,7 +355,7 @@ export type DeployBsv21TokenResult = {
 
 export type DeployBsv21TokenConfig = {
 	symbol: string;
-  decimals: number;
+  decimals?: number;
 	icon: string | IconInscription;
 	utxos: Utxo[];
 	initialDistribution: Distribution;
