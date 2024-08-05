@@ -36,7 +36,7 @@ export default class OrdLock {
 		ordAddress: string,
 		payAddress: string,
 		price: number,
-    inscription?: Inscription,
+		inscription?: Inscription,
 	): Script {
 		const cancelPkh = Utils.fromBase58Check(ordAddress).data as number[];
 		const payPkh = Utils.fromBase58Check(payAddress).data as number[];
@@ -55,7 +55,7 @@ export default class OrdLock {
 			}
 			script = Script.fromASM(`OP_0 OP_IF ${ordHex} OP_1 ${fileMediaType} OP_0 ${fileHex} OP_ENDIF`);
 		}
-		
+
 		return script.writeScript(Script.fromHex(oLockPrefix))
 			.writeBin(cancelPkh)
 			.writeBin(OrdLock.buildOutput(price, new P2PKH().lock(payPkh).toBinary()))
@@ -100,9 +100,9 @@ export default class OrdLock {
 						tx.outputs[0].satoshis || 0,
 						tx.outputs[0].lockingScript.toBinary()
 					))
-				if(tx.outputs.length > 2) {
+				if (tx.outputs.length > 2) {
 					const writer = new Utils.Writer()
-					for(const output of tx.outputs.slice(2)) {
+					for (const output of tx.outputs.slice(2)) {
 						writer.write(OrdLock.buildOutput(output.satoshis || 0, output.lockingScript.toBinary()))
 					}
 					script.writeBin(writer.toArray())
@@ -110,20 +110,19 @@ export default class OrdLock {
 					script.writeOpCode(OP.OP_0)
 				}
 
-        const input = tx.inputs[inputIndex]
-        let sourceSats: number
-        if (!sourceSatoshis && input.sourceTransaction) {
-          sourceSats = input.sourceTransaction.outputs[input.sourceOutputIndex].satoshis as number
-        } else if (!sourceSatoshis) {
-          throw new Error("sourceTransaction or sourceSatoshis is required")
-        }
-        sourceSats = sourceSatoshis as number
-        
-        const sourceTXID = (input.sourceTXID || input.sourceTransaction?.id('hex')) as string
-        let subscript = lockingScript as LockingScript
-        if (!lockingScript) {
-          subscript = input.sourceTransaction?.outputs[input.sourceOutputIndex].lockingScript as LockingScript
-        }
+				const input = tx.inputs[inputIndex]
+				let sourceSats = sourceSatoshis as number
+				if (!sourceSats && input.sourceTransaction) {
+					sourceSats = input.sourceTransaction.outputs[input.sourceOutputIndex].satoshis as number
+				} else if (!sourceSatoshis) {
+					throw new Error("sourceTransaction or sourceSatoshis is required")
+				}
+
+				const sourceTXID = (input.sourceTXID || input.sourceTransaction?.id('hex')) as string
+				let subscript = lockingScript as LockingScript
+				if (!subscript) {
+					subscript = input.sourceTransaction?.outputs[input.sourceOutputIndex].lockingScript as LockingScript
+				}
 				const preimage = TransactionSignature.format({
 					sourceTXID,
 					sourceOutputIndex: input.sourceOutputIndex,
@@ -138,7 +137,7 @@ export default class OrdLock {
 					scope: TransactionSignature.SIGHASH_ALL |
 						TransactionSignature.SIGHASH_ANYONECANPAY |
 						TransactionSignature.SIGHASH_FORKID
-				  });
+				});
 
 				return script.writeBin(preimage).writeOpCode(OP.OP_0)
 			},
