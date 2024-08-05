@@ -1,4 +1,5 @@
 import {
+	LockingScript,
 	P2PKH,
 	SatoshisPerKilobyte,
 	Script,
@@ -24,7 +25,7 @@ export const purchaseOrdListing = async (config: PurchaseOrdListingConfig) => {
 	const {
 		utxos,
 		paymentPk,
-		listingUtxo,
+		listing,
 		ordAddress,
 		changeAddress,
 		additionalPayments = [],
@@ -38,10 +39,10 @@ export const purchaseOrdListing = async (config: PurchaseOrdListingConfig) => {
 	// Add the locked ordinal we're purchasing
 	tx.addInput(
 		inputFromB64Utxo(
-			listingUtxo,
+			listing.listingUtxo,
 			new OrdLock().purchaseListing(
 				1,
-				Script.fromBinary(Utils.toArray(listingUtxo.script, "base64")),
+				Script.fromBinary(Utils.toArray(listing.listingUtxo.script, "base64")),
 			),
 		),
 	);
@@ -51,6 +52,17 @@ export const purchaseOrdListing = async (config: PurchaseOrdListingConfig) => {
 	tx.addOutput({
 		satoshis: 1,
 		lockingScript: new P2PKH().lock(ordAddress),
+	});
+
+	// add the payment output
+	const reader = new Utils.Reader(Utils.toArray(listing.payout, "base64"));
+	const satoshis = reader.readUInt64LEBn().toNumber();
+	const scriptLength = reader.readVarIntNum();
+	const scriptBin = reader.read(scriptLength);
+	const lockingScript = LockingScript.fromBinary(scriptBin);
+	tx.addOutput({
+		satoshis,
+		lockingScript,
 	});
 
 	// Add additional payments if any

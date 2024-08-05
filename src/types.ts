@@ -25,11 +25,21 @@ export type Destination = {
  * @property {String} ordAddress - Where to return a listed ordinal upon cancel.
  * @property {Utxo} listingUtxo - Utxo of the listing
  */
-export type Listing = {
+export type NewListing = {
 	payAddress: string;
 	price: number;
 	ordAddress: string;
 	listingUtxo: Utxo;
+}
+
+/**
+ * @typedef {Object} ExistingListing
+ * @property {string} payout - Payment output script base64 encoded
+ * @property {Utxo} listingUtxo - Utxo of the listing
+ */
+export type ExistingListing = {
+  payout: string;
+  listingUtxo: Utxo;
 }
 
 /**
@@ -403,7 +413,7 @@ export type TransferOrdTokensConfig = {
 
 export type CreateOrdListingsConfig = {
 	utxos: Utxo[];
-	listings: Listing[];
+	listings: NewListing[];
 	royalty: number;
 	paymentPk: PrivateKey;
 	ordPk: PrivateKey,
@@ -415,7 +425,7 @@ export type CreateOrdListingsConfig = {
 export type PurchaseOrdListingConfig = {
 	utxos: Utxo[];
 	paymentPk: PrivateKey;
-	listingUtxo: Utxo;
+	listing: ExistingListing;
 	ordAddress: string;
 	changeAddress?: string;
 	satsPerKb?: number;

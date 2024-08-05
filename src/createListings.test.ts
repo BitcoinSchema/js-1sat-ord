@@ -6,7 +6,7 @@ import {
   type Utxo, 
   type TokenUtxo, 
   TokenType,
-  type Listing,
+  type NewListing,
   type TokenListing
 } from "./types";
 
@@ -22,7 +22,7 @@ describe("createOrdListings", () => {
     script: "base64EncodedScript",
   }];
 
-  const listings: Listing[] = [{
+  const listings: NewListing[] = [{
     payAddress: address,
     ordAddress: ordPk.toAddress().toString(),
     price: 5000,
