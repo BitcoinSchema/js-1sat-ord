@@ -1,5 +1,5 @@
 import { Transaction } from "@bsv/sdk";
-import { type CancelOrdListingsConfig, type CancelOrdTokenListingsConfig, type Utxo } from "./types";
+import { type TokenUtxo, type CancelOrdListingsConfig, type CancelOrdTokenListingsConfig, type Utxo } from "./types";
 export declare const cancelOrdListings: (config: CancelOrdListingsConfig) => Promise<{
     tx: Transaction;
     spentOutpoints: string[];
@@ -9,4 +9,5 @@ export declare const cancelOrdTokenListings: (config: CancelOrdTokenListingsConf
     tx: Transaction;
     spentOutpoints: string[];
     payChange: Utxo | undefined;
+    tokenChange: TokenUtxo;
 }>;
