@@ -100,6 +100,7 @@ export const sendOrdinals = async (
 		});
 	}
 
+  
 	// Add additional payments if any
 	for (const p of config.additionalPayments) {
 		tx.addOutput({
@@ -107,6 +108,17 @@ export const sendOrdinals = async (
 			lockingScript: new P2PKH().lock(p.to),
 		});
 	}
+
+  // add change to the outputs
+	let payChange: Utxo | undefined;
+
+	const change = config.changeAddress || config.paymentPk.toAddress().toString();
+	const changeScript = new P2PKH().lock(change);
+	const changeOut = {
+		lockingScript: changeScript,
+		change: true,
+	};
+	tx.addOutput(changeOut);
 
 	// Inputs
 	let totalSatsIn = 0n;
@@ -137,24 +149,6 @@ export const sendOrdinals = async (
 
 	if (totalSatsIn < totalSatsOut) {
 		throw new Error("Not enough ordinals to send");
-	}
-
-	let payChange: Utxo | undefined;
-	if (totalSatsIn > totalSatsOut + BigInt(fee)) {
-		const changeScript = new P2PKH().lock(
-			config.changeAddress || config.paymentPk.toAddress().toString(),
-		);
-		const changeOut: TransactionOutput = {
-			lockingScript: changeScript,
-			change: true,
-		};
-		payChange = {
-			txid: "", // txid is not available until the transaction is signed
-			vout: tx.outputs.length,
-			satoshis: 0, // change output amount is not known yet
-			script: Buffer.from(changeScript.toHex(), "hex").toString("base64"),
-		};
-		tx.addOutput(changeOut);
 	}
 
 	if (config.signer) {

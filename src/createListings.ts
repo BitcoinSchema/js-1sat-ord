@@ -50,8 +50,8 @@ export const createOrdListings = async (config: CreateOrdListingsConfig) => {
 		tx.addOutput({
 			satoshis: 1,
 			lockingScript: new OrdLock().lock(
-				listing.payAddress,
 				listing.ordAddress,
+				listing.payAddress,
 				listing.price,
 			),
 		});
