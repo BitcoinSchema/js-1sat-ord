@@ -33,7 +33,7 @@ export const purchaseOrdListing = async (config: PurchaseOrdListingConfig) => {
   tx.addInput({
 		unlockingScriptTemplate: new OrdLock().purchaseListing(
 			1,
-			Script.fromHex(Buffer.from(listingUtxo.script, "base64").toString("hex")),
+			Script.fromBinary(Utils.toArray(listingUtxo.script, "base64")),
 		),
 		sourceTXID: listingUtxo.txid,
 		sourceOutputIndex: listingUtxo.vout,
