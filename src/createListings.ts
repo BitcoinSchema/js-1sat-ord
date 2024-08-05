@@ -169,6 +169,7 @@ export const createOrdTokenListings = async (
 		tokenChangeAddress,
 		inputTokens,
 		listings,
+    decimals,
 		satsPerKb = DEFAULT_SAT_PER_KB,
 	} = config;
 
@@ -204,6 +205,10 @@ export const createOrdTokenListings = async (
 			op: "transfer",
 			amt: listing.amt.toString(),
 		};
+    // NewTokenListing is not adjusted for decimals
+    if (decimals > 0) {
+      transferInscription.amt = (listing.amt * BigInt(10 ** decimals)).toString();
+    }
 		let inscription: TransferBSV20Inscription | TransferBSV21Inscription;
 		if (protocol === TokenType.BSV20) {
 			inscription = {
@@ -231,12 +236,11 @@ export const createOrdTokenListings = async (
 				},
 			),
 		});
-		totalAmtOut += listing.amt;
+    totalAmtOut += BigInt(transferInscription.amt);
 	}
 
+  // Input tokens are already adjusted for decimals
 	for (const token of inputTokens) {
-		const inputScriptBinary = toArray(token.script, "base64");
-		const inputScript = Script.fromBinary(inputScriptBinary);
 		tx.addInput(inputFromB64Utxo(
 			token,
 			new OrdP2PKH().unlock(
@@ -244,7 +248,7 @@ export const createOrdTokenListings = async (
 				"all",
 				true,
 				token.satoshis,
-				inputScript,
+				Script.fromBinary(toArray(token.script, "base64")),
 			),
 		));
 

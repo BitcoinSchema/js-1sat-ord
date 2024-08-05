@@ -6,7 +6,7 @@ import type { DeployBsv21TokenConfig, DeployBsv21TokenResult } from "./types";
  * @param {number} config.decimals - Number of decimal places to display
  * @param {string | IconInscription} config.icon - outpoint (format: txid_vout) or Inscription. If Inscription, must be a valid image type
  * @param {Utxo[]} config.utxos - Payment Utxos available to spend. Will only consume what is needed.
- * @param {Distribution} config.initialDistribution - Initial distribution with addresses and total supply
+ * @param {Distribution} config.initialDistribution - Initial distribution with addresses and total supply (not adjusted for decimals, library will add zeros)
  * @param {PrivateKey} config.paymentPk - Private key to sign paymentUtxos
  * @param {string} config.destinationAddress - Address to deploy token to.
  * @param {string} config.changeAddress - Optional. Address to send payment change to, if any. If not provided, defaults to paymentPk address

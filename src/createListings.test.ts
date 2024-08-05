@@ -7,7 +7,7 @@ import {
   type TokenUtxo, 
   TokenType,
   type NewListing,
-  type TokenListing
+  type NewTokenListing
 } from "./types";
 
 describe("createOrdListings", () => {
@@ -85,11 +85,11 @@ describe("createOrdTokenListings", () => {
     txid: "abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
     vout: 0,
     script: "base64EncodedScript",
-    amt: "2000",
+    amt: "200000000000",
     id: "e6d40ba206340aa94ed40fe1a8adcd722c08c9438b2c1dd16b4527d561e848a2_0",
   }];
 
-  const listings: TokenListing[] = [{
+  const listings: NewTokenListing[] = [{
     payAddress: address,
     ordAddress: ordPk.toAddress().toString(),
     amt: 1000n,
@@ -105,6 +105,7 @@ describe("createOrdTokenListings", () => {
     tokenID: "e6d40ba206340aa94ed40fe1a8adcd722c08c9438b2c1dd16b4527d561e848a2_0",
     inputTokens,
     tokenChangeAddress: address,
+    decimals: 8,
   };
 
   test("create ord token listings with sufficient funds", async () => {

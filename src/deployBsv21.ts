@@ -25,7 +25,7 @@ import { DEFAULT_SAT_PER_KB } from "./constants";
  * @param {number} config.decimals - Number of decimal places to display
  * @param {string | IconInscription} config.icon - outpoint (format: txid_vout) or Inscription. If Inscription, must be a valid image type
  * @param {Utxo[]} config.utxos - Payment Utxos available to spend. Will only consume what is needed.
- * @param {Distribution} config.initialDistribution - Initial distribution with addresses and total supply
+ * @param {Distribution} config.initialDistribution - Initial distribution with addresses and total supply (not adjusted for decimals, library will add zeros)
  * @param {PrivateKey} config.paymentPk - Private key to sign paymentUtxos
  * @param {string} config.destinationAddress - Address to deploy token to.
  * @param {string} config.changeAddress - Optional. Address to send payment change to, if any. If not provided, defaults to paymentPk address
@@ -78,19 +78,15 @@ export const deployBsv21Token = async (
 			"Invalid icon format. Must be either outpoint (format: txid_vout) or relative output index of the icon (format _vout). examples: ecb483eda58f26da1b1f8f15b782b1186abdf9c6399a1c3e63e0d429d5092a41_0 or _1",
 		);
 	}
-
-  if (decimals) {
-    // add decimals to the amount
-    initialDistribution.amt += "0".repeat(decimals);
-  }
   
 	// Outputs
+  const amt = decimals ? BigInt(initialDistribution.amt) * 10n ** BigInt(decimals) : BigInt(initialDistribution.amt);
 	const fileData: DeployMintTokenInscription = {
 		p: "bsv-20",
 		op: "deploy+mint",
 		sym: symbol,
 		icon: iconValue,
-		amt: initialDistribution.amt,
+		amt: amt.toString(),
 	};
 
   if (decimals) {

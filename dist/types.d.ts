@@ -35,12 +35,13 @@ export type ExistingListing = {
     listingUtxo: Utxo;
 };
 /**
- * @typedef {Object} TokenListing
+ * @typedef {Object} NewTokenListing
  * @property {string} payAddress - Address to send the payment upon purchase
  * @property {string} price - Listing price in satoshis
  * @property {String} ordAddress - Where to return a listed ordinal upon cancel.
+ * @property {bigint} amt - Number of tokens as a bigint. Not adjusted for decimals (library will add zeros according to dec value).
  */
-export type TokenListing = {
+export type NewTokenListing = {
     payAddress: string;
     price: number;
     amt: bigint;
@@ -85,7 +86,7 @@ export interface NftUtxo extends Utxo {
 }
 /**
  * @typedef {Object} TokenUtxo
- * @property {string} amt - Number of tokens as a string
+ * @property {string} amt - Number of tokens as a string, adjusted for decimals. Ex. 100000000 for 1 token with 8 decimal places.
  * @property {string} id - Token id -  either tick or id depending on protocol
  * @property {string} satoshis - Always 1
  * @property {string} [payout] - Optional. Payment output script base64 encoded
@@ -364,7 +365,7 @@ export type TransferOrdTokensConfig = {
 export type CreateOrdListingsConfig = {
     utxos: Utxo[];
     listings: NewListing[];
-    royalty: number;
+    royalty?: number;
     paymentPk: PrivateKey;
     ordPk: PrivateKey;
     changeAddress?: string;
@@ -412,9 +413,24 @@ export interface CancelOrdTokenListingsConfig extends CancelOrdListingsConfig {
     tokenID: string;
     ordAddress?: string;
 }
+/**
+ * Configuration object for creating a token listing
+ * @typedef {Object} CreateOrdTokenListingsConfig
+ * @property {Utxo[]} utxos - Array of payment Utxos
+ * @property {TokenUtxo[]} inputTokens - Array of TokenUtxos to be listed
+ * @property {NewTokenListing[]} listings - Array of NewTokenListings
+ * @property {PrivateKey} paymentPk - Private key of the payment address
+ * @property {PrivateKey} ordPk - Private key of the ord address
+ * @property {string} tokenChangeAddress - Address to send the token change
+ * @property {number} [satsPerKb] - Optional. Satoshis per kilobyte
+ * @property {Payment[]} [additionalPayments] - Optional. Array of additional payments
+ * @property {TokenType} protocol - Token protocol
+ * @property {string} tokenID - Token id
+ * @property {number} decimals - Number of decimal places for this token.
+ */
 export interface CreateOrdTokenListingsConfig {
     utxos: Utxo[];
-    listings: TokenListing[];
+    listings: NewTokenListing[];
     paymentPk: PrivateKey;
     ordPk: PrivateKey;
     changeAddress?: string;
@@ -422,6 +438,7 @@ export interface CreateOrdTokenListingsConfig {
     additionalPayments?: Payment[];
     protocol: TokenType;
     tokenID: string;
+    decimals: number;
     inputTokens: TokenUtxo[];
     tokenChangeAddress: string;
 }
