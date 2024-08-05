@@ -1,4 +1,10 @@
-import { P2PKH, SatoshisPerKilobyte, Script, Transaction, Utils } from "@bsv/sdk";
+import {
+	P2PKH,
+	SatoshisPerKilobyte,
+	Script,
+	Transaction,
+	Utils,
+} from "@bsv/sdk";
 import { DEFAULT_SAT_PER_KB } from "./constants";
 import {
 	TokenType,
@@ -30,19 +36,19 @@ export const purchaseOrdListing = async (config: PurchaseOrdListingConfig) => {
 
 	// Inputs
 	// Add the locked ordinal we're purchasing
-  tx.addInput({
-		unlockingScriptTemplate: new OrdLock().purchaseListing(
-			1,
-			Script.fromBinary(Utils.toArray(listingUtxo.script, "base64")),
+	tx.addInput(
+		inputFromB64Utxo(
+			listingUtxo,
+			new OrdLock().purchaseListing(
+				1,
+				Script.fromBinary(Utils.toArray(listingUtxo.script, "base64")),
+			),
 		),
-		sourceTXID: listingUtxo.txid,
-		sourceOutputIndex: listingUtxo.vout,
-		sequence: 0xffffffff,
-	});
+	);
 
 	// Outputs
 	// Add the purchased output
-  tx.addOutput({
+	tx.addOutput({
 		satoshis: 1,
 		lockingScript: new P2PKH().lock(ordAddress),
 	});
@@ -73,13 +79,16 @@ export const purchaseOrdListing = async (config: PurchaseOrdListingConfig) => {
 	);
 	let fee = 0;
 	for (const utxo of utxos) {
-		const input = inputFromB64Utxo(utxo, new P2PKH().unlock(
-			paymentPk, 
-			"all",
-			true, 
-			utxo.satoshis,
-			Script.fromBinary(Utils.toArray(utxo.script, 'base64'))
-		));
+		const input = inputFromB64Utxo(
+			utxo,
+			new P2PKH().unlock(
+				paymentPk,
+				"all",
+				true,
+				utxo.satoshis,
+				Script.fromBinary(Utils.toArray(utxo.script, "base64")),
+			),
+		);
 
 		tx.addInput(input);
 		// stop adding inputs if the total amount is enough
@@ -153,13 +162,15 @@ export const purchaseOrdTokenListing = async (
 
 	// Inputs
 	// Add the locked ordinal we're purchasing
-	tx.addInput(inputFromB64Utxo(
-		listingUtxo,
-		new OrdLock().purchaseListing(
-			1,
-			Script.fromHex(Buffer.from(listingUtxo.script, "base64").toString("hex")),
+	tx.addInput(
+		inputFromB64Utxo(
+			listingUtxo,
+			new OrdLock().purchaseListing(
+				1,
+				Script.fromBinary(Utils.toArray(listingUtxo.script, "base64")),
+			),
 		),
-	));
+	);
 
 	// Outputs
 	const transferInscription: TransferTokenInscription = {
@@ -218,13 +229,16 @@ export const purchaseOrdTokenListing = async (
 	);
 	let fee = 0;
 	for (const utxo of utxos) {
-		const input = inputFromB64Utxo(utxo, new P2PKH().unlock(
-			paymentPk, 
-			"all",
-			true, 
-			utxo.satoshis,
-			Script.fromBinary(Utils.toArray(utxo.script, 'base64'))
-		));
+		const input = inputFromB64Utxo(
+			utxo,
+			new P2PKH().unlock(
+				paymentPk,
+				"all",
+				true,
+				utxo.satoshis,
+				Script.fromBinary(Utils.toArray(utxo.script, "base64")),
+			),
+		);
 
 		tx.addInput(input);
 		// stop adding inputs if the total amount is enough
@@ -268,9 +282,11 @@ export const purchaseOrdTokenListing = async (
 		payChange.txid = tx.id("hex") as string;
 	}
 
-  return {
+	return {
 		tx,
-		spentOutpoints: tx.inputs.map((i) => `${i.sourceTXID}_${i.sourceOutputIndex}`),
+		spentOutpoints: tx.inputs.map(
+			(i) => `${i.sourceTXID}_${i.sourceOutputIndex}`,
+		),
 		payChange,
 	};
 };
