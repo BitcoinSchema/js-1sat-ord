@@ -7,7 +7,7 @@ describe("purchaseOrdListings", () => {
   const address = paymentPk.toAddress().toString();
 
   const utxos: Utxo[] = [{
-    satoshis: 10000,
+    satoshis: 9910000,
     txid: "ecb483eda58f26da1b1f8f15b782b1186abdf9c6399a1c3e63e0d429d5092a41",
     vout: 0,
     script: "base64EncodedScript",
@@ -20,6 +20,9 @@ describe("purchaseOrdListings", () => {
     script: "base64EncodedScript",
     amt: "1000",
     id: "e6d40ba206340aa94ed40fe1a8adcd722c08c9438b2c1dd16b4527d561e848a2_0",
+    payout: "wPs5AAAAAAAZdqkUF/HQ6ktHp6Ab8txx3xBGIs103PyIrA==",
+    price: 3800000,
+    isListing: true,
   };
 
   const baseConfig: PurchaseOrdTokenListingConfig = {
@@ -57,7 +60,7 @@ describe("purchaseOrdListings", () => {
     };
     const { tx } = await purchaseOrdTokenListing(configWithPayments);
 
-    expect(tx.outputs).toHaveLength(3); // 1 for ordinal transfer, 1 for payment, 1 for change
+    expect(tx.outputs).toHaveLength(4); // 1 for ordinal transfer, 1 for payment, 1 additional payment, 1 for change
   });
 
   test("purchase ord listings with insufficient funds", async () => {
@@ -74,7 +77,7 @@ describe("purchaseOrdTokenListing", () => {
   const address = paymentPk.toAddress().toString();
 
   const utxos: Utxo[] = [{
-    satoshis: 10000,
+    satoshis: 9910000,
     txid: "ecb483eda58f26da1b1f8f15b782b1186abdf9c6399a1c3e63e0d429d5092a41",
     vout: 0,
     script: "base64EncodedScript",
@@ -87,6 +90,9 @@ describe("purchaseOrdTokenListing", () => {
     script: "base64EncodedScript",
     amt: "1000",
     id: "e6d40ba206340aa94ed40fe1a8adcd722c08c9438b2c1dd16b4527d561e848a2_0",
+    payout: "wPs5AAAAAAAZdqkUF/HQ6ktHp6Ab8txx3xBGIs103PyIrA==",
+    price: 3800000,
+    isListing: true,
   };
 
   const baseConfig: PurchaseOrdTokenListingConfig = {
@@ -123,7 +129,8 @@ describe("purchaseOrdTokenListing", () => {
       additionalPayments: [{ to: address, amount: 1000 }],
     };
     const { tx } = await purchaseOrdTokenListing(configWithPayments);
-    expect(tx.outputs).toHaveLength(3); // 1 for token transfer, 1 for payment, 1 for change
+    console.log({ txHex: tx.toHex() });
+    expect(tx.outputs).toHaveLength(4); // 1 for token transfer, 1 for payment, 1 additional payment, 1 for change
   });
 
   test("purchase ord token listing with insufficient funds", async () => {

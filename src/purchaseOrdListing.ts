@@ -9,7 +9,6 @@ import {
 import { DEFAULT_SAT_PER_KB } from "./constants";
 import {
 	TokenType,
-	type Inscription,
 	type PurchaseOrdListingConfig,
 	type PurchaseOrdTokenListingConfig,
 	type TransferBSV20Inscription,
@@ -215,6 +214,10 @@ export const purchaseOrdTokenListing = async (
 		}),
 	});
 
+  if (!listingUtxo.payout) {
+    throw new Error("Listing UTXO does not have a payout script");
+  }
+
   // Add the payment output
   const reader = new Utils.Reader(Utils.toArray(listingUtxo.payout, "base64"));
   const satoshis = reader.readUInt64LEBn().toNumber();
@@ -225,7 +228,7 @@ export const purchaseOrdTokenListing = async (
     satoshis,
     lockingScript,
   });
-  
+
 	// Add additional payments if any
 	for (const p of additionalPayments) {
 		tx.addOutput({
