@@ -88,11 +88,17 @@ export interface NftUtxo extends Utxo {
  * @property {string} amt - Number of tokens as a string
  * @property {string} id - Token id -  either tick or id depending on protocol
  * @property {string} satoshis - Always 1
+ * @property {string} [payout] - Optional. Payment output script base64 encoded
+ * @property {number} [price] - Optional. Listing price in satoshis
+ * @property {boolean} [isListing] - Optional. True if the token is a listing
  */
 export interface TokenUtxo extends Utxo {
     amt: string;
     id: string;
     satoshis: 1;
+    payout?: string;
+    price?: number;
+    isListing?: boolean;
 }
 export type Inscription = {
     dataB64: string;

@@ -215,6 +215,17 @@ export const purchaseOrdTokenListing = async (
 		}),
 	});
 
+  // Add the payment output
+  const reader = new Utils.Reader(Utils.toArray(listingUtxo.payout, "base64"));
+  const satoshis = reader.readUInt64LEBn().toNumber();
+  const scriptLength = reader.readVarIntNum();
+  const scriptBin = reader.read(scriptLength);
+  const lockingScript = LockingScript.fromBinary(scriptBin);
+  tx.addOutput({
+    satoshis,
+    lockingScript,
+  });
+  
 	// Add additional payments if any
 	for (const p of additionalPayments) {
 		tx.addOutput({
