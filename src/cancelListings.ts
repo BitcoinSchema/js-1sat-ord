@@ -1,6 +1,7 @@
 import { P2PKH, SatoshisPerKilobyte, Script, Transaction, Utils } from "@bsv/sdk";
 import {
 	TokenType,
+	type TokenUtxo,
 	type CancelOrdListingsConfig,
 	type CancelOrdTokenListingsConfig,
 	type Destination,
@@ -220,12 +221,14 @@ export const cancelOrdTokenListings = async (
 		},
 	};
 
+  const lockingScript = new OrdP2PKH().lock(
+    destination.address,
+    destination.inscription
+  );
+
 	tx.addOutput({
 		satoshis: 1,
-		lockingScript: new OrdP2PKH().lock(
-			destination.address,
-			destination.inscription
-		),
+		lockingScript,
 	});
 
 	// Add additional payments if any
@@ -285,6 +288,15 @@ export const cancelOrdTokenListings = async (
 	// Sign the transaction
 	await tx.sign();
 
+  const tokenChange: TokenUtxo = {
+    amt: totalAmtIn.toString(),
+    script: Buffer.from(lockingScript.toHex(), 'hex').toString('base64'),
+    txid: tx.id("hex") as string,
+    vout: 0,
+    id: tokenID,
+    satoshis: 1
+  };
+
 	// check for change
 	const payChangeOutIdx = tx.outputs.findIndex((o) => o.change);
 	if (payChangeOutIdx !== -1) {
@@ -311,5 +323,6 @@ export const cancelOrdTokenListings = async (
 			(i) => `${i.sourceTXID}_${i.sourceOutputIndex}`,
 		),
 		payChange,
+    tokenChange
 	};
 };
