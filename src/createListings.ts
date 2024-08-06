@@ -227,8 +227,8 @@ export const createOrdTokenListings = async (
 		tx.addOutput({
 			satoshis: 1,
 			lockingScript: new OrdLock().lock(
-				listing.payAddress,
 				listing.ordAddress,
+				listing.payAddress,
 				listing.price,
 				{
 					dataB64: Buffer.from(JSON.stringify(inscription)).toString("base64"),
