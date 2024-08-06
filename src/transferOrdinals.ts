@@ -29,6 +29,7 @@ import { inputFromB64Utxo } from "./utils/utxo";
  * @param {PreMAP} config.metaData - Optional. MAP (Magic Attribute Protocol) metadata to include in inscriptions
  * @param {LocalSigner | RemoteSigner} config.signer - Optional. Signer object to sign the transaction
  * @param {Payment[]} config.additionalPayments - Optional. Additional payments to include in the transaction
+ * @param {decimals} config.decimals - Number of decimal places for the token
  * @param {burn} config.burn - Optional. Set to true to burn the tokens.
  * @returns {Promise<TransferOrdTokensResult>} Transaction with token transfer outputs
  */
@@ -46,6 +47,7 @@ export const transferOrdTokens = async (config: TransferOrdTokensConfig): Promis
 		satsPerKb = DEFAULT_SAT_PER_KB,
 		metaData,
 		signer,
+    decimals,
 		additionalPayments = [],
 		burn = false
 	} = config;
@@ -87,6 +89,9 @@ export const transferOrdTokens = async (config: TransferOrdTokensConfig): Promis
 			op: burn ? "burn" : "transfer",
 			amt: dest.amt,
 		}
+    if (decimals > 0) {
+      transferInscription.amt = (BigInt(dest.amt) * BigInt(10 ** decimals)).toString();
+    }
 		let inscription: TransferBSV20Inscription | TransferBSV21Inscription;
 		if (protocol === TokenType.BSV20) {
 			inscription = {
@@ -112,7 +117,7 @@ export const transferOrdTokens = async (config: TransferOrdTokensConfig): Promis
 				},
 			),
 		});
-		totalAmtOut += BigInt(dest.amt);
+		totalAmtOut += BigInt(transferInscription.amt);
 	};
 	changeAmt = totalAmtIn - totalAmtOut;
 

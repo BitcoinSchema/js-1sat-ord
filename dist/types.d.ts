@@ -349,6 +349,7 @@ export interface TransferOrdTokensResult extends SendOrdinalsResult {
 export type TransferOrdTokensConfig = {
     protocol: TokenType;
     tokenID: string;
+    decimals: number;
     utxos: Utxo[];
     inputTokens: TokenUtxo[];
     distributions: Distribution[];

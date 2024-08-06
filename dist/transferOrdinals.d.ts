@@ -15,6 +15,7 @@ import { type TransferOrdTokensConfig, type TransferOrdTokensResult } from "./ty
  * @param {PreMAP} config.metaData - Optional. MAP (Magic Attribute Protocol) metadata to include in inscriptions
  * @param {LocalSigner | RemoteSigner} config.signer - Optional. Signer object to sign the transaction
  * @param {Payment[]} config.additionalPayments - Optional. Additional payments to include in the transaction
+ * @param {decimals} config.decimals - Number of decimal places for the token
  * @param {burn} config.burn - Optional. Set to true to burn the tokens.
  * @returns {Promise<TransferOrdTokensResult>} Transaction with token transfer outputs
  */
