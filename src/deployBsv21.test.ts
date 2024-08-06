@@ -1,9 +1,9 @@
 import { P2PKH, PrivateKey } from "@bsv/sdk";
-import { deployBsv21Token } from "./deployBsv21";
-import type { Utxo, IconInscription, DeployBsv21TokenConfig } from "./types";
-import { ErrorIconProportions, ErrorImageDimensionsUndefined, ErrorOversizedIcon } from "./utils/icon";
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { deployBsv21Token } from "./deployBsv21";
+import type { DeployBsv21TokenConfig, IconInscription, Utxo } from "./types";
+import { ErrorIconProportions, ErrorImageDimensionsUndefined, ErrorOversizedIcon } from "./utils/icon";
 
 describe("deployBsv21Token", () => {
   const paymentPk = PrivateKey.fromWif("KzwfqdfecMRtpg65j2BeRtixboNR37fSCDr8QbndV6ySEPT4xibW");
@@ -32,7 +32,7 @@ describe("deployBsv21Token", () => {
 
   const initialDistribution = {
     address: address,
-    amt: "1000000000"
+    amt: 1000000000,
   };
 
   const symbol = "TEST";

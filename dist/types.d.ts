@@ -39,22 +39,22 @@ export type ExistingListing = {
  * @property {string} payAddress - Address to send the payment upon purchase
  * @property {string} price - Listing price in satoshis
  * @property {String} ordAddress - Where to return a listed ordinal upon cancel.
- * @property {bigint} amt - Number of tokens as a bigint. Not adjusted for decimals (library will add zeros according to dec value).
+ * @property {number} amt - Number of tokens as a number. Not adjusted for decimals (library will add zeros according to dec value).
  */
 export type NewTokenListing = {
     payAddress: string;
     price: number;
-    amt: bigint;
+    amt: number;
     ordAddress: string;
 };
 /**
  * @typedef {Object} Distribution
  * @property {string} address - Destination address. Must be a Ordinals address (BSV address for recieving 1Sat ordinals tokens).
- * @property {string} amt - Number of tokens as a string, considering decimals. Not display format. Ex. 100000000 for 1 token with 8 decimal places.
+ * @property {number} amt - Number of tokens as a string, considering decimals. Not display format. Ex. 100000000 for 1 token with 8 decimal places.
  */
 export type Distribution = {
     address: string;
-    amt: string;
+    amt: number;
 };
 /**
  * @typedef {Object} Utxo
@@ -192,7 +192,7 @@ export declare enum RoytaltyType {
  * @typedef {Object} Royalty
  * @property {RoytaltyType} type - Royalty type, string, one of "paymail", "address", "script"
  * @property {string} destination - Royalty destination
- * @property {string} percentage - Royalty percentage as a string float 0-1
+ * @property {string} percentage - Royalty percentage as a string float 0-1 (0.01 = 1%)
  */
 export type Royalty = {
     type: RoytaltyType;
@@ -366,7 +366,6 @@ export type TransferOrdTokensConfig = {
 export type CreateOrdListingsConfig = {
     utxos: Utxo[];
     listings: NewListing[];
-    royalty?: number;
     paymentPk: PrivateKey;
     ordPk: PrivateKey;
     changeAddress?: string;
@@ -381,6 +380,7 @@ export type PurchaseOrdListingConfig = {
     changeAddress?: string;
     satsPerKb?: number;
     additionalPayments?: Payment[];
+    royalties?: Royalty[];
 };
 export type PurchaseOrdTokenListingConfig = {
     protocol: TokenType;
@@ -443,4 +443,5 @@ export interface CreateOrdTokenListingsConfig {
     inputTokens: TokenUtxo[];
     tokenChangeAddress: string;
 }
+export declare const MAX_TOKEN_SUPPLY: bigint;
 export {};

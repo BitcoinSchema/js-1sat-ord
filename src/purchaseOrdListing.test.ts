@@ -1,6 +1,6 @@
 import { PrivateKey, Transaction } from "@bsv/sdk";
-import { purchaseOrdListing, purchaseOrdTokenListing } from "./purchaseOrdListing";
-import { TokenType, type PurchaseOrdTokenListingConfig, type Utxo, type TokenUtxo, type TokenListing } from "./types";
+import { purchaseOrdTokenListing } from "./purchaseOrdListing";
+import { TokenType, type PurchaseOrdTokenListingConfig, type TokenUtxo, type Utxo } from "./types";
 
 describe("purchaseOrdListings", () => {
   const paymentPk = PrivateKey.fromWif("KwE2RgUthyfEZbzrS3EEgSRVr1NodBc9B3vPww6oSGChDuWS6Heb");
