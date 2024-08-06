@@ -90,7 +90,7 @@ export const transferOrdTokens = async (config: TransferOrdTokensConfig): Promis
 			amt: dest.amt,
 		}
     if (decimals > 0) {
-      transferInscription.amt = (BigInt(dest.amt) * BigInt(10 ** decimals)).toString();
+      transferInscription.amt = (BigInt(dest.amt) * 10n ** BigInt(decimals)).toString();
     }
 		let inscription: TransferBSV20Inscription | TransferBSV21Inscription;
 		if (protocol === TokenType.BSV20) {
@@ -106,7 +106,6 @@ export const transferOrdTokens = async (config: TransferOrdTokensConfig): Promis
 		} else {
 			throw new Error("Invalid protocol");
 		}
-
 		tx.addOutput({
 			satoshis: 1,
 			lockingScript: new OrdP2PKH().lock(
@@ -117,7 +116,7 @@ export const transferOrdTokens = async (config: TransferOrdTokensConfig): Promis
 				},
 			),
 		});
-		totalAmtOut += BigInt(transferInscription.amt);
+		totalAmtOut += BigInt(inscription.amt);
 	};
 	changeAmt = totalAmtIn - totalAmtOut;
 

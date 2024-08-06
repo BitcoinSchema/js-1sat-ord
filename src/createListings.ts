@@ -207,7 +207,7 @@ export const createOrdTokenListings = async (
 		};
     // NewTokenListing is not adjusted for decimals
     if (decimals > 0) {
-      transferInscription.amt = (listing.amt * BigInt(10 ** decimals)).toString();
+      transferInscription.amt = (listing.amt * 10n ** BigInt(decimals)).toString();
     }
 		let inscription: TransferBSV20Inscription | TransferBSV21Inscription;
 		if (protocol === TokenType.BSV20) {
