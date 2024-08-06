@@ -90,9 +90,6 @@ export const transferOrdTokens = async (config: TransferOrdTokensConfig): Promis
       op: burn ? "burn" : "transfer",
       amt: bigAmt.toString(),
     }
-    if (decimals > 0) {
-      transferInscription.amt = (BigInt(dest.amt) * 10n ** BigInt(decimals)).toString();
-    }
     let inscription: TransferBSV20Inscription | TransferBSV21Inscription;
     if (protocol === TokenType.BSV20) {
       inscription = {
