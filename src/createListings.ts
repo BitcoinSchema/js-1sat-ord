@@ -232,7 +232,7 @@ export const createOrdTokenListings = async (
 				listing.price,
 				{
 					dataB64: Buffer.from(JSON.stringify(inscription)).toString("base64"),
-					contentType: "application/bsv20",
+					contentType: "application/bsv-20",
 				},
 			),
 		});

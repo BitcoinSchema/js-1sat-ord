@@ -112,7 +112,7 @@ export const transferOrdTokens = async (config: TransferOrdTokensConfig): Promis
 				dest.address,
 				{
 					dataB64: Buffer.from(JSON.stringify(inscription)).toString("base64"),
-					contentType: "application/bsv20",
+					contentType: "application/bsv-20",
 				},
 			),
 		});
