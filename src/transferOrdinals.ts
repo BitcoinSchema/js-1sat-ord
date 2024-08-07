@@ -12,6 +12,8 @@ import { DEFAULT_SAT_PER_KB } from "./constants";
 import { P2PKH, SatoshisPerKilobyte, Script, Transaction, Utils } from "@bsv/sdk";
 import OrdP2PKH from "./templates/ordP2pkh";
 import { inputFromB64Utxo } from "./utils/utxo";
+import { signData } from "./signData";
+import stringifyMetaData from "./utils/subtypeData";
 
 /**
  * Transfer tokens to a destination
@@ -63,7 +65,7 @@ export const transferOrdTokens = async (config: TransferOrdTokensConfig): Promis
 	}
 
 	const modelOrFee = new SatoshisPerKilobyte(satsPerKb);
-	const tx = new Transaction();
+	let tx = new Transaction();
 
 	for (const token of inputTokens) {
 		const inputScriptBinary = Utils.toArray(token.script, "base64");
@@ -146,13 +148,25 @@ export const transferOrdTokens = async (config: TransferOrdTokensConfig): Promis
 			throw new Error("Invalid protocol");
 		}
 
+
+    		// remove any undefined fields from metadata
+		if (metaData) {
+			for(const key of Object.keys(metaData)) {
+				if (metaData[key] === undefined) {
+					delete metaData[key];
+				}
+			}
+		}
+
 		const lockingScript = new OrdP2PKH().lock(
 			tokenChangeAddress || ordPk.toAddress().toString(), 
 			{
 				dataB64: Buffer.from(JSON.stringify(inscription)).toString('base64'),
 				contentType: "application/bsv-20",
-			}
+			},
+      stringifyMetaData(metaData)
 		);
+    
 		const vout = tx.outputs.length;
 		tx.addOutput({ lockingScript, satoshis: 1 });
 		tokenChange = {
@@ -216,6 +230,10 @@ export const transferOrdTokens = async (config: TransferOrdTokensConfig): Promis
 		);
 	}
 
+  if (config.signer) {
+		tx = await signData(tx, config.signer);
+	}
+  
 	// estimate the cost of the transaction and assign change value
 	await tx.fee(modelOrFee);
 
