@@ -1,13 +1,13 @@
 import { PrivateKey, Transaction } from "@bsv/sdk";
 import { createOrdListings, createOrdTokenListings } from "./createListings";
-import { 
-  type CreateOrdListingsConfig, 
-  type CreateOrdTokenListingsConfig, 
-  type Utxo, 
-  type TokenUtxo, 
+import {
   TokenType,
+  type CreateOrdListingsConfig,
+  type CreateOrdTokenListingsConfig,
   type NewListing,
-  type NewTokenListing
+  type NewTokenListing,
+  type TokenUtxo,
+  type Utxo
 } from "./types";
 
 describe("createOrdListings", () => {
@@ -37,7 +37,6 @@ describe("createOrdListings", () => {
   const baseConfig: CreateOrdListingsConfig = {
     utxos,
     listings,
-    royalty: 0,
     paymentPk,
     ordPk,
   };
@@ -92,7 +91,7 @@ describe("createOrdTokenListings", () => {
   const listings: NewTokenListing[] = [{
     payAddress: address,
     ordAddress: ordPk.toAddress().toString(),
-    amt: 1000n,
+    amt: 1000,
     price: 5000,
   }];
 

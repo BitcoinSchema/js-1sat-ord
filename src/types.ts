@@ -1,21 +1,21 @@
-import type { PrivateKey, Script, Transaction } from "@bsv/sdk";
+import type { PrivateKey, Transaction } from "@bsv/sdk";
 import type { AuthToken } from "sigma-protocol";
 
 // biome-ignore lint/complexity/noBannedTypes: Reserved for future use
 type Signer = {};
 
 export interface LocalSigner extends Signer {
-	idKey: PrivateKey;
+  idKey: PrivateKey;
 }
 
 export interface RemoteSigner extends Signer {
-	keyHost: string;
-	authToken?: AuthToken;
+  keyHost: string;
+  authToken?: AuthToken;
 }
 
 export type Destination = {
-	address: string;
-	inscription?: Inscription;
+  address: string;
+  inscription?: Inscription;
 };
 
 /**
@@ -26,10 +26,10 @@ export type Destination = {
  * @property {Utxo} listingUtxo - Utxo of the listing
  */
 export type NewListing = {
-	payAddress: string;
-	price: number;
-	ordAddress: string;
-	listingUtxo: Utxo;
+  payAddress: string;
+  price: number;
+  ordAddress: string;
+  listingUtxo: Utxo;
 }
 
 /**
@@ -47,23 +47,23 @@ export type ExistingListing = {
  * @property {string} payAddress - Address to send the payment upon purchase
  * @property {string} price - Listing price in satoshis
  * @property {String} ordAddress - Where to return a listed ordinal upon cancel.
- * @property {bigint} amt - Number of tokens as a bigint. Not adjusted for decimals (library will add zeros according to dec value).
+ * @property {number} amt - Number of tokens as a number. Not adjusted for decimals (library will add zeros according to dec value).
  */
 export type NewTokenListing = {
-	payAddress: string;
-	price: number;
-	amt: bigint;
-	ordAddress: string;
+  payAddress: string;
+  price: number;
+  amt: number;
+  ordAddress: string;
 }
 
 /**
  * @typedef {Object} Distribution
  * @property {string} address - Destination address. Must be a Ordinals address (BSV address for recieving 1Sat ordinals tokens).
- * @property {string} amt - Number of tokens as a string, considering decimals. Not display format. Ex. 100000000 for 1 token with 8 decimal places.
+ * @property {number} amt - Number of tokens as a string, considering decimals. Not display format. Ex. 100000000 for 1 token with 8 decimal places.
  */
 export type Distribution = {
-	address: string;
-	amt: string;
+  address: string;
+  amt: number;
 };
 
 /**
@@ -74,10 +74,10 @@ export type Distribution = {
  * @property {string} script - Base64 encoded locking script
  */
 export type Utxo = {
-	satoshis: number;
-	txid: string;
-	vout: number;
-	script: string;
+  satoshis: number;
+  txid: string;
+  vout: number;
+  script: string;
 };
 
 /**
@@ -89,11 +89,11 @@ export type Utxo = {
  * @property {number} satoshis - Always 1
  */
 export interface NftUtxo extends Utxo {
-	collectionId?: string;
-	contentType: string;
-	creatorBapId?: string;
-	origin: string;
-	satoshis: 1;
+  collectionId?: string;
+  contentType: string;
+  creatorBapId?: string;
+  origin: string;
+  satoshis: 1;
 }
 
 /**
@@ -106,25 +106,25 @@ export interface NftUtxo extends Utxo {
  * @property {boolean} [isListing] - Optional. True if the token is a listing
  */
 export interface TokenUtxo extends Utxo {
-	amt: string;
-	id: string;
-	satoshis: 1;
+  amt: string;
+  id: string;
+  satoshis: 1;
   payout?: string;
   price?: number;
   isListing?: boolean;
 }
 
 export type Inscription = {
-	dataB64: string;
-	contentType: string;
+  dataB64: string;
+  contentType: string;
 };
 
 export type ImageContentType =
-	| "image/png"
-	| "image/jpeg"
-	| "image/gif"
-	| "image/svg+xml"
-	| "image/webp";
+  | "image/png"
+  | "image/jpeg"
+  | "image/gif"
+  | "image/svg+xml"
+  | "image/webp";
 
 /**
  * @typedef {Object} IconInscription
@@ -132,55 +132,55 @@ export type ImageContentType =
  * @property {ImageContentType} contentType - Media type of the image
  */
 export type IconInscription = {
-	dataB64: string;
-	contentType: ImageContentType;
+  dataB64: string;
+  contentType: ImageContentType;
 };
 
 export type Payment = {
-	to: string;
-	amount: number;
+  to: string;
+  amount: number;
 };
 
 export type TokenInscription = {
-	p: "bsv-20";
-	amt: string;
-	op: "transfer" | "mint" | "deploy+mint" | "burn";
+  p: "bsv-20";
+  amt: string;
+  op: "transfer" | "mint" | "deploy+mint" | "burn";
   dec?: string;
 };
 
 export interface MintTokenInscription extends TokenInscription {
-	op: "mint";
+  op: "mint";
 }
 
 export interface DeployMintTokenInscription extends TokenInscription {
-	op: "deploy+mint";
-	sym: string;
-	icon: string;
+  op: "deploy+mint";
+  sym: string;
+  icon: string;
 }
 
 export interface TransferTokenInscription extends TokenInscription {
-	p: "bsv-20";
-	amt: string;
-	op: "transfer" | "burn";
+  p: "bsv-20";
+  amt: string;
+  op: "transfer" | "burn";
 }
 
 export interface TransferBSV20Inscription extends TransferTokenInscription {
-	tick: string;
+  tick: string;
 }
 
 export interface TransferBSV21Inscription extends TransferTokenInscription {
-	id: string;
+  id: string;
 }
 
 export enum TokenType {
-	BSV20 = "bsv20",
-	BSV21 = "bsv21",
+  BSV20 = "bsv20",
+  BSV21 = "bsv21",
 }
 
 export type CreateOrdinalsResult = {
-	tx: Transaction;
-	spentOutpoints: string[];
-	payChange?: Utxo;
+  tx: Transaction;
+  spentOutpoints: string[];
+  payChange?: Utxo;
 };
 
 /**
@@ -191,34 +191,34 @@ export type CreateOrdinalsResult = {
  * @property {string} [prop] - Optional. Additional metadata properties
  */
 export type MAP = {
-	app: string;
-	type: string;
-	[prop: string]: string;
+  app: string;
+  type: string;
+  [prop: string]: string;
 };
 
 export type PreMAP = {
-	app: string;
-	type: string;
-	[prop: string]: unknown;
-	royalties?: Royalty[];
-	subTypeData?: CollectionSubTypeData | CollectionItemSubTypeData;
+  app: string;
+  type: string;
+  [prop: string]: unknown;
+  royalties?: Royalty[];
+  subTypeData?: CollectionSubTypeData | CollectionItemSubTypeData;
 };
 
 export type CreateOrdinalsConfig = {
-	utxos: Utxo[];
-	destinations: Destination[];
-	paymentPk: PrivateKey;
-	changeAddress?: string;
-	satsPerKb?: number;
-	metaData?: PreMAP;
-	signer?: LocalSigner | RemoteSigner;
-	additionalPayments?: Payment[];
+  utxos: Utxo[];
+  destinations: Destination[];
+  paymentPk: PrivateKey;
+  changeAddress?: string;
+  satsPerKb?: number;
+  metaData?: PreMAP;
+  signer?: LocalSigner | RemoteSigner;
+  additionalPayments?: Payment[];
 };
 
 export enum RoytaltyType {
-	Paymail = "paymail",
-	Address = "address",
-	Script = "script",
+  Paymail = "paymail",
+  Address = "address",
+  Script = "script",
 }
 
 /**
@@ -226,29 +226,29 @@ export enum RoytaltyType {
  * @typedef {Object} Royalty
  * @property {RoytaltyType} type - Royalty type, string, one of "paymail", "address", "script"
  * @property {string} destination - Royalty destination
- * @property {string} percentage - Royalty percentage as a string float 0-1
+ * @property {string} percentage - Royalty percentage as a string float 0-1 (0.01 = 1%)
  */
 export type Royalty = {
-	type: RoytaltyType;
-	destination: string;
-	percentage: string; // string float 0-1
+  type: RoytaltyType;
+  destination: string;
+  percentage: string; // string float 0-1
 };
 
 export interface CreateOrdinalsMetadata extends PreMAP {
-	type: "ord",
-	name: string,
-	previewUrl?: string,
+  type: "ord",
+  name: string,
+  previewUrl?: string,
 }
 
 export interface CreateOrdinalsCollectionMetadata extends CreateOrdinalsMetadata {
-	subType: "collection",
-	subTypeData: CollectionSubTypeData, // JSON stringified CollectionSubTypeData
-	royalties?: Royalty[],
+  subType: "collection",
+  subTypeData: CollectionSubTypeData, // JSON stringified CollectionSubTypeData
+  royalties?: Royalty[],
 };
 
 export interface CreateOrdinalsCollectionItemMetadata extends CreateOrdinalsMetadata {
-	subType: "collectionItem",
-	subTypeData: CollectionItemSubTypeData, // JSON stringified CollectionItemSubTypeData
+  subType: "collectionItem",
+  subTypeData: CollectionItemSubTypeData, // JSON stringified CollectionItemSubTypeData
 };
 
 /**
@@ -263,37 +263,37 @@ export interface CreateOrdinalsCollectionItemMetadata extends CreateOrdinalsMeta
  * @property [metaData.previewUrl] - Optional. Preview URL
  */
 export interface CreateOrdinalsCollectionConfig extends CreateOrdinalsConfig {
-	metaData: CreateOrdinalsCollectionMetadata
+  metaData: CreateOrdinalsCollectionMetadata
 }
 
 export type CollectionTraits = {
-	[trait: string]: CollectionTrait;
+  [trait: string]: CollectionTrait;
 };
 
 export type CollectionTrait = {
-	values: string[];
-	occurancePercentages: string[];
+  values: string[];
+  occurancePercentages: string[];
 };
 
 export type Rarity = {
-	[key: string]: string;
+  [key: string]: string;
 }
 
 export type RarityLabels = Rarity[]
 export interface CollectionSubTypeData {
-	description: string;
-	quantity: number;
-	rarityLabels: RarityLabels;
-	traits: CollectionTraits;
+  description: string;
+  quantity: number;
+  rarityLabels: RarityLabels;
+  traits: CollectionTraits;
 }
 
 export interface CreateOrdinalsCollectionItemMetadata extends PreMAP {
-	type: "ord",
-	name: string,
-	subType: "collectionItem",
-	subTypeData: CollectionItemSubTypeData, // JSON stringified CollectionItemSubTypeData
-	royalties?: Royalty[],
-	previewUrl?: string,
+  type: "ord",
+  name: string,
+  subType: "collectionItem",
+  subTypeData: CollectionItemSubTypeData, // JSON stringified CollectionItemSubTypeData
+  royalties?: Royalty[],
+  previewUrl?: string,
 }
 
 /**
@@ -308,7 +308,7 @@ export interface CreateOrdinalsCollectionItemMetadata extends PreMAP {
  * @property [metaData.previewUrl] - Optional. Preview URL
  */
 export interface CreateOrdinalsCollectionItemConfig extends CreateOrdinalsConfig {
-	metaData: CreateOrdinalsCollectionItemMetadata
+  metaData: CreateOrdinalsCollectionItemMetadata
 }
 
 /**
@@ -322,157 +322,157 @@ export interface CreateOrdinalsCollectionItemConfig extends CreateOrdinalsConfig
  * @property {string} attachments - array of attachment objects
  */
 export interface CollectionItemSubTypeData {
-	collectionId: string;
-	mintNumber?: number;
-	rank?: number;
-	rarityLabel?: RarityLabels;
-	traits?: CollectionItemTraits;
-	attachments?: CollectionItemAttachment[];
+  collectionId: string;
+  mintNumber?: number;
+  rank?: number;
+  rarityLabel?: RarityLabels;
+  traits?: CollectionItemTraits;
+  attachments?: CollectionItemAttachment[];
 }
 
 export type CollectionItemTraits = {
-	name: string;
-	value: string;
-	rarityLabel?: string;
-	occurancePercentrage?: string;
+  name: string;
+  value: string;
+  rarityLabel?: string;
+  occurancePercentrage?: string;
 };
 
 export type CollectionItemAttachment = {
-	name: string;
-	description?: string;
-	"content-type": string;
-	url: string;
+  name: string;
+  description?: string;
+  "content-type": string;
+  url: string;
 }
 
 export type SendOrdinalsResult = {
-	tx: Transaction;
-	spentOutpoints: string[];
-	payChange?: Utxo;
+  tx: Transaction;
+  spentOutpoints: string[];
+  payChange?: Utxo;
 };
 
 export type SendOrdinalsConfig = {
-	paymentUtxos: Utxo[];
-	ordinals: Utxo[];
-	paymentPk: PrivateKey;
-	ordPk: PrivateKey;
-	destinations: Destination[];
-	changeAddress?: string;
-	satsPerKb?: number;
-	metaData?: PreMAP;
-	signer?: LocalSigner | RemoteSigner;
-	additionalPayments?: Payment[];
-	enforceUniformSend?: boolean;
+  paymentUtxos: Utxo[];
+  ordinals: Utxo[];
+  paymentPk: PrivateKey;
+  ordPk: PrivateKey;
+  destinations: Destination[];
+  changeAddress?: string;
+  satsPerKb?: number;
+  metaData?: PreMAP;
+  signer?: LocalSigner | RemoteSigner;
+  additionalPayments?: Payment[];
+  enforceUniformSend?: boolean;
 }
 
 export type DeployBsv21TokenResult = {
-	tx: Transaction;
-	spentOutpoints: string[];
-	payChange?: Utxo;
+  tx: Transaction;
+  spentOutpoints: string[];
+  payChange?: Utxo;
 };
 
 export type DeployBsv21TokenConfig = {
-	symbol: string;
+  symbol: string;
   decimals?: number;
-	icon: string | IconInscription;
-	utxos: Utxo[];
-	initialDistribution: Distribution;
-	paymentPk: PrivateKey;
-	destinationAddress: string;
-	changeAddress?: string;
-	satsPerKb?: number;
-	additionalPayments?: Payment[];
+  icon: string | IconInscription;
+  utxos: Utxo[];
+  initialDistribution: Distribution;
+  paymentPk: PrivateKey;
+  destinationAddress: string;
+  changeAddress?: string;
+  satsPerKb?: number;
+  additionalPayments?: Payment[];
 };
 
 export type SendUtxosResult = {
-	tx: Transaction;
-	spentOutpoints: string[];
-	payChange?: Utxo;
+  tx: Transaction;
+  spentOutpoints: string[];
+  payChange?: Utxo;
 };
 
 export type SendUtxosConfig = {
-	utxos: Utxo[];
-	paymentPk: PrivateKey;
-	payments: Payment[];
-	satsPerKb?: number;
-	changeAddress?: string;
+  utxos: Utxo[];
+  paymentPk: PrivateKey;
+  payments: Payment[];
+  satsPerKb?: number;
+  changeAddress?: string;
 };
 
 export interface TransferOrdTokensResult extends SendOrdinalsResult {
-	tokenChange?: TokenUtxo;
+  tokenChange?: TokenUtxo;
 }
 
 export type TransferOrdTokensConfig = {
-	protocol: TokenType;
-	tokenID: string;
+  protocol: TokenType;
+  tokenID: string;
   decimals: number;
-	utxos: Utxo[];
-	inputTokens: TokenUtxo[];
-	distributions: Distribution[];
-	paymentPk: PrivateKey;
-	ordPk: PrivateKey;
-	changeAddress?: string;
-	tokenChangeAddress?: string;
-	satsPerKb?: number;
-	metaData?: PreMAP;
-	signer?: LocalSigner | RemoteSigner;
-	additionalPayments?: Payment[];
-	burn?: boolean;
+  utxos: Utxo[];
+  inputTokens: TokenUtxo[];
+  distributions: Distribution[];
+  paymentPk: PrivateKey;
+  ordPk: PrivateKey;
+  changeAddress?: string;
+  tokenChangeAddress?: string;
+  satsPerKb?: number;
+  metaData?: PreMAP;
+  signer?: LocalSigner | RemoteSigner;
+  additionalPayments?: Payment[];
+  burn?: boolean;
 }
 
 export type CreateOrdListingsConfig = {
-	utxos: Utxo[];
-	listings: NewListing[];
-	royalty?: number;
-	paymentPk: PrivateKey;
-	ordPk: PrivateKey,
-	changeAddress?: string;
-	satsPerKb?: number;
-	additionalPayments?: Payment[];
+  utxos: Utxo[];
+  listings: NewListing[];
+  paymentPk: PrivateKey;
+  ordPk: PrivateKey,
+  changeAddress?: string;
+  satsPerKb?: number;
+  additionalPayments?: Payment[];
 }
 
 export type PurchaseOrdListingConfig = {
-	utxos: Utxo[];
-	paymentPk: PrivateKey;
-	listing: ExistingListing;
-	ordAddress: string;
-	changeAddress?: string;
-	satsPerKb?: number;
-	additionalPayments?: Payment[],
+  utxos: Utxo[];
+  paymentPk: PrivateKey;
+  listing: ExistingListing;
+  ordAddress: string;
+  changeAddress?: string;
+  satsPerKb?: number;
+  additionalPayments?: Payment[],
+  royalties?: Royalty[],
 }
 
 export type PurchaseOrdTokenListingConfig = {
-	protocol: TokenType;
-	tokenID: string;
-	utxos: Utxo[];
-	paymentPk: PrivateKey;
-	listingUtxo: TokenUtxo;
-	ordAddress: string;
-	changeAddress?: string;
-	satsPerKb?: number;
-	additionalPayments?: Payment[],
+  protocol: TokenType;
+  tokenID: string;
+  utxos: Utxo[];
+  paymentPk: PrivateKey;
+  listingUtxo: TokenUtxo;
+  ordAddress: string;
+  changeAddress?: string;
+  satsPerKb?: number;
+  additionalPayments?: Payment[],
 }
 
 export type CancelOrdListingsConfig = {
-	utxos: Utxo[],
-	paymentPk: PrivateKey;
-	ordPk: PrivateKey;
-	listingUtxos: Utxo[];
-	additionalPayments?: Payment[];
-	changeAddress?: string;
-	satsPerKb?: number;
+  utxos: Utxo[],
+  paymentPk: PrivateKey;
+  ordPk: PrivateKey;
+  listingUtxos: Utxo[];
+  additionalPayments?: Payment[];
+  changeAddress?: string;
+  satsPerKb?: number;
 }
 
 export interface CancelOrdTokenListingsConfig extends CancelOrdListingsConfig {
-	utxos: Utxo[],
-	paymentPk: PrivateKey;
-	ordPk: PrivateKey;
-	listingUtxos: TokenUtxo[];
-	additionalPayments: Payment[];
-	changeAddress?: string;
-	satsPerKb?: number;
-	protocol: TokenType,
-	tokenID: string;
-	ordAddress?: string;
+  utxos: Utxo[],
+  paymentPk: PrivateKey;
+  ordPk: PrivateKey;
+  listingUtxos: TokenUtxo[];
+  additionalPayments: Payment[];
+  changeAddress?: string;
+  satsPerKb?: number;
+  protocol: TokenType,
+  tokenID: string;
+  ordAddress?: string;
 }
 
 /**
@@ -491,17 +491,18 @@ export interface CancelOrdTokenListingsConfig extends CancelOrdListingsConfig {
  * @property {number} decimals - Number of decimal places for this token.
  */
 export interface CreateOrdTokenListingsConfig {
-	utxos: Utxo[];
-	listings: NewTokenListing[];
-	paymentPk: PrivateKey;
-	ordPk: PrivateKey,
-	changeAddress?: string;
-	satsPerKb?: number;
-	additionalPayments?: Payment[];
-	protocol: TokenType;
-	tokenID: string;
+  utxos: Utxo[];
+  listings: NewTokenListing[];
+  paymentPk: PrivateKey;
+  ordPk: PrivateKey,
+  changeAddress?: string;
+  satsPerKb?: number;
+  additionalPayments?: Payment[];
+  protocol: TokenType;
+  tokenID: string;
   decimals: number;
-	inputTokens: TokenUtxo[];
-	tokenChangeAddress: string;
+  inputTokens: TokenUtxo[];
+  tokenChangeAddress: string;
 }
 
+export const MAX_TOKEN_SUPPLY = 2n ** 64n - 1n;
