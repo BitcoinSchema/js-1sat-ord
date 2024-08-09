@@ -3,9 +3,9 @@ import OrdP2PKH from "./templates/ordP2pkh";
 import type {
 	Utxo,
 	CreateOrdinalsConfig,
-	CreateOrdinalsResult,
 	CreateOrdinalsCollectionConfig,
 	CreateOrdinalsCollectionItemConfig,
+  ChangeResult,
 } from "./types";
 import { inputFromB64Utxo } from "./utils/utxo";
 import { DEFAULT_SAT_PER_KB } from "./constants";
@@ -23,14 +23,14 @@ import stringifyMetaData from "./utils/subtypeData";
  * @param {PreMAP} config.metaData - Optional. MAP (Magic Attribute Protocol) metadata to include in inscriptions
  * @param {LocalSigner | RemoteSigner} config.signer - Optional. Local or remote signer (used for data signature)
  * @param {Payment[]} config.additionalPayments - Optional. Additional payments to include in the transaction
- * @returns {Promise<CreateOrdinalsResult>} Transaction with inscription outputs
+ * @returns {Promise<ChangeResult>} Transaction with inscription outputs
  */
 export const createOrdinals = async (
 	config:
 		| CreateOrdinalsConfig
 		| CreateOrdinalsCollectionConfig
 		| CreateOrdinalsCollectionItemConfig,
-): Promise<CreateOrdinalsResult> => {
+): Promise<ChangeResult> => {
 	const {
 		utxos,
 		destinations,

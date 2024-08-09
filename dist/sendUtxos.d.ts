@@ -1,4 +1,4 @@
-import type { SendUtxosConfig, SendUtxosResult } from "./types";
+import type { ChangeResult, SendUtxosConfig } from "./types";
 /**
  * Sends utxos to the given destination
  * @param {SendUtxosConfig} config - Configuration object for sending utxos
@@ -7,6 +7,7 @@ import type { SendUtxosConfig, SendUtxosResult } from "./types";
  * @param {Payment[]} config.payments - Array of payments with addresses and amounts
  * @param {number} [config.satsPerKb] - Satoshis per kilobyte for fee calculation. Default is DEFAULT_SAT_PER_KB
  * @param {string} [config.changeAddress] - Address to send change to. If not provided, defaults to paymentPk address
- * @returns {Promise<SendUtxosResult>} Transaction with utxo outputs
+ * @param {string} [config.metaData] - (Optional) Metadata to include in OP_RETURN of the payment output
+ * @returns {Promise<ChangeResult>} Transaction with utxo outputs
  */
-export declare const sendUtxos: (config: SendUtxosConfig) => Promise<SendUtxosResult>;
+export declare const sendUtxos: (config: SendUtxosConfig) => Promise<ChangeResult>;

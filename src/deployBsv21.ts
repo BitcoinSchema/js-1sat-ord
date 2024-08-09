@@ -7,8 +7,8 @@ import {
 	Script,
 } from "@bsv/sdk";
 import type {
+  ChangeResult,
 	DeployBsv21TokenConfig,
-	DeployBsv21TokenResult,
 	DeployMintTokenInscription,
 	Inscription,
 	Utxo,
@@ -28,14 +28,14 @@ import { DEFAULT_SAT_PER_KB } from "./constants";
  * @param {Distribution} config.initialDistribution - Initial distribution with addresses and total supply (not adjusted for decimals, library will add zeros)
  * @param {PrivateKey} config.paymentPk - Private key to sign paymentUtxos
  * @param {string} config.destinationAddress - Address to deploy token to.
- * @param {string} config.changeAddress - Optional. Address to send payment change to, if any. If not provided, defaults to paymentPk address
- * @param {number} config.satsPerKb - Optional. Satoshis per kilobyte for fee calculation. Default is DEFAULT_SAT_PER_KB
- * @param {Payment[]} config.additionalPayments - Optional. Additional payments to include in the transaction
- * @returns {Promise<DeployBsv21TokenResult>} Transaction to deploy BSV 2.1 token
+ * @param {string} [config.changeAddress] - Optional. Address to send payment change to, if any. If not provided, defaults to paymentPk address
+ * @param {number} [config.satsPerKb] - Optional. Satoshis per kilobyte for fee calculation. Default is DEFAULT_SAT_PER_KB
+ * @param {Payment[]} [config.additionalPayments] - Optional. Additional payments to include in the transaction
+ * @returns {Promise<ChangeResult>} Transaction to deploy BSV 2.1 token
  */
 export const deployBsv21Token = async (
 	config: DeployBsv21TokenConfig,
-): Promise<DeployBsv21TokenResult> => {
+): Promise<ChangeResult> => {
 	const {
 		symbol,
 		icon,

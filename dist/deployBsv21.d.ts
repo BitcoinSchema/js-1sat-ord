@@ -1,4 +1,4 @@
-import type { DeployBsv21TokenConfig, DeployBsv21TokenResult } from "./types";
+import type { ChangeResult, DeployBsv21TokenConfig } from "./types";
 /**
  * Deploys & Mints a BSV21 token to the given destination address
  * @param {DeployBsv21TokenConfig} config - Configuration object for deploying BSV21 token
@@ -9,9 +9,9 @@ import type { DeployBsv21TokenConfig, DeployBsv21TokenResult } from "./types";
  * @param {Distribution} config.initialDistribution - Initial distribution with addresses and total supply (not adjusted for decimals, library will add zeros)
  * @param {PrivateKey} config.paymentPk - Private key to sign paymentUtxos
  * @param {string} config.destinationAddress - Address to deploy token to.
- * @param {string} config.changeAddress - Optional. Address to send payment change to, if any. If not provided, defaults to paymentPk address
- * @param {number} config.satsPerKb - Optional. Satoshis per kilobyte for fee calculation. Default is DEFAULT_SAT_PER_KB
- * @param {Payment[]} config.additionalPayments - Optional. Additional payments to include in the transaction
- * @returns {Promise<DeployBsv21TokenResult>} Transaction to deploy BSV 2.1 token
+ * @param {string} [config.changeAddress] - Optional. Address to send payment change to, if any. If not provided, defaults to paymentPk address
+ * @param {number} [config.satsPerKb] - Optional. Satoshis per kilobyte for fee calculation. Default is DEFAULT_SAT_PER_KB
+ * @param {Payment[]} [config.additionalPayments] - Optional. Additional payments to include in the transaction
+ * @returns {Promise<ChangeResult>} Transaction to deploy BSV 2.1 token
  */
-export declare const deployBsv21Token: (config: DeployBsv21TokenConfig) => Promise<DeployBsv21TokenResult>;
+export declare const deployBsv21Token: (config: DeployBsv21TokenConfig) => Promise<ChangeResult>;

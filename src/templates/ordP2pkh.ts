@@ -56,7 +56,7 @@ export default class OrdP2PKH extends P2PKH {
 		if (metaData?.app && metaData?.type) {
 			const mapPrefixHex = toHex(MAP_PREFIX);
 			const mapCmdValue = toHex("SET");
-			inscriptionAsm = `${inscriptionAsm} OP_RETURN ${mapPrefixHex} ${mapCmdValue}`;
+			inscriptionAsm = `${inscriptionAsm ? `${inscriptionAsm} `: ""}OP_RETURN ${mapPrefixHex} ${mapCmdValue}`;
 
 			for (const [key, value] of Object.entries(metaData)) {
 				if (key !== "cmd") {

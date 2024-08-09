@@ -11,7 +11,8 @@ import { createOrdListings, createOrdTokenListings } from "./createListings";
 import { cancelOrdListings, cancelOrdTokenListings } from "./cancelListings";
 import { purchaseOrdListing, purchaseOrdTokenListing } from "./purchaseOrdListing";
 import { deployBsv21Token } from "./deployBsv21";
+import { burnOrdinals } from "./burnOrdinals";
 
 export * from './types';
 
-export { createOrdinals, sendOrdinals, sendUtxos, transferOrdTokens, deployBsv21Token, fetchPayUtxos, fetchNftUtxos, fetchTokenUtxos, validateSubTypeData, OrdP2PKH, OrdLock, stringifyMetaData, createOrdListings, cancelOrdListings, purchaseOrdListing, purchaseOrdTokenListing, cancelOrdTokenListings, createOrdTokenListings };
+export { createOrdinals, sendOrdinals, sendUtxos, burnOrdinals, transferOrdTokens, deployBsv21Token, fetchPayUtxos, fetchNftUtxos, fetchTokenUtxos, validateSubTypeData, OrdP2PKH, OrdLock, stringifyMetaData, createOrdListings, cancelOrdListings, purchaseOrdListing, purchaseOrdTokenListing, cancelOrdTokenListings, createOrdTokenListings };

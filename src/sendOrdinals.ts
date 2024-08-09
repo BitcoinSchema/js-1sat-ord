@@ -8,7 +8,7 @@ import {
 } from "@bsv/sdk";
 import { DEFAULT_SAT_PER_KB } from "./constants";
 import OrdP2PKH from "./templates/ordP2pkh";
-import type { SendOrdinalsResult, SendOrdinalsConfig, Utxo } from "./types";
+import type { SendOrdinalsConfig, Utxo, ChangeResult } from "./types";
 import { inputFromB64Utxo } from "./utils/utxo";
 import { signData } from "./signData";
 import stringifyMetaData from "./utils/subtypeData";
@@ -21,17 +21,17 @@ import stringifyMetaData from "./utils/subtypeData";
  * @param {PrivateKey} config.paymentPk - Private key to sign paymentUtxos
  * @param {PrivateKey} config.ordPk - Private key to sign ordinals
  * @param {Destination[]} config.destinations - Array of destinations with addresses and inscriptions
- * @param {string} config.changeAddress - Optional. Address to send change to, if any. If not provided, defaults to paymentPk address
- * @param {number} config.satsPerKb - Optional. Satoshis per kilobyte for fee calculation. Default is DEFAULT_SAT_PER_KB
- * @param {PreMAP} config.metaData - Optional. MAP (Magic Attribute Protocol) metadata to include in inscriptions
- * @param {LocalSigner | RemoteSigner} config.signer - Optional. Signer object to sign the transaction
- * @param {Payment[]} config.additionalPayments - Optional. Additional payments to include in the transaction
- * @param {boolean} config.enforceUniformSend - Optional. Default: true. Enforce that the number of destinations matches the number of ordinals being sent. Sending ordinals requires a 1:1 mapping of destinations to ordinals. This is only used for sub-protocols like BSV21 that manage tokens without sending the inscriptions directly.
- * @returns {Promise<SendOrdinalsResult>} Transaction, spent outpoints, and change vout
+ * @param {string} [config.changeAddress] - Optional. Address to send change to, if any. If not provided, defaults to paymentPk address
+ * @param {number} [config.satsPerKb] - Optional. Satoshis per kilobyte for fee calculation. Default is DEFAULT_SAT_PER_KB
+ * @param {PreMAP} [config.metaData] - Optional. MAP (Magic Attribute Protocol) metadata to include in inscriptions
+ * @param {LocalSigner | RemoteSigner} [config.signer] - Optional. Signer object to sign the transaction
+ * @param {Payment[]} [config.additionalPayments] - Optional. Additional payments to include in the transaction
+ * @param {boolean} [config.enforceUniformSend] - Optional. Default: true. Enforce that the number of destinations matches the number of ordinals being sent. Sending ordinals requires a 1:1 mapping of destinations to ordinals. This is only used for sub-protocols like BSV21 that manage tokens without sending the inscriptions directly.
+ * @returns {Promise<ChangeResult>} Transaction, spent outpoints, and change utxo
  */
 export const sendOrdinals = async (
 	config: SendOrdinalsConfig,
-): Promise<SendOrdinalsResult> => {
+): Promise<ChangeResult> => {
 	if (!config.satsPerKb) {
 		config.satsPerKb = DEFAULT_SAT_PER_KB;
 	}

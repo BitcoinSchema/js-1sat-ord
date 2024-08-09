@@ -177,9 +177,12 @@ export enum TokenType {
   BSV21 = "bsv21",
 }
 
-export type CreateOrdinalsResult = {
+export type BaseResult = {
   tx: Transaction;
   spentOutpoints: string[];
+};
+
+export interface ChangeResult extends BaseResult {
   payChange?: Utxo;
 };
 
@@ -344,11 +347,13 @@ export type CollectionItemAttachment = {
   url: string;
 }
 
-export type SendOrdinalsResult = {
-  tx: Transaction;
-  spentOutpoints: string[];
-  payChange?: Utxo;
-};
+
+export type BurnOrdinalsConfig = {
+  ordPk: PrivateKey;
+  ordinals: Utxo[];
+  satsPerKb?: number;
+  metaData?: PreMAP;
+}
 
 export type SendOrdinalsConfig = {
   paymentUtxos: Utxo[];
@@ -364,12 +369,6 @@ export type SendOrdinalsConfig = {
   enforceUniformSend?: boolean;
 }
 
-export type DeployBsv21TokenResult = {
-  tx: Transaction;
-  spentOutpoints: string[];
-  payChange?: Utxo;
-};
-
 export type DeployBsv21TokenConfig = {
   symbol: string;
   decimals?: number;
@@ -383,21 +382,16 @@ export type DeployBsv21TokenConfig = {
   additionalPayments?: Payment[];
 };
 
-export type SendUtxosResult = {
-  tx: Transaction;
-  spentOutpoints: string[];
-  payChange?: Utxo;
-};
-
 export type SendUtxosConfig = {
   utxos: Utxo[];
   paymentPk: PrivateKey;
   payments: Payment[];
   satsPerKb?: number;
   changeAddress?: string;
+  metaData?: MAP;
 };
 
-export interface TransferOrdTokensResult extends SendOrdinalsResult {
+export interface TokenChangeResult extends ChangeResult {
   tokenChange?: TokenUtxo;
 }
 

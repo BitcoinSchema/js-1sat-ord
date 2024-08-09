@@ -1,4 +1,4 @@
-import type { CreateOrdinalsConfig, CreateOrdinalsResult, CreateOrdinalsCollectionConfig, CreateOrdinalsCollectionItemConfig } from "./types";
+import type { CreateOrdinalsConfig, CreateOrdinalsCollectionConfig, CreateOrdinalsCollectionItemConfig, ChangeResult } from "./types";
 /**
  * Creates a transaction with inscription outputs
  * @param {CreateOrdinalsConfig | CreateOrdinalsCollectionConfig | CreateOrdinalsCollectionItemConfig} config - Configuration object for creating ordinals
@@ -10,6 +10,6 @@ import type { CreateOrdinalsConfig, CreateOrdinalsResult, CreateOrdinalsCollecti
  * @param {PreMAP} config.metaData - Optional. MAP (Magic Attribute Protocol) metadata to include in inscriptions
  * @param {LocalSigner | RemoteSigner} config.signer - Optional. Local or remote signer (used for data signature)
  * @param {Payment[]} config.additionalPayments - Optional. Additional payments to include in the transaction
- * @returns {Promise<CreateOrdinalsResult>} Transaction with inscription outputs
+ * @returns {Promise<ChangeResult>} Transaction with inscription outputs
  */
-export declare const createOrdinals: (config: CreateOrdinalsConfig | CreateOrdinalsCollectionConfig | CreateOrdinalsCollectionItemConfig) => Promise<CreateOrdinalsResult>;
+export declare const createOrdinals: (config: CreateOrdinalsConfig | CreateOrdinalsCollectionConfig | CreateOrdinalsCollectionItemConfig) => Promise<ChangeResult>;

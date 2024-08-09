@@ -10,6 +10,7 @@ import { DEFAULT_SAT_PER_KB } from "./constants";
 import OrdLock from "./templates/ordLock";
 import OrdP2PKH from "./templates/ordP2pkh";
 import {
+  type ChangeResult,
   RoytaltyType,
   TokenType,
   type PurchaseOrdListingConfig,
@@ -22,7 +23,20 @@ import {
 import { resolvePaymail } from "./utils/paymail";
 import { inputFromB64Utxo } from "./utils/utxo";
 
-export const purchaseOrdListing = async (config: PurchaseOrdListingConfig) => {
+/**
+ * Purchase a listing
+ * @param {PurchaseOrdListingConfig} config - Configuration object for purchasing a listing
+ * @param {Utxo[]} config.utxos - Utxos to spend (with base64 encoded scripts)
+ * @param {PrivateKey} config.paymentPk - Private key to sign payment inputs
+ * @param {ExistingListing} config.listing - Listing to purchase
+ * @param {string} config.ordAddress - Address to send the ordinal to
+ * @param {string} [config.changeAddress] - Optional. Address to send change to
+ * @param {number} [config.satsPerKb] - Optional. Satoshis per kilobyte for fee calculation
+ * @param {Payment[]} [config.additionalPayments] - Optional. Additional payments to make
+ * @param {Royalty[]} [config.royalties] - Optional. Royalties to pay
+ * @returns {Promise<ChangeResult>} Transaction, spent outpoints, change utxo
+ */
+export const purchaseOrdListing = async (config: PurchaseOrdListingConfig): Promise<ChangeResult> => {
   const {
     utxos,
     paymentPk,
