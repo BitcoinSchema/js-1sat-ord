@@ -347,12 +347,16 @@ export type CollectionItemAttachment = {
   url: string;
 }
 
+export interface BurnMAP extends MAP {
+  type: "ord";
+  op: "burn";
+}
 
 export type BurnOrdinalsConfig = {
   ordPk: PrivateKey;
   ordinals: Utxo[];
   satsPerKb?: number;
-  metaData?: PreMAP;
+  metaData?: BurnMAP;
 }
 
 export type SendOrdinalsConfig = {
