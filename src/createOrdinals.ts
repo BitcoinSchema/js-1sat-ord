@@ -136,7 +136,7 @@ export const createOrdinals = async (
 	// make sure we have enough
 	if (totalSatsIn < totalSatsOut + BigInt(fee)) {
 		throw new Error(
-			`Not enough funds to purchase listing. Total sats in: ${totalSatsIn}, Total sats out: ${totalSatsOut}, Fee: ${fee}`,
+			`Not enough funds to create ordinals. Total sats in: ${totalSatsIn}, Total sats out: ${totalSatsOut}, Fee: ${fee}`,
 		);
 	}
 

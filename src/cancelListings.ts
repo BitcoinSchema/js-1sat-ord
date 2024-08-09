@@ -119,7 +119,7 @@ export const cancelOrdListings = async (config: CancelOrdListingsConfig): Promis
 	// make sure we have enough
 	if (totalSatsIn < totalSatsOut + BigInt(fee)) {
 		throw new Error(
-			`Not enough funds to purchase listing. Total sats in: ${totalSatsIn}, Total sats out: ${totalSatsOut}, Fee: ${fee}`,
+			`Not enough funds to cancel ordinal listings. Total sats in: ${totalSatsIn}, Total sats out: ${totalSatsOut}, Fee: ${fee}`,
 		);
 	}
 
@@ -291,7 +291,7 @@ export const cancelOrdTokenListings = async (
 	// make sure we have enough
 	if (totalSatsIn < totalSatsOut + BigInt(fee)) {
 		throw new Error(
-			`Not enough funds to purchase listing. Total sats in: ${totalSatsIn}, Total sats out: ${totalSatsOut}, Fee: ${fee}`,
+			`Not enough funds to cancel token listings. Total sats in: ${totalSatsIn}, Total sats out: ${totalSatsOut}, Fee: ${fee}`,
 		);
 	}
 

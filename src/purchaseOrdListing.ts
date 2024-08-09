@@ -159,7 +159,7 @@ export const purchaseOrdListing = async (config: PurchaseOrdListingConfig): Prom
   // make sure we have enough
   if (totalSatsIn < totalSatsOut + BigInt(fee)) {
     throw new Error(
-      `Not enough funds to purchase listing. Total sats in: ${totalSatsIn}, Total sats out: ${totalSatsOut}, Fee: ${fee}`,
+      `Not enough funds to purchase ordinal listing. Total sats in: ${totalSatsIn}, Total sats out: ${totalSatsOut}, Fee: ${fee}`,
     );
   }
 

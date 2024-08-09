@@ -115,7 +115,7 @@ export const createOrdListings = async (config: CreateOrdListingsConfig) => {
   // make sure we have enough
   if (totalSatsIn < totalSatsOut + BigInt(fee)) {
     throw new Error(
-      `Not enough funds to purchase listing. Total sats in: ${totalSatsIn}, Total sats out: ${totalSatsOut}, Fee: ${fee}`,
+      `Not enough funds to create ordinal listings. Total sats in: ${totalSatsIn}, Total sats out: ${totalSatsOut}, Fee: ${fee}`,
     );
   }
 
@@ -343,7 +343,7 @@ export const createOrdTokenListings = async (
   // make sure we have enough
   if (totalSatsIn < totalSatsOut + BigInt(fee)) {
     throw new Error(
-      `Not enough funds to purchase listing. Total sats in: ${totalSatsIn}, Total sats out: ${totalSatsOut}, Fee: ${fee}`,
+      `Not enough funds to create token listings. Total sats in: ${totalSatsIn}, Total sats out: ${totalSatsOut}, Fee: ${fee}`,
     );
   }
 
