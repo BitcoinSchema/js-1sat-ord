@@ -25,7 +25,6 @@ import { toHex } from "./utils/strings";
 export const burnOrdinals = async (
 	config: BurnOrdinalsConfig,
 ): Promise<BaseResult> => {
-	const modelOrFee = new SatoshisPerKilobyte(DEFAULT_SAT_PER_KB);
 	const tx = new Transaction();
 	const spentOutpoints: string[] = [];
 	const { ordinals, metaData } = config;
@@ -77,9 +76,6 @@ export const burnOrdinals = async (
 		satoshis: 0,
 		lockingScript: Script.fromASM(metaAsm || "OP_FALSE OP_RETURN"),
 	});
-
-	// Calculate fee
-	await tx.fee(modelOrFee);
 
 	// Sign the transaction
 	await tx.sign();

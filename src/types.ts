@@ -355,7 +355,6 @@ export interface BurnMAP extends MAP {
 export type BurnOrdinalsConfig = {
   ordPk: PrivateKey;
   ordinals: Utxo[];
-  satsPerKb?: number;
   metaData?: BurnMAP;
 }
 
