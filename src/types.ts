@@ -329,11 +329,11 @@ export interface CollectionItemSubTypeData {
   mintNumber?: number;
   rank?: number;
   rarityLabel?: RarityLabels;
-  traits?: CollectionItemTraits;
+  traits?: CollectionItemTrait[];
   attachments?: CollectionItemAttachment[];
 }
 
-export type CollectionItemTraits = {
+export type CollectionItemTrait = {
   name: string;
   value: string;
   rarityLabel?: string;
