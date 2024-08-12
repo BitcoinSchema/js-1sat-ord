@@ -1,6 +1,6 @@
 {
   "name": "js-1sat-ord",
-  "version": "0.1.57",
+  "version": "0.1.58",
   "description": "1Sat Ordinals library",
   "types": "dist/index.d.ts",
   "type": "module",
@@ -19,7 +19,7 @@
     "/dist"
   ],
   "scripts": {
-    "build": "bun run clean && microbundle --globals @bsv/sdk=bsv,@bsv/paymail=paymail",
+    "build": "bun run clean && microbundle --globals @bsv/sdk=bsv",
     "clean": "rimraf -rf dist",
     "test": "jest"
   },
@@ -27,11 +27,11 @@
   "author": "Luke Rohenaz",
   "license": "MIT",
   "dependencies": {
-    "jimp": "^0.22.12",
     "sigma-protocol": "^0.1.2"
   },
   "peerDependencies": {
-    "@bsv/sdk": "^1.1.12"
+    "@bsv/sdk": "^1.1.13",
+    "jimp": "^0.22.12"
   },
   "devDependencies": {
     "@types/bun": "^1.1.6",

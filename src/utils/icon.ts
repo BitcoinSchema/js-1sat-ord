@@ -45,7 +45,11 @@
 // 	}
 // };
 
-import Jimp from "jimp";
+import type { Jimp as JimpType, JimpConstructors } from '@jimp/core';
+import 'jimp';
+
+declare const Jimp: JimpType & JimpConstructors;
+
 import type { IconInscription, ImageContentType } from "../types";
 
 export const ErrorOversizedIcon = new Error(
@@ -58,6 +62,7 @@ export const ErrorImageDimensionsUndefined = new Error(
 );
 
 const isImageContentType = (value: string): value is ImageContentType => {
+  console.log({value})
 	return (value as ImageContentType) === value;
 };
 
