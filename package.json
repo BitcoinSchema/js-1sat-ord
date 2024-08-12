@@ -1,6 +1,6 @@
 {
   "name": "js-1sat-ord",
-  "version": "0.1.58",
+  "version": "0.1.59",
   "description": "1Sat Ordinals library",
   "types": "dist/index.d.ts",
   "type": "module",

@@ -255,7 +255,7 @@ export const purchaseOrdTokenListing = async (
     satoshis: 1,
     lockingScript: new OrdP2PKH().lock(ordAddress, {
       dataB64,
-      contentType: "bsv-20",
+      contentType: "application/bsv-20",
     }),
   });
 
