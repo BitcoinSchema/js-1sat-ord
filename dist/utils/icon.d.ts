@@ -1,4 +1,3 @@
-import 'jimp';
 import type { IconInscription } from "../types";
 export declare const ErrorOversizedIcon: Error;
 export declare const ErrorIconProportions: Error;

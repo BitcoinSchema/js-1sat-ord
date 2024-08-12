@@ -1,7 +1,4 @@
-import type { Jimp as JimpType, JimpConstructors } from '@jimp/core';
-import 'jimp';
-
-declare const Jimp: JimpType & JimpConstructors;
+import Jimp from "jimp";
 
 import type { IconInscription, ImageContentType } from "../types";
 

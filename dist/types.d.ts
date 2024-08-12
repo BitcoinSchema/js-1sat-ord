@@ -378,6 +378,7 @@ export type PurchaseOrdListingConfig = {
     satsPerKb?: number;
     additionalPayments?: Payment[];
     royalties?: Royalty[];
+    metaData?: MAP;
 };
 export type PurchaseOrdTokenListingConfig = {
     protocol: TokenType;
@@ -389,6 +390,7 @@ export type PurchaseOrdTokenListingConfig = {
     changeAddress?: string;
     satsPerKb?: number;
     additionalPayments?: Payment[];
+    metaData?: MAP;
 };
 export type CancelOrdListingsConfig = {
     utxos: Utxo[];
