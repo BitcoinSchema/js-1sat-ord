@@ -49,7 +49,7 @@ export const fetchPayUtxos = async (address: string, scriptEncoding: "hex" | "ba
 	}
 	let payUtxos = await payRes.json();
 	// exclude all 1 satoshi utxos
-	payUtxos = payUtxos.filter((u: { satoshis: number }) => u.satoshis !== 1);
+	payUtxos = payUtxos.filter((u: Utxo) => u.satoshis !== 1 && !isLock(u));
 
 	// Get pubkey hash from address
 	const pubKeyHash = fromBase58Check(address);
@@ -187,3 +187,7 @@ export const fetchTokenUtxos = async (
 
 	return tokenUtxos as TokenUtxo[];
 };
+
+const isLock = (utxo: Utxo) => {
+  return !!(utxo as unknown as { lock: { address: string, until: number } }).lock;
+}
