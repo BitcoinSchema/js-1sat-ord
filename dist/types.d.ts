@@ -347,8 +347,8 @@ export interface TokenChangeResult extends ChangeResult {
 /**
  * Configuration object for token outputs
  * @typedef {Object} TokenSplitConfig
- * @property {number} outputs - Number of outputs to split the token into
- * @property {number} threshold - This nnumber of token inputs or less will trigger a split.
+ * @property {number} outputs - Number of outputs to split the token into. Default is 1.
+ * @property {number} threshold - This number of input tokens or less will trigger a splitting. Default is 0.
  * @property {boolean} omitMetaData - Set to true to omit metadata from the token change outputs
  **/
 export type TokenSplitConfig = {

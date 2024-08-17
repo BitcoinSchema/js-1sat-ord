@@ -96,6 +96,10 @@ export const transferOrdTokens = async (
 	let tokensToUse: TokenUtxo[];
 	if (tokenInputMode === TokenInputMode.All) {
 		tokensToUse = inputTokens;
+    totalAmtIn = inputTokens.reduce(
+      (acc, token) => acc + BigInt(token.amt),
+      0n,
+    );
 	} else {
 		tokensToUse = [];
 		for (const token of inputTokens) {
@@ -119,8 +123,6 @@ export const transferOrdTokens = async (
 				new OrdP2PKH().unlock(ordPk, "all", true, token.satoshis, inputScript),
 			),
 		);
-
-		totalAmtIn += BigInt(token.amt);
 	}
 
   // remove any undefined fields from metadata
@@ -168,7 +170,7 @@ export const transferOrdTokens = async (
 	}
 
 	changeAmt = totalAmtIn - totalAmtOut;
-
+console.log({changeAmt, totalAmtIn, totalAmtOut});
 	// check that you have enough tokens to send and return change
 	if (changeAmt < 0n) {
 		throw new Error("Not enough tokens to send");
@@ -178,6 +180,7 @@ export const transferOrdTokens = async (
   if (changeAmt > 0n) {
     tokenChange = splitChangeOutputs(
       tx,
+      inputTokens.length,
       changeAmt,
       protocol,
       tokenID,
@@ -290,6 +293,7 @@ export const transferOrdTokens = async (
 
 const splitChangeOutputs = (
   tx: Transaction,
+  numTokenInputs: number,
   changeAmt: bigint,
   protocol: TokenType,
   tokenID: string,
@@ -299,8 +303,8 @@ const splitChangeOutputs = (
   splitConfig: TokenSplitConfig
 ): TokenUtxo[] => {
   const tokenChanges: TokenUtxo[] = [];
-  const shouldSplit = splitConfig.threshold === undefined || changeAmt <= BigInt(splitConfig.threshold);
-  const splitOutputs = shouldSplit ? Math.min(splitConfig.outputs, Number(changeAmt)) : 1;
+  const shouldSplit = splitConfig.threshold === undefined || numTokenInputs <= BigInt(splitConfig.threshold);
+  const splitOutputs = shouldSplit ? splitConfig.outputs : 1;
   const baseChangeAmount = changeAmt / BigInt(splitOutputs);
   let remainder = changeAmt % BigInt(splitOutputs);
 
