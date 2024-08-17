@@ -103,6 +103,21 @@ export interface TokenUtxo extends Utxo {
     price?: number;
     isListing?: boolean;
 }
+export declare enum TokenSelectionStrategy {
+    SmallestFirst = "smallest",
+    LargestFirst = "largest",
+    RetainOrder = "retain",
+    Random = "random"
+}
+export interface TokenSelectionOptions {
+    inputStrategy?: TokenSelectionStrategy;
+    outputStrategy?: TokenSelectionStrategy;
+}
+export interface TokenSelectionResult {
+    selectedUtxos: TokenUtxo[];
+    totalSelected: bigint;
+    isEnough: boolean;
+}
 export type Inscription = {
     dataB64: string;
     contentType: string;
@@ -348,7 +363,7 @@ export interface TokenChangeResult extends ChangeResult {
  * Configuration object for token outputs
  * @typedef {Object} TokenSplitConfig
  * @property {number} outputs - Number of outputs to split the token into. Default is 1.
- * @property {number} threshold - This number of input tokens or less will trigger a splitting. Default is 0.
+ * @property {number} threshold - Optional. Minimum amount of tokens per output.
  * @property {boolean} omitMetaData - Set to true to omit metadata from the token change outputs
  **/
 export type TokenSplitConfig = {
@@ -360,6 +375,27 @@ export declare enum TokenInputMode {
     All = "all",
     Needed = "needed"
 }
+/**
+ * Configuration object for transferring token ordinals
+ * @typedef {Object} TransferOrdTokensConfig
+ * @property {TokenType} protocol - Token protocol
+ * @property {string} tokenID - Token id
+ * @property {number} decimals - Number of decimal places for this token.
+ * @property {Utxo[]} utxos - Array of payment Utxos
+ * @property {TokenUtxo[]} inputTokens - Array of TokenUtxos to be transferred
+ * @property {Distribution[]} distributions - Array of Distribution objects
+ * @property {PrivateKey} paymentPk - Private key of the payment address
+ * @property {PrivateKey} ordPk - Private key of the ord address
+ * @property {string} [changeAddress] - Optional. Address to send the change
+ * @property {string} [tokenChangeAddress] - Optional. Address to send the token change
+ * @property {number} [satsPerKb] - Optional. Satoshis per kilobyte
+ * @property {PreMAP} [metaData] - Optional. MAP metadata object
+ * @property {LocalSigner | RemoteSigner} [signer] - Optional. Signer object
+ * @property {Payment[]} [additionalPayments] - Optional. Array of additional payments
+ * @property {boolean} [burn] - Optional. Set to true to burn the input tokens
+ * @property {TokenSplitConfig} [splitConfig] - Optional. Configuration object for splitting token change
+ * @property {TokenInputMode} [tokenInputMode] - Optional. Token input mode. Default is "needed"
+ */
 export type TransferOrdTokensConfig = {
     protocol: TokenType;
     tokenID: string;

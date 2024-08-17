@@ -18,8 +18,8 @@ import {
 	type TransferTokenInscription,
 	type Utxo,
 	TokenInputMode,
-  type TokenSplitConfig,
-  type PreMAP,
+	type TokenSplitConfig,
+	type PreMAP,
 } from "./types";
 import { inputFromB64Utxo } from "./utils/utxo";
 import { signData } from "./signData";
@@ -69,15 +69,14 @@ export const transferOrdTokens = async (
 		tokenInputMode = TokenInputMode.Needed,
 		splitConfig = {
 			outputs: 1,
-      omitMetaData: false,
+			omitMetaData: false,
 		},
 	} = config;
 
-  	// Ensure these inputs are for the expected token
+	// Ensure these inputs are for the expected token
 	if (!inputTokens.every((token) => token.id === tokenID)) {
 		throw new Error("Input tokens do not match the provided tokenID");
 	}
-
 
 	// calculate change amount
 	let changeAmt = 0n;
@@ -88,7 +87,6 @@ export const transferOrdTokens = async (
 		0n,
 	);
 
-
 	const modelOrFee = new SatoshisPerKilobyte(satsPerKb);
 	let tx = new Transaction();
 
@@ -96,10 +94,10 @@ export const transferOrdTokens = async (
 	let tokensToUse: TokenUtxo[];
 	if (tokenInputMode === TokenInputMode.All) {
 		tokensToUse = inputTokens;
-    totalAmtIn = inputTokens.reduce(
-      (acc, token) => acc + BigInt(token.amt),
-      0n,
-    );
+		totalAmtIn = inputTokens.reduce(
+			(acc, token) => acc + BigInt(token.amt),
+			0n,
+		);
 	} else {
 		tokensToUse = [];
 		for (const token of inputTokens) {
@@ -125,14 +123,14 @@ export const transferOrdTokens = async (
 		);
 	}
 
-  // remove any undefined fields from metadata
-  if (metaData) {
-    for (const key of Object.keys(metaData)) {
-      if (metaData[key] === undefined) {
-        delete metaData[key];
-      }
-    }
-  }
+	// remove any undefined fields from metadata
+	if (metaData) {
+		for (const key of Object.keys(metaData)) {
+			if (metaData[key] === undefined) {
+				delete metaData[key];
+			}
+		}
+	}
 
 	// build destination inscriptions
 	for (const dest of distributions) {
@@ -156,40 +154,55 @@ export const transferOrdTokens = async (
 		} else {
 			throw new Error("Invalid protocol");
 		}
-    
+
 		tx.addOutput({
-      satoshis: 1,
-			lockingScript: new OrdP2PKH().lock(dest.address, {
-        dataB64: Buffer.from(JSON.stringify(inscription)).toString("base64"),
-				contentType: "application/bsv-20",
-			}, 
-      // when present, include metadata on each distribution if omit is not specified
-			dest.omitMetaData ? undefined : stringifyMetaData(metaData)),
+			satoshis: 1,
+			lockingScript: new OrdP2PKH().lock(
+				dest.address,
+				{
+					dataB64: Buffer.from(JSON.stringify(inscription)).toString("base64"),
+					contentType: "application/bsv-20",
+				},
+				// when present, include metadata on each distribution if omit is not specified
+				dest.omitMetaData ? undefined : stringifyMetaData(metaData),
+			),
 		});
 		totalAmtOut += bigAmt;
 	}
 
 	changeAmt = totalAmtIn - totalAmtOut;
-console.log({changeAmt, totalAmtIn, totalAmtOut});
+	console.log({ changeAmt, totalAmtIn, totalAmtOut });
 	// check that you have enough tokens to send and return change
 	if (changeAmt < 0n) {
 		throw new Error("Not enough tokens to send");
 	}
 
-  let tokenChange: TokenUtxo[] = [];
-  if (changeAmt > 0n) {
-    tokenChange = splitChangeOutputs(
-      tx,
-      inputTokens.length,
-      changeAmt,
-      protocol,
-      tokenID,
-      tokenChangeAddress || ordPk.toAddress().toString(),
-      ordPk,
-      metaData,
-      splitConfig,
-    );
-  }
+	let tokenChange: TokenUtxo[] = [];
+	if (changeAmt > 0n) {
+		tokenChange = splitChangeOutputs(
+			tx,
+			changeAmt,
+			protocol,
+			tokenID,
+			tokenChangeAddress || ordPk.toAddress().toString(),
+			ordPk,
+			metaData,
+			splitConfig,
+		);
+	}
+	// if (changeAmt > 0n) {
+	//   tokenChange = splitChangeOutputs(
+	//     tx,
+	//     inputTokens.length,
+	//     changeAmt,
+	//     protocol,
+	//     tokenID,
+	//     tokenChangeAddress || ordPk.toAddress().toString(),
+	//     ordPk,
+	//     metaData,
+	//     splitConfig,
+	//   );
+	// }
 
 	// Add additional payments if any
 	for (const p of additionalPayments) {
@@ -255,11 +268,11 @@ console.log({changeAmt, totalAmtIn, totalAmtOut});
 	// Sign the transaction
 	await tx.sign();
 
-  // assign txid to tokenChange outputs
+	// assign txid to tokenChange outputs
 	const txid = tx.id("hex") as string;
-  for (const change of tokenChange) {
-    change.txid = txid;
-  }
+	for (const change of tokenChange) {
+		change.txid = txid;
+	}
 
 	// check for change
 	const payChangeOutIdx = tx.outputs.findIndex((o) => o.change);
@@ -291,70 +304,145 @@ console.log({changeAmt, totalAmtIn, totalAmtOut});
 	};
 };
 
+// const splitChangeOutputs = (
+//   tx: Transaction,
+//   numTokenInputs: number,
+//   changeAmt: bigint,
+//   protocol: TokenType,
+//   tokenID: string,
+//   tokenChangeAddress: string,
+//   ordPk: PrivateKey,
+//   metaData: PreMAP | undefined,
+//   splitConfig: TokenSplitConfig
+// ): TokenUtxo[] => {
+//   const tokenChanges: TokenUtxo[] = [];
+//   const shouldSplit = splitConfig.threshold === undefined || numTokenInputs <= BigInt(splitConfig.threshold);
+//   const splitOutputs = shouldSplit ? splitConfig.outputs : 1;
+//   const baseChangeAmount = changeAmt / BigInt(splitOutputs);
+//   let remainder = changeAmt % BigInt(splitOutputs);
+
+//   for (let i = 0; i < splitOutputs; i++) {
+//     let splitAmount = baseChangeAmount;
+//     if (remainder > 0n) {
+//       splitAmount += 1n;
+//       remainder -= 1n;
+//     }
+
+//     const transferInscription: TransferTokenInscription = {
+//       p: "bsv-20",
+//       op: "transfer",
+//       amt: splitAmount.toString(),
+//     };
+//     let inscription: TransferBSV20Inscription | TransferBSV21Inscription;
+//     if (protocol === TokenType.BSV20) {
+//       inscription = {
+//         ...transferInscription,
+//         tick: tokenID,
+//       } as TransferBSV20Inscription;
+//     } else if (protocol === TokenType.BSV21) {
+//       inscription = {
+//         ...transferInscription,
+//         id: tokenID,
+//       } as TransferBSV21Inscription;
+//     } else {
+//       throw new Error("Invalid protocol");
+//     }
+
+//     const lockingScript = new OrdP2PKH().lock(
+//       tokenChangeAddress || ordPk.toAddress().toString(),
+//       {
+//         dataB64: Buffer.from(JSON.stringify(inscription)).toString('base64'),
+//         contentType: "application/bsv-20",
+//       },
+//       splitConfig.omitMetaData ? undefined : stringifyMetaData(metaData)
+//     );
+
+//     const vout = tx.outputs.length;
+//     tx.addOutput({ lockingScript, satoshis: 1 });
+//     tokenChanges.push({
+//       id: tokenID,
+//       satoshis: 1,
+//       script: Buffer.from(lockingScript.toBinary()).toString("base64"),
+//       txid: "",
+//       vout,
+//       amt: splitAmount.toString(),
+//     });
+//   }
+
+//   return tokenChanges;
+// }
+
 const splitChangeOutputs = (
-  tx: Transaction,
-  numTokenInputs: number,
-  changeAmt: bigint,
-  protocol: TokenType,
-  tokenID: string,
-  tokenChangeAddress: string,
-  ordPk: PrivateKey,
-  metaData: PreMAP | undefined,
-  splitConfig: TokenSplitConfig
+	tx: Transaction,
+	changeAmt: bigint,
+	protocol: TokenType,
+	tokenID: string,
+	tokenChangeAddress: string,
+	ordPk: PrivateKey,
+	metaData: PreMAP | undefined,
+	splitConfig: TokenSplitConfig,
 ): TokenUtxo[] => {
-  const tokenChanges: TokenUtxo[] = [];
-  const shouldSplit = splitConfig.threshold === undefined || numTokenInputs <= BigInt(splitConfig.threshold);
-  const splitOutputs = shouldSplit ? splitConfig.outputs : 1;
-  const baseChangeAmount = changeAmt / BigInt(splitOutputs);
-  let remainder = changeAmt % BigInt(splitOutputs);
+	const tokenChanges: TokenUtxo[] = [];
+	const threshold = BigInt(splitConfig.threshold || 0);
+	const maxOutputs = splitConfig.outputs;
 
-  for (let i = 0; i < splitOutputs; i++) {
-    let splitAmount = baseChangeAmount;
-    if (remainder > 0n) {
-      splitAmount += 1n;
-      remainder -= 1n;
-    }
+	let splitOutputs = 1;
+	if (threshold > 0n) {
+		splitOutputs = Number(changeAmt / threshold);
+		splitOutputs = Math.min(splitOutputs, maxOutputs);
+		splitOutputs = Math.max(splitOutputs, 1);
+	}
 
-    const transferInscription: TransferTokenInscription = {
-      p: "bsv-20",
-      op: "transfer",
-      amt: splitAmount.toString(),
-    };
-    let inscription: TransferBSV20Inscription | TransferBSV21Inscription;
-    if (protocol === TokenType.BSV20) {
-      inscription = {
-        ...transferInscription,
-        tick: tokenID,
-      } as TransferBSV20Inscription;
-    } else if (protocol === TokenType.BSV21) {
-      inscription = {
-        ...transferInscription,
-        id: tokenID,
-      } as TransferBSV21Inscription;
-    } else {
-      throw new Error("Invalid protocol");
-    }
+	const baseChangeAmount = changeAmt / BigInt(splitOutputs);
+	let remainder = changeAmt % BigInt(splitOutputs);
 
-    const lockingScript = new OrdP2PKH().lock(
-      tokenChangeAddress || ordPk.toAddress().toString(),
-      {
-        dataB64: Buffer.from(JSON.stringify(inscription)).toString('base64'),
-        contentType: "application/bsv-20",
-      },
-      splitConfig.omitMetaData ? undefined : stringifyMetaData(metaData)
-    );
+	for (let i = 0; i < splitOutputs; i++) {
+		let splitAmount = baseChangeAmount;
+		if (remainder > 0n) {
+			splitAmount += 1n;
+			remainder -= 1n;
+		}
 
-    const vout = tx.outputs.length;
-    tx.addOutput({ lockingScript, satoshis: 1 });
-    tokenChanges.push({
-      id: tokenID,
-      satoshis: 1,
-      script: Buffer.from(lockingScript.toBinary()).toString("base64"),
-      txid: "",
-      vout,
-      amt: splitAmount.toString(),
-    });
-  }
+		const transferInscription: TransferTokenInscription = {
+			p: "bsv-20",
+			op: "transfer",
+			amt: splitAmount.toString(),
+		};
+		let inscription: TransferBSV20Inscription | TransferBSV21Inscription;
+		if (protocol === TokenType.BSV20) {
+			inscription = {
+				...transferInscription,
+				tick: tokenID,
+			} as TransferBSV20Inscription;
+		} else if (protocol === TokenType.BSV21) {
+			inscription = {
+				...transferInscription,
+				id: tokenID,
+			} as TransferBSV21Inscription;
+		} else {
+			throw new Error("Invalid protocol");
+		}
 
-  return tokenChanges;
-}
+		const lockingScript = new OrdP2PKH().lock(
+			tokenChangeAddress || ordPk.toAddress().toString(),
+			{
+				dataB64: Buffer.from(JSON.stringify(inscription)).toString("base64"),
+				contentType: "application/bsv-20",
+			},
+			splitConfig.omitMetaData ? undefined : stringifyMetaData(metaData),
+		);
+
+		const vout = tx.outputs.length;
+		tx.addOutput({ lockingScript, satoshis: 1 });
+		tokenChanges.push({
+			id: tokenID,
+			satoshis: 1,
+			script: Buffer.from(lockingScript.toBinary()).toString("base64"),
+			txid: "",
+			vout,
+			amt: splitAmount.toString(),
+		});
+	}
+
+	return tokenChanges;
+};

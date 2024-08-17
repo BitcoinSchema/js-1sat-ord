@@ -1,5 +1,5 @@
 import { type Transaction, type UnlockingScript, type TransactionInput } from "@bsv/sdk";
-import { type NftUtxo, TokenType, type TokenUtxo, type Utxo } from "../types";
+import { type NftUtxo, type TokenSelectionOptions, type TokenSelectionResult, TokenType, type TokenUtxo, type Utxo } from "../types";
 /**
  * Converts a Utxo object with a base64 encoded script to a Utxo object with a hex encoded script
  * @param {Utxo} utxo - Utxo object with base64 encoded script
@@ -34,3 +34,12 @@ export declare const fetchNftUtxos: (address: string, collectionId?: string, lim
  * @returns {Promise<TokenUtxo[]>} Array of token utxos
  */
 export declare const fetchTokenUtxos: (protocol: TokenType, tokenId: string, address: string) => Promise<TokenUtxo[]>;
+/**
+ * Selects token UTXOs based on the required amount and specified strategies.
+ * @param {TokenUtxo[]} tokenUtxos - Array of token UTXOs.
+ * @param {number} requiredAmount - Required amount in tokens (displayed amount).
+ * @param {number} decimals - Number of decimal places for the token.
+ * @param {TokenSelectionOptions} [options={}] - Options for token selection.
+ * @returns {TokenSelectionResult} Selected token UTXOs and total selected amount.
+ */
+export declare const selectTokenUtxos: (tokenUtxos: TokenUtxo[], requiredAmount: number, decimals: number, options?: TokenSelectionOptions) => TokenSelectionResult;

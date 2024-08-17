@@ -7,7 +7,7 @@ import {
 	P2PKH,
   Script,
 } from "@bsv/sdk";
-import { type NftUtxo, TokenType, type TokenUtxo, type Utxo } from "../types";
+import { type NftUtxo, type TokenSelectionOptions, type TokenSelectionResult, TokenSelectionStrategy, TokenType, type TokenUtxo, type Utxo } from "../types";
 import { API_HOST } from "../constants";
 
 const { fromBase58Check } = Utils;
@@ -191,3 +191,80 @@ export const fetchTokenUtxos = async (
 const isLock = (utxo: Utxo) => {
   return !!(utxo as unknown as { lock: { address: string, until: number } }).lock;
 }
+
+/**
+ * Selects token UTXOs based on the required amount and specified strategies.
+ * @param {TokenUtxo[]} tokenUtxos - Array of token UTXOs.
+ * @param {number} requiredAmount - Required amount in tokens (displayed amount).
+ * @param {number} decimals - Number of decimal places for the token.
+ * @param {TokenSelectionOptions} [options={}] - Options for token selection.
+ * @returns {TokenSelectionResult} Selected token UTXOs and total selected amount.
+ */
+export const selectTokenUtxos = (
+  tokenUtxos: TokenUtxo[],
+  requiredAmount: number,
+  decimals: number,
+  options: TokenSelectionOptions = {}
+): TokenSelectionResult => {
+  const {
+    inputStrategy = TokenSelectionStrategy.RetainOrder,
+    outputStrategy = TokenSelectionStrategy.RetainOrder,
+  } = options;
+
+  const requiredAmountBigInt = BigInt(Math.floor(requiredAmount * 10 ** decimals));
+
+  // Sort the UTXOs based on the input strategy
+  const sortedUtxos = [...tokenUtxos].sort((a, b) => {
+    if (inputStrategy === TokenSelectionStrategy.RetainOrder) return 0;
+    const amtA = BigInt(a.amt);
+    const amtB = BigInt(b.amt);
+
+    switch (inputStrategy) {
+      case TokenSelectionStrategy.SmallestFirst:
+        return Number(amtA - amtB);
+      case TokenSelectionStrategy.LargestFirst:
+        return Number(amtB - amtA);
+      case TokenSelectionStrategy.Random:
+        return Math.random() - 0.5;
+      default:
+        return 0;
+    }
+  });
+
+  let totalSelected = 0n;
+  const selectedUtxos: TokenUtxo[] = [];
+
+  for (const utxo of sortedUtxos) {
+    selectedUtxos.push(utxo);
+    totalSelected += BigInt(utxo.amt);
+
+    if (totalSelected >= requiredAmountBigInt && requiredAmountBigInt > 0n) {
+      break;
+    }
+  }
+
+  // Sort the selected UTXOs based on the output strategy
+  if (outputStrategy !== TokenSelectionStrategy.RetainOrder) {
+    selectedUtxos.sort((a, b) => {
+      const amtA = BigInt(a.amt);
+      const amtB = BigInt(b.amt);
+
+      switch (outputStrategy) {
+        case TokenSelectionStrategy.SmallestFirst:
+          return Number(amtA - amtB);
+        case TokenSelectionStrategy.LargestFirst:
+          return Number(amtB - amtA);
+        case TokenSelectionStrategy.Random:
+          return Math.random() - 0.5;
+        default:
+          return 0;
+      }
+    });
+  }
+
+  return {
+    selectedUtxos,
+    totalSelected,
+    isEnough: totalSelected >= requiredAmountBigInt
+  };
+};
