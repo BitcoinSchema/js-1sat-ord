@@ -114,6 +114,10 @@ describe("createOrdTokenListings", () => {
     expect(spentOutpoints).toHaveLength(2); // 1 payment utxo + 1 token utxo
     expect(payChange).toBeDefined();
     expect(tokenChange).toBeDefined();
+    if (tokenChange) {
+      expect(tokenChange[0].amt).toBe("100000000000");
+      expect(tokenChange[0].txid).toBe(tx.id('hex'));
+    }
   });
 
   test("create ord token listings with BSV21 protocol", async () => {

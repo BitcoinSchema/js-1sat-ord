@@ -1,6 +1,6 @@
 {
   "name": "js-1sat-ord",
-  "version": "0.1.61",
+  "version": "0.1.62",
   "description": "1Sat Ordinals library",
   "types": "dist/index.d.ts",
   "type": "module",
@@ -27,11 +27,11 @@
   "author": "Luke Rohenaz",
   "license": "MIT",
   "dependencies": {
+    "image-size": "^1.1.1",
     "sigma-protocol": "^0.1.2"
   },
   "peerDependencies": {
-    "@bsv/sdk": "^1.1.13",
-    "jimp": "^0.22.12"
+    "@bsv/sdk": "^1.1.13"
   },
   "devDependencies": {
     "@types/bun": "^1.1.6",

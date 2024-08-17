@@ -51,10 +51,12 @@ export type NewTokenListing = {
  * @typedef {Object} Distribution
  * @property {string} address - Destination address. Must be a Ordinals address (BSV address for recieving 1Sat ordinals tokens).
  * @property {number} amt - Number of tokens as a string, considering decimals. Not display format. Ex. 100000000 for 1 token with 8 decimal places.
+ * @property {boolean} [omitMetaData] - Optional. Set to true to omit metadata from this distribution's output.
  */
 export type Distribution = {
     address: string;
     amt: number;
+    omitMetaData?: boolean;
 };
 /**
  * @typedef {Object} Utxo
@@ -251,7 +253,6 @@ export interface CreateOrdinalsCollectionItemMetadata extends PreMAP {
     name: string;
     subType: "collectionItem";
     subTypeData: CollectionItemSubTypeData;
-    royalties?: Royalty[];
     previewUrl?: string;
 }
 /**
@@ -341,7 +342,23 @@ export type SendUtxosConfig = {
     metaData?: MAP;
 };
 export interface TokenChangeResult extends ChangeResult {
-    tokenChange?: TokenUtxo;
+    tokenChange?: TokenUtxo[];
+}
+/**
+ * Configuration object for token outputs
+ * @typedef {Object} TokenSplitConfig
+ * @property {number} outputs - Number of outputs to split the token into
+ * @property {number} threshold - This nnumber of token inputs or less will trigger a split.
+ * @property {boolean} omitMetaData - Set to true to omit metadata from the token change outputs
+ **/
+export type TokenSplitConfig = {
+    outputs: number;
+    threshold?: number;
+    omitMetaData?: boolean;
+};
+export declare enum TokenInputMode {
+    All = "all",
+    Needed = "needed"
 }
 export type TransferOrdTokensConfig = {
     protocol: TokenType;
@@ -352,6 +369,7 @@ export type TransferOrdTokensConfig = {
     distributions: Distribution[];
     paymentPk: PrivateKey;
     ordPk: PrivateKey;
+    inputMode?: TokenInputMode;
     changeAddress?: string;
     tokenChangeAddress?: string;
     satsPerKb?: number;
@@ -359,6 +377,8 @@ export type TransferOrdTokensConfig = {
     signer?: LocalSigner | RemoteSigner;
     additionalPayments?: Payment[];
     burn?: boolean;
+    splitConfig?: TokenSplitConfig;
+    tokenInputMode?: TokenInputMode;
 };
 export type CreateOrdListingsConfig = {
     utxos: Utxo[];

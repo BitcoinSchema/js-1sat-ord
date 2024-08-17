@@ -9,6 +9,7 @@ import { DEFAULT_SAT_PER_KB } from "./constants";
 import OrdLock from "./templates/ordLock";
 import OrdP2PKH from "./templates/ordP2pkh";
 import {
+  type TokenChangeResult,
   TokenType,
   type CreateOrdListingsConfig,
   type CreateOrdTokenListingsConfig,
@@ -156,7 +157,7 @@ export const createOrdListings = async (config: CreateOrdListingsConfig) => {
 
 export const createOrdTokenListings = async (
   config: CreateOrdTokenListingsConfig,
-) => {
+): Promise<TokenChangeResult> => {
   const {
     utxos,
     protocol,
@@ -254,7 +255,7 @@ export const createOrdTokenListings = async (
   }
   changeAmt = totalAmtIn - totalAmtOut;
 
-  let tokenChange: TokenUtxo | undefined;
+  let tokenChange: TokenUtxo[] | undefined;
   // check that you have enough tokens to send and return change
   if (changeAmt < 0n) {
     throw new Error("Not enough tokens to send");
@@ -286,14 +287,14 @@ export const createOrdTokenListings = async (
     });
     const vout = tx.outputs.length;
     tx.addOutput({ lockingScript, satoshis: 1 });
-    tokenChange = {
+    tokenChange = [{
       id: tokenID,
       satoshis: 1,
       script: Buffer.from(lockingScript.toBinary()).toString("base64"),
       txid: "",
       vout,
       amt: changeAmt.toString(),
-    };
+    }];
   }
 
   // Add additional payments if any
@@ -355,7 +356,7 @@ export const createOrdTokenListings = async (
 
   const txid = tx.id("hex") as string;
   if (tokenChange) {
-    tokenChange.txid = txid;
+    tokenChange = tokenChange.map((tc) => ({ ...tc, txid }));
   }
   // check for change
   const payChangeOutIdx = tx.outputs.findIndex((o) => o.change);

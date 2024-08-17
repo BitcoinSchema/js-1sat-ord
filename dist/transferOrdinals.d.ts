@@ -16,6 +16,8 @@ import { type TransferOrdTokensConfig, type TokenChangeResult } from "./types";
  * @param {PreMAP} [config.metaData] - Optional. MAP (Magic Attribute Protocol) metadata to include in inscriptions
  * @param {LocalSigner | RemoteSigner} [config.signer] - Optional. Signer object to sign the transaction
  * @param {Payment[]} [config.additionalPayments] - Optional. Additional payments to include in the transaction
+ * @param {TokenInputMode} [config.tokenInputMode] - Optional. "all" or "needed". Default is "needed"
+ * @param {TokenSplitConfig} [config.tokenSplitConfig] - Optional. Configuration object for splitting token change
  * @param {burn} [config.burn] - Optional. Set to true to burn the tokens.
  * @returns {Promise<TokenChangeResult>} Transaction with token transfer outputs
  */

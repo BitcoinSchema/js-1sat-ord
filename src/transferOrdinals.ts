@@ -1,15 +1,25 @@
-import { P2PKH, SatoshisPerKilobyte, Script, Transaction, Utils } from "@bsv/sdk";
+import {
+	P2PKH,
+	type PrivateKey,
+	SatoshisPerKilobyte,
+	Script,
+	Transaction,
+	Utils,
+} from "@bsv/sdk";
 import { DEFAULT_SAT_PER_KB } from "./constants";
 import OrdP2PKH from "./templates/ordP2pkh";
 import {
-  TokenType,
-  type TokenUtxo,
-  type TransferBSV20Inscription,
-  type TransferBSV21Inscription,
-  type TransferOrdTokensConfig,
-  type TokenChangeResult,
-  type TransferTokenInscription,
-  type Utxo,
+	TokenType,
+	type TokenUtxo,
+	type TransferBSV20Inscription,
+	type TransferBSV21Inscription,
+	type TransferOrdTokensConfig,
+	type TokenChangeResult,
+	type TransferTokenInscription,
+	type Utxo,
+	TokenInputMode,
+  type TokenSplitConfig,
+  type PreMAP,
 } from "./types";
 import { inputFromB64Utxo } from "./utils/utxo";
 import { signData } from "./signData";
@@ -32,241 +42,315 @@ import stringifyMetaData from "./utils/subtypeData";
  * @param {PreMAP} [config.metaData] - Optional. MAP (Magic Attribute Protocol) metadata to include in inscriptions
  * @param {LocalSigner | RemoteSigner} [config.signer] - Optional. Signer object to sign the transaction
  * @param {Payment[]} [config.additionalPayments] - Optional. Additional payments to include in the transaction
+ * @param {TokenInputMode} [config.tokenInputMode] - Optional. "all" or "needed". Default is "needed"
+ * @param {TokenSplitConfig} [config.tokenSplitConfig] - Optional. Configuration object for splitting token change
  * @param {burn} [config.burn] - Optional. Set to true to burn the tokens.
  * @returns {Promise<TokenChangeResult>} Transaction with token transfer outputs
  */
-export const transferOrdTokens = async (config: TransferOrdTokensConfig): Promise<TokenChangeResult> => {
-  const {
-    protocol,
-    tokenID,
-    utxos,
-    inputTokens,
-    distributions,
-    paymentPk,
-    ordPk,
-    changeAddress,
-    tokenChangeAddress,
-    satsPerKb = DEFAULT_SAT_PER_KB,
-    metaData,
-    signer,
-    decimals,
-    additionalPayments = [],
-    burn = false
-  } = config;
+export const transferOrdTokens = async (
+	config: TransferOrdTokensConfig,
+): Promise<TokenChangeResult> => {
+	const {
+		protocol,
+		tokenID,
+		utxos,
+		inputTokens,
+		distributions,
+		paymentPk,
+		ordPk,
+		changeAddress,
+		tokenChangeAddress,
+		satsPerKb = DEFAULT_SAT_PER_KB,
+		metaData,
+		signer,
+		decimals,
+		additionalPayments = [],
+		burn = false,
+		tokenInputMode = TokenInputMode.Needed,
+		splitConfig = {
+			outputs: 1,
+      omitMetaData: false,
+		},
+	} = config;
 
-  // calculate change amount
-  let changeAmt = 0n;
-  let totalAmtIn = 0n;
-  let totalAmtOut = 0n;
+  	// Ensure these inputs are for the expected token
+	if (!inputTokens.every((token) => token.id === tokenID)) {
+		throw new Error("Input tokens do not match the provided tokenID");
+	}
 
-  // Ensure these inputs are for the expected token
-  if (!inputTokens.every((token) => token.id === tokenID)) {
-    throw new Error("Input tokens do not match the provided tokenID");
-  }
+
+	// calculate change amount
+	let changeAmt = 0n;
+	let totalAmtIn = 0n;
+	let totalAmtOut = 0n;
+	const totalAmtNeeded = distributions.reduce(
+		(acc, dist) => acc + BigInt(dist.amt * 10 ** decimals),
+		0n,
+	);
+
 
 	const modelOrFee = new SatoshisPerKilobyte(satsPerKb);
 	let tx = new Transaction();
 
-  for (const token of inputTokens) {
-    const inputScriptBinary = Utils.toArray(token.script, "base64");
-    const inputScript = Script.fromBinary(inputScriptBinary);
-    tx.addInput(inputFromB64Utxo(
-      token,
-      new OrdP2PKH().unlock(
-        ordPk,
-        "all",
-        true,
-        token.satoshis,
-        inputScript,
-      ),
-    ));
-
-    totalAmtIn += BigInt(token.amt);
-  }
-
-  // build destination inscriptions
-  for (const dest of distributions) {
-    const bigAmt = BigInt(dest.amt * 10 ** decimals);
-    const transferInscription: TransferTokenInscription = {
-      p: "bsv-20",
-      op: burn ? "burn" : "transfer",
-      amt: bigAmt.toString(),
-    }
-    let inscription: TransferBSV20Inscription | TransferBSV21Inscription;
-    if (protocol === TokenType.BSV20) {
-      inscription = {
-        ...transferInscription,
-        tick: tokenID,
-      } as TransferBSV20Inscription;
-    } else if (protocol === TokenType.BSV21) {
-      inscription = {
-        ...transferInscription,
-        id: tokenID,
-      } as TransferBSV21Inscription;
-    } else {
-      throw new Error("Invalid protocol");
-    }
-    tx.addOutput({
-      satoshis: 1,
-      lockingScript: new OrdP2PKH().lock(
-        dest.address,
-        {
-          dataB64: Buffer.from(JSON.stringify(inscription)).toString("base64"),
-          contentType: "application/bsv-20",
-        },
-      ),
-    });
-    totalAmtOut += bigAmt;
-  };
-  changeAmt = totalAmtIn - totalAmtOut;
-
-  let tokenChange: TokenUtxo | undefined;
-  // check that you have enough tokens to send and return change
-  if (changeAmt < 0n) {
-    throw new Error("Not enough tokens to send");
-  }
-  if (changeAmt > 0n) {
-    const transferInscription: TransferTokenInscription = {
-      p: "bsv-20",
-      op: "transfer",
-      amt: changeAmt.toString(),
-    };
-    let inscription: TransferBSV20Inscription | TransferBSV21Inscription;
-    if (protocol === TokenType.BSV20) {
-      inscription = {
-        ...transferInscription,
-        tick: tokenID,
-      } as TransferBSV20Inscription;
-    } else if (protocol === TokenType.BSV21) {
-      inscription = {
-        ...transferInscription,
-        id: tokenID,
-      } as TransferBSV21Inscription;
-    } else {
-      throw new Error("Invalid protocol");
-    }
-
-    // remove any undefined fields from metadata
-		if (metaData) {
-			for(const key of Object.keys(metaData)) {
-				if (metaData[key] === undefined) {
-					delete metaData[key];
-				}
+	// Handle token inputs based on tokenInputMode
+	let tokensToUse: TokenUtxo[];
+	if (tokenInputMode === TokenInputMode.All) {
+		tokensToUse = inputTokens;
+	} else {
+		tokensToUse = [];
+		for (const token of inputTokens) {
+			tokensToUse.push(token);
+			totalAmtIn += BigInt(token.amt);
+			if (totalAmtIn >= totalAmtNeeded) {
+				break;
 			}
 		}
-
-		const lockingScript = new OrdP2PKH().lock(
-			tokenChangeAddress || ordPk.toAddress().toString(), 
-			{
-				dataB64: Buffer.from(JSON.stringify(inscription)).toString('base64'),
-				contentType: "application/bsv-20",
-			},
-      stringifyMetaData(metaData)
-		);
-    
-		const vout = tx.outputs.length;
-		tx.addOutput({ lockingScript, satoshis: 1 });
-		tokenChange = {
-			id: tokenID,
-			satoshis: 1,
-			script: Buffer.from(lockingScript.toBinary()).toString("base64"),
-			txid: "",
-			vout,
-			amt: changeAmt.toString(),
-		};
+		if (totalAmtIn < totalAmtNeeded) {
+			throw new Error("Not enough tokens to satisfy the transfer amount");
+		}
 	}
 
-  // Add additional payments if any
-  for (const p of additionalPayments) {
-    tx.addOutput({
-      satoshis: p.amount,
-      lockingScript: new P2PKH().lock(p.to),
-    });
-  }
+	for (const token of tokensToUse) {
+		const inputScriptBinary = Utils.toArray(token.script, "base64");
+		const inputScript = Script.fromBinary(inputScriptBinary);
+		tx.addInput(
+			inputFromB64Utxo(
+				token,
+				new OrdP2PKH().unlock(ordPk, "all", true, token.satoshis, inputScript),
+			),
+		);
 
-  // add change to the outputs
-  let payChange: Utxo | undefined;
+		totalAmtIn += BigInt(token.amt);
+	}
 
-  const change = changeAddress || paymentPk.toAddress().toString();
-  const changeScript = new P2PKH().lock(change);
-  const changeOut = {
-    lockingScript: changeScript,
-    change: true,
-  };
-  tx.addOutput(changeOut);
-
-  let totalSatsIn = 0n;
-  const totalSatsOut = tx.outputs.reduce(
-    (total, out) => total + BigInt(out.satoshis || 0),
-    0n,
-  );
-  let fee = 0;
-  for (const utxo of utxos) {
-    const input = inputFromB64Utxo(utxo, new P2PKH().unlock(
-      paymentPk,
-      "all",
-      true,
-      utxo.satoshis,
-      Script.fromBinary(Utils.toArray(utxo.script, 'base64'))
-    ));
-
-    tx.addInput(input);
-    // stop adding inputs if the total amount is enough
-    totalSatsIn += BigInt(utxo.satoshis);
-    fee = await modelOrFee.computeFee(tx);
-
-    if (totalSatsIn >= totalSatsOut + BigInt(fee)) {
-      break;
+  // remove any undefined fields from metadata
+  if (metaData) {
+    for (const key of Object.keys(metaData)) {
+      if (metaData[key] === undefined) {
+        delete metaData[key];
+      }
     }
   }
 
-  // make sure we have enough
-  if (totalSatsIn < totalSatsOut + BigInt(fee)) {
-    throw new Error(
-      `Not enough funds to transfer tokens. Total sats in: ${totalSatsIn}, Total sats out: ${totalSatsOut}, Fee: ${fee}`,
+	// build destination inscriptions
+	for (const dest of distributions) {
+		const bigAmt = BigInt(dest.amt * 10 ** decimals);
+		const transferInscription: TransferTokenInscription = {
+			p: "bsv-20",
+			op: burn ? "burn" : "transfer",
+			amt: bigAmt.toString(),
+		};
+		let inscription: TransferBSV20Inscription | TransferBSV21Inscription;
+		if (protocol === TokenType.BSV20) {
+			inscription = {
+				...transferInscription,
+				tick: tokenID,
+			} as TransferBSV20Inscription;
+		} else if (protocol === TokenType.BSV21) {
+			inscription = {
+				...transferInscription,
+				id: tokenID,
+			} as TransferBSV21Inscription;
+		} else {
+			throw new Error("Invalid protocol");
+		}
+    
+		tx.addOutput({
+      satoshis: 1,
+			lockingScript: new OrdP2PKH().lock(dest.address, {
+        dataB64: Buffer.from(JSON.stringify(inscription)).toString("base64"),
+				contentType: "application/bsv-20",
+			}, 
+      // when present, include metadata on each distribution if omit is not specified
+			dest.omitMetaData ? undefined : stringifyMetaData(metaData)),
+		});
+		totalAmtOut += bigAmt;
+	}
+
+	changeAmt = totalAmtIn - totalAmtOut;
+
+	// check that you have enough tokens to send and return change
+	if (changeAmt < 0n) {
+		throw new Error("Not enough tokens to send");
+	}
+
+  let tokenChange: TokenUtxo[] = [];
+  if (changeAmt > 0n) {
+    tokenChange = splitChangeOutputs(
+      tx,
+      changeAmt,
+      protocol,
+      tokenID,
+      tokenChangeAddress || ordPk.toAddress().toString(),
+      ordPk,
+      metaData,
+      splitConfig,
     );
   }
 
-  if (config.signer) {
-		tx = await signData(tx, config.signer);
+	// Add additional payments if any
+	for (const p of additionalPayments) {
+		tx.addOutput({
+			satoshis: p.amount,
+			lockingScript: new P2PKH().lock(p.to),
+		});
 	}
-  
+
+	// add change to the outputs
+	let payChange: Utxo | undefined;
+
+	const change = changeAddress || paymentPk.toAddress().toString();
+	const changeScript = new P2PKH().lock(change);
+	const changeOut = {
+		lockingScript: changeScript,
+		change: true,
+	};
+	tx.addOutput(changeOut);
+
+	let totalSatsIn = 0n;
+	const totalSatsOut = tx.outputs.reduce(
+		(total, out) => total + BigInt(out.satoshis || 0),
+		0n,
+	);
+	let fee = 0;
+	for (const utxo of utxos) {
+		const input = inputFromB64Utxo(
+			utxo,
+			new P2PKH().unlock(
+				paymentPk,
+				"all",
+				true,
+				utxo.satoshis,
+				Script.fromBinary(Utils.toArray(utxo.script, "base64")),
+			),
+		);
+
+		tx.addInput(input);
+		// stop adding inputs if the total amount is enough
+		totalSatsIn += BigInt(utxo.satoshis);
+		fee = await modelOrFee.computeFee(tx);
+
+		if (totalSatsIn >= totalSatsOut + BigInt(fee)) {
+			break;
+		}
+	}
+
+	// make sure we have enough
+	if (totalSatsIn < totalSatsOut + BigInt(fee)) {
+		throw new Error(
+			`Not enough funds to transfer tokens. Total sats in: ${totalSatsIn}, Total sats out: ${totalSatsOut}, Fee: ${fee}`,
+		);
+	}
+
+	if (signer) {
+		tx = await signData(tx, signer);
+	}
+
 	// estimate the cost of the transaction and assign change value
 	await tx.fee(modelOrFee);
 
-  // Sign the transaction
-  await tx.sign();
+	// Sign the transaction
+	await tx.sign();
 
-  const txid = tx.id("hex") as string;
-  if (tokenChange) {
-    tokenChange.txid = txid;
-  }
-  // check for change
-  const payChangeOutIdx = tx.outputs.findIndex((o) => o.change);
-  if (payChangeOutIdx !== -1) {
-    const changeOutput = tx.outputs[payChangeOutIdx];
-    payChange = {
-      satoshis: changeOutput.satoshis as number,
-      txid,
-      vout: payChangeOutIdx,
-      script: Buffer.from(changeOutput.lockingScript.toBinary()).toString(
-        "base64",
-      ),
-    };
+  // assign txid to tokenChange outputs
+	const txid = tx.id("hex") as string;
+  for (const change of tokenChange) {
+    change.txid = txid;
   }
 
-  if (payChange) {
-    const changeOutput = tx.outputs[tx.outputs.length - 1];
-    payChange.satoshis = changeOutput.satoshis as number;
-    payChange.txid = tx.id("hex") as string;
-  }
+	// check for change
+	const payChangeOutIdx = tx.outputs.findIndex((o) => o.change);
+	if (payChangeOutIdx !== -1) {
+		const changeOutput = tx.outputs[payChangeOutIdx];
+		payChange = {
+			satoshis: changeOutput.satoshis as number,
+			txid,
+			vout: payChangeOutIdx,
+			script: Buffer.from(changeOutput.lockingScript.toBinary()).toString(
+				"base64",
+			),
+		};
+	}
 
-  return {
-    tx,
-    spentOutpoints: tx.inputs.map(
-      (i) => `${i.sourceTXID}_${i.sourceOutputIndex}`,
-    ),
-    payChange,
-    tokenChange,
-  };
+	if (payChange) {
+		const changeOutput = tx.outputs[tx.outputs.length - 1];
+		payChange.satoshis = changeOutput.satoshis as number;
+		payChange.txid = tx.id("hex") as string;
+	}
+
+	return {
+		tx,
+		spentOutpoints: tx.inputs.map(
+			(i) => `${i.sourceTXID}_${i.sourceOutputIndex}`,
+		),
+		payChange,
+		tokenChange,
+	};
 };
+
+const splitChangeOutputs = (
+  tx: Transaction,
+  changeAmt: bigint,
+  protocol: TokenType,
+  tokenID: string,
+  tokenChangeAddress: string,
+  ordPk: PrivateKey,
+  metaData: PreMAP | undefined,
+  splitConfig: TokenSplitConfig
+): TokenUtxo[] => {
+  const tokenChanges: TokenUtxo[] = [];
+  const shouldSplit = splitConfig.threshold === undefined || changeAmt <= BigInt(splitConfig.threshold);
+  const splitOutputs = shouldSplit ? Math.min(splitConfig.outputs, Number(changeAmt)) : 1;
+  const baseChangeAmount = changeAmt / BigInt(splitOutputs);
+  let remainder = changeAmt % BigInt(splitOutputs);
+
+  for (let i = 0; i < splitOutputs; i++) {
+    let splitAmount = baseChangeAmount;
+    if (remainder > 0n) {
+      splitAmount += 1n;
+      remainder -= 1n;
+    }
+
+    const transferInscription: TransferTokenInscription = {
+      p: "bsv-20",
+      op: "transfer",
+      amt: splitAmount.toString(),
+    };
+    let inscription: TransferBSV20Inscription | TransferBSV21Inscription;
+    if (protocol === TokenType.BSV20) {
+      inscription = {
+        ...transferInscription,
+        tick: tokenID,
+      } as TransferBSV20Inscription;
+    } else if (protocol === TokenType.BSV21) {
+      inscription = {
+        ...transferInscription,
+        id: tokenID,
+      } as TransferBSV21Inscription;
+    } else {
+      throw new Error("Invalid protocol");
+    }
+
+    const lockingScript = new OrdP2PKH().lock(
+      tokenChangeAddress || ordPk.toAddress().toString(),
+      {
+        dataB64: Buffer.from(JSON.stringify(inscription)).toString('base64'),
+        contentType: "application/bsv-20",
+      },
+      splitConfig.omitMetaData ? undefined : stringifyMetaData(metaData)
+    );
+
+    const vout = tx.outputs.length;
+    tx.addOutput({ lockingScript, satoshis: 1 });
+    tokenChanges.push({
+      id: tokenID,
+      satoshis: 1,
+      script: Buffer.from(lockingScript.toBinary()).toString("base64"),
+      txid: "",
+      vout,
+      amt: splitAmount.toString(),
+    });
+  }
+
+  return tokenChanges;
+}

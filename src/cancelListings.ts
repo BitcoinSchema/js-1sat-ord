@@ -10,6 +10,7 @@ import {
 	type TransferTokenInscription,
 	type Utxo,
   type ChangeResult,
+  type TokenChangeResult,
 } from "./types";
 import { inputFromB64Utxo } from "./utils/utxo";
 import { DEFAULT_SAT_PER_KB } from "./constants";
@@ -158,9 +159,22 @@ export const cancelOrdListings = async (config: CancelOrdListingsConfig): Promis
 	};
 };
 
+/**
+ * Cancel Ordinal Token Listings
+ * @param {CancelOrdTokenListingsConfig} config - Configuration object for cancelling token ordinals
+ * @param {PrivateKey} config.paymentPk - Private key to sign payment inputs
+ * @param {PrivateKey} config.ordPk - Private key to sign ordinals
+ * @param {Utxo[]} config.utxos - Utxos to spend (with base64 encoded scripts)
+ * @param {Utxo[]} config.listingUtxos - Listing utxos to cancel (with base64 encoded scripts)
+ * @param {string} config.tokenID - Token ID of the token to cancel listings for
+ * @param {string} config.ordAddress - Address to send the cancelled token to
+ * @param {number} [config.satsPerKb] - Optional. Satoshis per kilobyte for fee calculation
+ * @param {Payment[]} [config.additionalPayments] - Optional. Additional payments to make
+ * @returns {Promise<TokenChangeResult>} Transaction, spent outpoints, change utxo, token change utxos
+ */
 export const cancelOrdTokenListings = async (
 	config: CancelOrdTokenListingsConfig,
-) => {
+): Promise<TokenChangeResult> => {
 	const {
 		protocol,
 		tokenID,
@@ -301,14 +315,14 @@ export const cancelOrdTokenListings = async (
 	// Sign the transaction
 	await tx.sign();
 
-  const tokenChange: TokenUtxo = {
+  const tokenChange: TokenUtxo[] = [{
     amt: totalAmtIn.toString(),
     script: Buffer.from(lockingScript.toHex(), 'hex').toString('base64'),
     txid: tx.id("hex") as string,
     vout: 0,
     id: tokenID,
     satoshis: 1
-  };
+  }];
 
 	// check for change
 	const payChangeOutIdx = tx.outputs.findIndex((o) => o.change);
@@ -336,6 +350,6 @@ export const cancelOrdTokenListings = async (
 			(i) => `${i.sourceTXID}_${i.sourceOutputIndex}`,
 		),
 		payChange,
-    tokenChange
+    tokenChange,
 	};
 };

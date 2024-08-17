@@ -181,7 +181,10 @@ const config: TransferBsv21TokenConfig = {
 const result = await transferOrdToken(config);
 ```
 
-Note: To burn tokens you can set the optional `burn`  parameter to `true`
+Note: To burn tokens you can set the optional `burn` parameter to `true`
+Note: You can use the optional `splitConfig` parameter to configure how and when to split token change outputs, and weather change outputs should include metadata.
+Note: You can use the optional `tokenInputMode` parameter to configure weather `all` tokens are consumed, or only what's `needed`. Default is `needed`.
+
 ### Send Utxos
 
 Sends utxos to the given destination:
