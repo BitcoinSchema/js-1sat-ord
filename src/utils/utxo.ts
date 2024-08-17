@@ -166,8 +166,10 @@ export const fetchTokenUtxos = async (
 	protocol: TokenType,
 	tokenId: string,
 	address: string,
+  limit = 10,
+  offset = 0,
 ): Promise<TokenUtxo[]> => {
-	const url = `${API_HOST}/bsv20/${address}/${protocol === TokenType.BSV20 ? "tick" : "id"}/${tokenId}?bsv20=true&listing=false`;
+	const url = `${API_HOST}/bsv20/${address}/${protocol === TokenType.BSV20 ? "tick" : "id"}/${tokenId}?bsv20=true&listing=false&limit=${limit}&offset=${offset}`;
 	const res = await fetch(url);
 	if (!res.ok) {
 		throw new Error(`Error fetching ${protocol} utxos`);

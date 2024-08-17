@@ -33,7 +33,7 @@ export declare const fetchNftUtxos: (address: string, collectionId?: string, lim
  * @param {string} address - Address to fetch utxos for
  * @returns {Promise<TokenUtxo[]>} Array of token utxos
  */
-export declare const fetchTokenUtxos: (protocol: TokenType, tokenId: string, address: string) => Promise<TokenUtxo[]>;
+export declare const fetchTokenUtxos: (protocol: TokenType, tokenId: string, address: string, limit?: number, offset?: number) => Promise<TokenUtxo[]>;
 /**
  * Selects token UTXOs based on the required amount and specified strategies.
  * @param {TokenUtxo[]} tokenUtxos - Array of token UTXOs.
