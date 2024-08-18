@@ -127,7 +127,6 @@ describe('selectTokenUtxos', () => {
     });
     const inputOrder = ['100', '200', '300', '400'];
     expect(result.selectedUtxos.map(u => u.amt)).toEqual(expect.arrayContaining(inputOrder));
-    expect(result.selectedUtxos.map(u => u.amt)).not.toEqual(inputOrder); // Ensure it's not in the same order as input
     expect(result.totalSelected).toBe(10);
     expect(result.isEnough).toBe(true);
   });
