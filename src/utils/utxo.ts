@@ -9,6 +9,7 @@ import {
 } from "@bsv/sdk";
 import { type NftUtxo, type TokenSelectionOptions, type TokenSelectionResult, TokenSelectionStrategy, TokenType, type TokenUtxo, type Utxo } from "../types";
 import { API_HOST } from "../constants";
+import { toToken } from "satoshi-token";
 
 const { fromBase58Check } = Utils;
 
@@ -160,6 +161,8 @@ export const fetchNftUtxos = async (
  * @param {TokenType} protocol - Token protocol. Either BSV20 or BSV21
  * @param {string} tokenId - Token id. Ticker for BSV20 and id (mint+deploy inscription origin) for BSV21
  * @param {string} address - Address to fetch utxos for
+ * @param {number} [limit=10] - Number of utxos to fetch. Default is 10
+ * @param {number} [offset=0] - Offset for fetching utxos. Default is 0
  * @returns {Promise<TokenUtxo[]>} Array of token utxos
  */
 export const fetchTokenUtxos = async (
@@ -197,14 +200,14 @@ const isLock = (utxo: Utxo) => {
 /**
  * Selects token UTXOs based on the required amount and specified strategies.
  * @param {TokenUtxo[]} tokenUtxos - Array of token UTXOs.
- * @param {number} requiredAmount - Required amount in tokens (displayed amount).
+ * @param {number} requiredTokens - Required amount in tokens (displayed amount).
  * @param {number} decimals - Number of decimal places for the token.
  * @param {TokenSelectionOptions} [options={}] - Options for token selection.
  * @returns {TokenSelectionResult} Selected token UTXOs and total selected amount.
  */
 export const selectTokenUtxos = (
   tokenUtxos: TokenUtxo[],
-  requiredAmount: number,
+  requiredTokens: number,
   decimals: number,
   options: TokenSelectionOptions = {}
 ): TokenSelectionResult => {
@@ -212,9 +215,7 @@ export const selectTokenUtxos = (
     inputStrategy = TokenSelectionStrategy.RetainOrder,
     outputStrategy = TokenSelectionStrategy.RetainOrder,
   } = options;
-
-  const requiredAmountBigInt = BigInt(Math.floor(requiredAmount * 10 ** decimals));
-
+  
   // Sort the UTXOs based on the input strategy
   const sortedUtxos = [...tokenUtxos].sort((a, b) => {
     if (inputStrategy === TokenSelectionStrategy.RetainOrder) return 0;
@@ -233,14 +234,13 @@ export const selectTokenUtxos = (
     }
   });
 
-  let totalSelected = 0n;
+  let totalSelected = 0;
   const selectedUtxos: TokenUtxo[] = [];
 
   for (const utxo of sortedUtxos) {
     selectedUtxos.push(utxo);
-    totalSelected += BigInt(utxo.amt);
-
-    if (totalSelected >= requiredAmountBigInt && requiredAmountBigInt > 0n) {
+    totalSelected += toToken(utxo.amt, decimals);
+    if (totalSelected >= requiredTokens && requiredTokens > 0) {
       break;
     }
   }
@@ -267,6 +267,6 @@ export const selectTokenUtxos = (
   return {
     selectedUtxos,
     totalSelected,
-    isEnough: totalSelected >= requiredAmountBigInt
+    isEnough: totalSelected >= requiredTokens
   };
 };

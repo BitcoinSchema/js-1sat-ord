@@ -155,7 +155,7 @@ const config: DeployBsv21TokenConfig = {
   symbol: "MYTICKER",
   icon: "<icon_outpoint>",
   utxos: [utxo],
-  initialDistribution: { address: destinationAddress, amt: "1000000000" },
+  initialDistribution: { address: destinationAddress, tokens: 10 },
   paymentPk: paymentPk,
   destinationAddress: destinationAddress
 };
@@ -173,7 +173,7 @@ const config: TransferBsv21TokenConfig = {
   tokenID: tokenID,
   utxos: [utxo],
   inputTokens: [tokenUtxo],
-  distributions: [{ address: destinationAddress, amt: "1000" }],
+  distributions: [{ address: destinationAddress, tokens: 0.1 }],
   paymentPk: paymentPk,
   ordPk: ordPk
 };

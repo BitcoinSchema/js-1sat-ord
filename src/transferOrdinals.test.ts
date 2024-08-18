@@ -27,10 +27,10 @@ test("transfer a BSV21", async () => {
 
   const distributions = [{
     address: address1,
-    amt: 2589999991,
+    tokens: 2589999991,
   }, {
     address: address2,
-    amt: 2500000000,
+    tokens: 2500000000,
   }];
 
   const config: TransferOrdTokensConfig = {

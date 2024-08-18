@@ -1,4 +1,7 @@
-import sizeOf from 'image-size';
+import * as ImageSize from 'image-size';
+ImageSize.disableFS(true);
+const sizeOf = ImageSize.default;
+
 import type { IconInscription, ImageContentType } from "../types";
 
 export const ErrorOversizedIcon = new Error(

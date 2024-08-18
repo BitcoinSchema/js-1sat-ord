@@ -31,15 +31,17 @@ export declare const fetchNftUtxos: (address: string, collectionId?: string, lim
  * @param {TokenType} protocol - Token protocol. Either BSV20 or BSV21
  * @param {string} tokenId - Token id. Ticker for BSV20 and id (mint+deploy inscription origin) for BSV21
  * @param {string} address - Address to fetch utxos for
+ * @param {number} [limit=10] - Number of utxos to fetch. Default is 10
+ * @param {number} [offset=0] - Offset for fetching utxos. Default is 0
  * @returns {Promise<TokenUtxo[]>} Array of token utxos
  */
 export declare const fetchTokenUtxos: (protocol: TokenType, tokenId: string, address: string, limit?: number, offset?: number) => Promise<TokenUtxo[]>;
 /**
  * Selects token UTXOs based on the required amount and specified strategies.
  * @param {TokenUtxo[]} tokenUtxos - Array of token UTXOs.
- * @param {number} requiredAmount - Required amount in tokens (displayed amount).
+ * @param {number} requiredTokens - Required amount in tokens (displayed amount).
  * @param {number} decimals - Number of decimal places for the token.
  * @param {TokenSelectionOptions} [options={}] - Options for token selection.
  * @returns {TokenSelectionResult} Selected token UTXOs and total selected amount.
  */
-export declare const selectTokenUtxos: (tokenUtxos: TokenUtxo[], requiredAmount: number, decimals: number, options?: TokenSelectionOptions) => TokenSelectionResult;
+export declare const selectTokenUtxos: (tokenUtxos: TokenUtxo[], requiredTokens: number, decimals: number, options?: TokenSelectionOptions) => TokenSelectionResult;

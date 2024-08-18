@@ -47,24 +47,24 @@ export type ExistingListing = {
  * @property {string} payAddress - Address to send the payment upon purchase
  * @property {string} price - Listing price in satoshis
  * @property {String} ordAddress - Where to return a listed ordinal upon cancel.
- * @property {number} amt - Number of tokens as a number. Not adjusted for decimals (library will add zeros according to dec value).
+ * @property {number} tokens - Number of tokens in whole token display format. Ex. 0.5 for 0.5 tokens. Library handles conversion to 'tsat' format.
  */
 export type NewTokenListing = {
   payAddress: string;
   price: number;
-  amt: number;
+  tokens: number;
   ordAddress: string;
 }
 
 /**
  * @typedef {Object} Distribution
  * @property {string} address - Destination address. Must be a Ordinals address (BSV address for recieving 1Sat ordinals tokens).
- * @property {number} amt - Number of tokens as a string, considering decimals. Not display format. Ex. 100000000 for 1 token with 8 decimal places.
+ * @property {number} tokens - Number of tokens in whole token display format. Ex. 0.5 for 0.5 tokens. Library handles conversion to 'tsat' format. 
  * @property {boolean} [omitMetaData] - Optional. Set to true to omit metadata from this distribution's output.
  */
 export type Distribution = {
   address: string;
-  amt: number;
+  tokens: number;
   omitMetaData?: boolean;
 };
 
@@ -100,7 +100,7 @@ export interface NftUtxo extends Utxo {
 
 /**
  * @typedef {Object} TokenUtxo
- * @property {string} amt - Number of tokens as a string, adjusted for decimals. Ex. 100000000 for 1 token with 8 decimal places.
+ * @property {string} amt - Number of tokens as a string in 'tsat' format. Ex. 100000000 for 1 token with 8 decimal places.
  * @property {string} id - Token id -  either tick or id depending on protocol
  * @property {string} satoshis - Always 1
  * @property {string} [payout] - Optional. Payment output script base64 encoded
@@ -130,7 +130,7 @@ export interface TokenSelectionOptions {
 
 export interface TokenSelectionResult {
   selectedUtxos: TokenUtxo[];
-  totalSelected: bigint;
+  totalSelected: number;
   isEnough: boolean;
 }
 

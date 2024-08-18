@@ -2,7 +2,7 @@ import { P2PKH, PrivateKey } from "@bsv/sdk";
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { deployBsv21Token } from "./deployBsv21";
-import type { DeployBsv21TokenConfig, IconInscription, Utxo } from "./types";
+import type { DeployBsv21TokenConfig, Distribution, IconInscription, Utxo } from "./types";
 import { ErrorIconProportions, ErrorImageDimensionsUndefined, ErrorOversizedIcon } from "./utils/icon";
 
 describe("deployBsv21Token", () => {
@@ -32,8 +32,8 @@ describe("deployBsv21Token", () => {
 
   const initialDistribution = {
     address: address,
-    amt: 1000000000,
-  };
+    tokens: 10,
+  } as Distribution
 
   const symbol = "TEST";
   const svgIcon: IconInscription = {

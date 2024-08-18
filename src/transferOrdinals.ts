@@ -24,6 +24,7 @@ import {
 import { inputFromB64Utxo } from "./utils/utxo";
 import { signData } from "./signData";
 import stringifyMetaData from "./utils/subtypeData";
+import { toTokenSat } from "satoshi-token";
 
 /**
  * Transfer tokens to a destination
@@ -79,12 +80,12 @@ export const transferOrdTokens = async (
 	}
 
 	// calculate change amount
-	let changeAmt = 0n;
-	let totalAmtIn = 0n;
-	let totalAmtOut = 0n;
+	let changeAmt = 0;
+	let totalTsatIn = 0;
+	let totalTsatOut = 0;
 	const totalAmtNeeded = distributions.reduce(
-		(acc, dist) => acc + BigInt(dist.amt * 10 ** decimals),
-		0n,
+		(acc, dist) => acc + toTokenSat(dist.tokens, decimals),
+		0,
 	);
 
 	const modelOrFee = new SatoshisPerKilobyte(satsPerKb);
@@ -94,20 +95,20 @@ export const transferOrdTokens = async (
 	let tokensToUse: TokenUtxo[];
 	if (tokenInputMode === TokenInputMode.All) {
 		tokensToUse = inputTokens;
-		totalAmtIn = inputTokens.reduce(
-			(acc, token) => acc + BigInt(token.amt),
-			0n,
+		totalTsatIn = inputTokens.reduce(
+			(acc, token) => acc + Number(token.amt),
+			0,
 		);
 	} else {
 		tokensToUse = [];
 		for (const token of inputTokens) {
 			tokensToUse.push(token);
-			totalAmtIn += BigInt(token.amt);
-			if (totalAmtIn >= totalAmtNeeded) {
+			totalTsatIn += Number(token.amt);
+			if (totalTsatIn >= totalAmtNeeded) {
 				break;
 			}
 		}
-		if (totalAmtIn < totalAmtNeeded) {
+		if (totalTsatIn < totalAmtNeeded) {
 			throw new Error("Not enough tokens to satisfy the transfer amount");
 		}
 	}
@@ -134,7 +135,7 @@ export const transferOrdTokens = async (
 
 	// build destination inscriptions
 	for (const dest of distributions) {
-		const bigAmt = BigInt(dest.amt * 10 ** decimals);
+		const bigAmt = toTokenSat(dest.tokens, decimals);
 		const transferInscription: TransferTokenInscription = {
 			p: "bsv-20",
 			op: burn ? "burn" : "transfer",
@@ -167,11 +168,11 @@ export const transferOrdTokens = async (
 				dest.omitMetaData ? undefined : stringifyMetaData(metaData),
 			),
 		});
-		totalAmtOut += bigAmt;
+		totalTsatOut += bigAmt;
 	}
 
-	changeAmt = totalAmtIn - totalAmtOut;
-	console.log({ changeAmt, totalAmtIn, totalAmtOut });
+	changeAmt = totalTsatIn - totalTsatOut;
+	console.log({ changeAmt, totalTsatIn, totalTsatOut });
 	// check that you have enough tokens to send and return change
 	if (changeAmt < 0n) {
 		throw new Error("Not enough tokens to send");
@@ -374,7 +375,7 @@ export const transferOrdTokens = async (
 
 const splitChangeOutputs = (
 	tx: Transaction,
-	changeAmt: bigint,
+	changeAmt: number,
 	protocol: TokenType,
 	tokenID: string,
 	tokenChangeAddress: string,
@@ -383,24 +384,24 @@ const splitChangeOutputs = (
 	splitConfig: TokenSplitConfig,
 ): TokenUtxo[] => {
 	const tokenChanges: TokenUtxo[] = [];
-	const threshold = BigInt(splitConfig.threshold || 0);
+	const threshold = splitConfig.threshold || 0;
 	const maxOutputs = splitConfig.outputs;
 
 	let splitOutputs = 1;
-	if (threshold > 0n) {
-		splitOutputs = Number(changeAmt / threshold);
+	if (threshold > 0) {
+		splitOutputs = changeAmt / threshold;
 		splitOutputs = Math.min(splitOutputs, maxOutputs);
 		splitOutputs = Math.max(splitOutputs, 1);
 	}
 
-	const baseChangeAmount = changeAmt / BigInt(splitOutputs);
-	let remainder = changeAmt % BigInt(splitOutputs);
+	const baseChangeAmount = changeAmt / splitOutputs;
+	let remainder = changeAmt % splitOutputs;
 
 	for (let i = 0; i < splitOutputs; i++) {
 		let splitAmount = baseChangeAmount;
 		if (remainder > 0n) {
-			splitAmount += 1n;
-			remainder -= 1n;
+			splitAmount += 1;
+			remainder -= 1;
 		}
 
 		const transferInscription: TransferTokenInscription = {

@@ -80,13 +80,13 @@ export const deployBsv21Token = async (
 	}
   
 	// Outputs
-  const amt = decimals ? BigInt(initialDistribution.amt) * 10n ** BigInt(decimals) : BigInt(initialDistribution.amt);
+  const tsatAmt = decimals ? BigInt(initialDistribution.tokens) * 10n ** BigInt(decimals) : BigInt(initialDistribution.tokens);
 	const fileData: DeployMintTokenInscription = {
 		p: "bsv-20",
 		op: "deploy+mint",
 		sym: symbol,
 		icon: iconValue,
-		amt: amt.toString(),
+		amt: tsatAmt.toString(),
 	};
 
   if (decimals) {

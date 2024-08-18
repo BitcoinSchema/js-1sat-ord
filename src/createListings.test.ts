@@ -91,7 +91,7 @@ describe("createOrdTokenListings", () => {
   const listings: NewTokenListing[] = [{
     payAddress: address,
     ordAddress: ordPk.toAddress().toString(),
-    amt: 1000,
+    tokens: 1000,
     price: 5000,
   }];
 
