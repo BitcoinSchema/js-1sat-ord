@@ -1,6 +1,6 @@
 {
   "name": "js-1sat-ord",
-  "version": "0.1.64",
+  "version": "0.1.65",
   "description": "1Sat Ordinals library",
   "types": "dist/index.d.ts",
   "type": "module",
@@ -29,7 +29,7 @@
   "license": "MIT",
   "dependencies": {
     "image-size": "^1.1.1",
-    "satoshi-token": "^0.0.1",
+    "satoshi-token": "^0.0.2",
     "sigma-protocol": "^0.1.3"
   },
   "peerDependencies": {

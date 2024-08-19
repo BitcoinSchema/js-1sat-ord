@@ -20,7 +20,7 @@ import {
   type Utxo,
 } from "./types";
 import { inputFromB64Utxo } from "./utils/utxo";
-import { toToken } from "satoshi-token";
+import { ReturnTypes, toToken, toTokenSat } from "satoshi-token";
 const { toArray } = Utils;
 
 // TODO: Handle royalty
@@ -203,7 +203,7 @@ export const createOrdTokenListings = async (
   // Add listing outputs
   for (const listing of listings) {
     // NewTokenListing is not adjusted for decimals
-    const bigAmt = BigInt(listing.tokens * 10 ** decimals);
+    const bigAmt = toTokenSat(listing.tokens, decimals, ReturnTypes.BigInt);
     const transferInscription: TransferTokenInscription = {
       p: "bsv-20",
       op: "transfer",
