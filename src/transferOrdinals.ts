@@ -24,7 +24,7 @@ import {
 import { inputFromB64Utxo } from "./utils/utxo";
 import { signData } from "./signData";
 import stringifyMetaData from "./utils/subtypeData";
-import { ReturnTypes, toTokenSat } from "satoshi-token";
+import { ReturnTypes, toToken, toTokenSat } from "satoshi-token";
 
 /**
  * Transfer tokens to a destination
@@ -136,6 +136,7 @@ export const transferOrdTokens = async (
 	// build destination inscriptions
 	for (const dest of distributions) {
 		const bigAmt = toTokenSat(dest.tokens, decimals, ReturnTypes.BigInt);
+    console.log({distTokenSat: bigAmt});
 		const transferInscription: TransferTokenInscription = {
 			p: "bsv-20",
 			op: burn ? "burn" : "transfer",
@@ -179,6 +180,7 @@ export const transferOrdTokens = async (
 	}
 
 	let tokenChange: TokenUtxo[] = [];
+  console.log({changeTsats})
 	if (changeTsats > 0n) {
 		tokenChange = splitChangeOutputs(
 			tx,
@@ -308,7 +310,7 @@ export const transferOrdTokens = async (
 
 const splitChangeOutputs = (
   tx: Transaction,
-  changeTokens: bigint,
+  changeTsats: bigint,
   protocol: TokenType,
   tokenID: string,
   tokenChangeAddress: string,
@@ -318,11 +320,11 @@ const splitChangeOutputs = (
   decimals: number,
 ): TokenUtxo[] => {
   const tokenChanges: TokenUtxo[] = [];
-  
+
   const threshold = splitConfig.threshold !== undefined ? BigInt(splitConfig.threshold) : undefined;
   const maxOutputs = splitConfig.outputs;
-  const changeAmt = toTokenSat(changeTokens, decimals, ReturnTypes.BigInt);
-  
+  const changeAmt = toToken(changeTsats.toString(), decimals, ReturnTypes.BigInt);
+  console.log({splitChangeAmt: changeAmt})
   let splitOutputs: bigint;
   if (threshold !== undefined && threshold > 0n) {
       splitOutputs = changeAmt / threshold;

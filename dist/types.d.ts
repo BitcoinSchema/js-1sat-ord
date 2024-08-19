@@ -363,7 +363,7 @@ export interface TokenChangeResult extends ChangeResult {
  * Configuration object for token outputs
  * @typedef {Object} TokenSplitConfig
  * @property {number} outputs - Number of outputs to split the token into. Default is 1.
- * @property {number} threshold - Optional. Minimum amount of tokens per output. Display format, ex. 0.5 for 0.5 tokens. Library handles conversion to 'tsat' format.
+ * @property {number} threshold - Optional. Minimum amount of tokens per output.
  * @property {boolean} omitMetaData - Set to true to omit metadata from the token change outputs
  **/
 export type TokenSplitConfig = {
