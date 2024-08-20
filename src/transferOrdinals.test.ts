@@ -1,6 +1,7 @@
 import { PrivateKey, Utils } from "@bsv/sdk";
 import { transferOrdTokens } from "./transferOrdinals";
 import { TokenInputMode, TokenType, type TokenUtxo, type TransferOrdTokensConfig } from "./types";
+import { ReturnTypes, toSatoshi, toToken, toTokenSat } from "satoshi-token";
 
 test("transfer a BSV21", async () => {
   const paymentPk = PrivateKey.fromWif("KzwfqdfecMRtpg65j2BeRtixboNR37fSCDr8QbndV6ySEPT4xibW");
@@ -75,13 +76,14 @@ test("transfer a BSV21 with split change outputs with minimum threshold", async 
 
   const distributions = [{
     address: address1,
-    tokens: 5089999900,
+    tokens: 5089900.000,
   }, {
     address: address2,
-    tokens: 1,
+    tokens: .901,
   }];
 
-  const threshold = 30;
+
+  const threshold = .003;
   const config: TransferOrdTokensConfig = {
     utxos,
     inputTokens,
@@ -90,10 +92,10 @@ test("transfer a BSV21 with split change outputs with minimum threshold", async 
     ordPk,
     protocol: TokenType.BSV21,
     tokenID,
-    decimals: 0,
+    decimals: 3,
     tokenInputMode: TokenInputMode.All,
     splitConfig: {
-      outputs: 4,
+      outputs: 3,
       threshold,
     },
   };
@@ -112,15 +114,21 @@ test("transfer a BSV21 with split change outputs with minimum threshold", async 
   
   // Check if the change amounts are correct
   const totalChangeAmount = tokenChange.reduce((sum, change) => sum + BigInt(change.amt), 0n);
-  expect(totalChangeAmount).toBe(90n);
+  expect(totalChangeAmount).toBe(99090n);
+
+  const totalInputAmount = inputTokens.reduce((sum, input) => sum + BigInt(input.amt), 0n);
+  const totalOutputAmount = distributions.reduce((sum, output) => sum + toTokenSat(output.tokens, config.decimals, ReturnTypes.BigInt), 0n);
+  console.log({ totalInputAmount, totalOutputAmount, totalChangeAmount });
+  expect(totalInputAmount).toEqual(totalOutputAmount + totalChangeAmount);
 
   // Check if the change outputs are roughly equal
   const changeAmounts = tokenChange.map(change => BigInt(change.amt));
 
   // Check if each change output is at least the threshold amount
   for (const amount of changeAmounts) {
-    expect(amount).toEqual(BigInt(threshold));
+    expect(amount).toBeGreaterThanOrEqual(toTokenSat(threshold, config.decimals, ReturnTypes.BigInt));
   }
+
 });
 
 
@@ -266,5 +274,11 @@ test("transfer a BSV21 with 2 decimals and split with no change", async () => {
   
   // Check if the change amounts are correct
   const totalChangeAmount = tokenChange.reduce((sum, change) => sum + BigInt(change.amt), 0n);
+  const totalInputAmount = inputTokens.reduce((sum, input) => sum + BigInt(input.amt), 0n);
+  const totalOutputAmount = distributions.reduce((sum, output) => sum + toTokenSat(output.tokens, config.decimals, ReturnTypes.BigInt), 0n);
+  console.log({ totalInputAmount, totalOutputAmount, totalChangeAmount });
+  expect(totalInputAmount).toEqual(totalOutputAmount + totalChangeAmount);
   expect(totalChangeAmount).toBe(0n);
+
+  console.log(distributions.map((output) => console.log(toTokenSat(output.tokens, config.decimals, ReturnTypes.BigInt))));
 });

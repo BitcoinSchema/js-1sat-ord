@@ -321,9 +321,9 @@ const splitChangeOutputs = (
 ): TokenUtxo[] => {
   const tokenChanges: TokenUtxo[] = [];
 
-  const threshold = splitConfig.threshold !== undefined ? BigInt(splitConfig.threshold) : undefined;
+  const threshold = splitConfig.threshold !== undefined ? toTokenSat(splitConfig.threshold, decimals, ReturnTypes.BigInt) : undefined;
   const maxOutputs = splitConfig.outputs;
-  const changeAmt = toToken(changeTsats.toString(), decimals, ReturnTypes.BigInt);
+  const changeAmt = changeTsats;
   console.log({splitChangeAmt: changeAmt})
   let splitOutputs: bigint;
   if (threshold !== undefined && threshold > 0n) {
