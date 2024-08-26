@@ -255,6 +255,16 @@ Each function accepts additional configuration options not shown in the examples
 
 Refer to the function documentation for a complete list of configuration options for each function.
 
+### Broadcasting
+
+```ts
+import { oneSatBroadcaster } from "js-1sat-ord"
+
+// ...
+
+const { status, txid, message  } = await tx.broadcast(oneSatBroadcaster)
+```
+
 #### Using with Bundlers
 
 Since this package depends on `@bsv/sdk` there should be no issue with bundlers.
