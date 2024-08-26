@@ -48,7 +48,7 @@ export default class OneSatBroadcaster implements Broadcaster {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
-				Accept: "text/plain",
+				Accept: "application/json",
 			},
 			data: { rawtx },
 		};
@@ -69,7 +69,7 @@ export default class OneSatBroadcaster implements Broadcaster {
 			return {
 				status: "error",
 				code: response.status.toString() ?? "ERR_UNKNOWN",
-				description: response.data ?? "Unknown error",
+				description: response.data.message ?? "Unknown error",
 			};
 		} catch (error) {
 			return {
