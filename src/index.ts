@@ -20,6 +20,7 @@ import {
 } from "./purchaseOrdListing";
 import { deployBsv21Token } from "./deployBsv21";
 import { burnOrdinals } from "./burnOrdinals";
+import OneSatBroadcaster, { oneSatBroadcaster } from "./utils/broadcast";
 
 export * from "./types";
 
@@ -44,4 +45,6 @@ export {
 	purchaseOrdTokenListing,
 	cancelOrdTokenListings,
 	createOrdTokenListings,
+  oneSatBroadcaster,
+  OneSatBroadcaster,
 };

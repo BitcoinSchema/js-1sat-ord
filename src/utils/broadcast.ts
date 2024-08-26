@@ -6,6 +6,7 @@ import {
 	type Transaction,
 	type HttpClient,
 	defaultHttpClient,
+  Utils,
 } from "@bsv/sdk";
 import { API_HOST } from "../constants.js";
 
@@ -41,7 +42,7 @@ export default class OneSatBroadcaster implements Broadcaster {
 	async broadcast(
 		tx: Transaction,
 	): Promise<BroadcastResponse | BroadcastFailure> {
-		const rawtx = Buffer.from(tx.toBinary()).toString("base64");
+		const rawtx = Utils.toBase64(tx.toBinary());
 
 		const requestOptions = {
 			method: "POST",

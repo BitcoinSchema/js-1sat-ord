@@ -23,7 +23,6 @@ import { inputFromB64Utxo } from "./utils/utxo";
 import { ReturnTypes, toToken, toTokenSat } from "satoshi-token";
 const { toArray } = Utils;
 
-// TODO: Handle royalty
 export const createOrdListings = async (config: CreateOrdListingsConfig) => {
   const {
     utxos,
