@@ -3,7 +3,6 @@ import {
 	SatoshisPerKilobyte,
 	P2PKH,
 	Script,
-	type TransactionOutput,
 	Utils,
 } from "@bsv/sdk";
 import { DEFAULT_SAT_PER_KB } from "./constants";

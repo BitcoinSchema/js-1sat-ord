@@ -262,7 +262,7 @@ import { oneSatBroadcaster } from "js-1sat-ord"
 
 // ...
 
-const { status, txid, message  } = await tx.broadcast(oneSatBroadcaster)
+const { status, txid, message  } = await tx.broadcast(oneSatBroadcaster())
 ```
 
 #### Using with Bundlers

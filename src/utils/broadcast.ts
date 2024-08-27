@@ -1,14 +1,13 @@
 import {
-	ARC,
 	type BroadcastFailure,
 	type Broadcaster,
 	type BroadcastResponse,
 	type Transaction,
 	type HttpClient,
-	defaultHttpClient,
   Utils,
 } from "@bsv/sdk";
 import { API_HOST } from "../constants.js";
+import { defaultHttpClient } from "./httpClient.js";
 
 export const oneSatBroadcaster = (): Broadcaster => {
 	return new OneSatBroadcaster();
@@ -82,3 +81,4 @@ export default class OneSatBroadcaster implements Broadcaster {
 		}
 	}
 }
+

@@ -1,6 +1,4 @@
-import * as ImageSize from 'image-size';
-ImageSize.disableFS(true);
-const sizeOf = ImageSize.default;
+import { imageMeta } from "image-meta";
 
 import type { IconInscription, ImageContentType } from "../types";
 
@@ -32,7 +30,9 @@ export const validIconData = async (
 
     try {
         const buffer = Buffer.from(dataB64, "base64");
-        const dimensions = sizeOf(buffer);
+
+        // Meta contains { type, width?, height?, orientation? }
+        const dimensions = imageMeta(buffer);
 
         if (dimensions.width === undefined || dimensions.height === undefined) {
             return ErrorImageDimensionsUndefined;
@@ -92,3 +92,4 @@ export const validIconFormat = (icon: string): boolean => {
 
     return true;
 };
+
