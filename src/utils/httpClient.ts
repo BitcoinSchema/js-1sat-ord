@@ -9,14 +9,10 @@ export function defaultHttpClient (): HttpClient {
   }
 
   if (typeof window !== 'undefined' && typeof window.fetch === 'function') {
-
-    console.log("Using browser fetch")
     const originalFetch = window.fetch
 
     window.fetch = async (...args) => {
-      const response = await originalFetch(...args)
-
-      return response
+      return await originalFetch(...args)
     }
 
     // Use fetch in a browser environment

@@ -1,0 +1,5 @@
+.vscode/
+src/
+*.test.ts
+node_modules/
+jest.config.ts

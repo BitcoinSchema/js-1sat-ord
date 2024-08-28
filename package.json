@@ -1,6 +1,6 @@
 {
   "name": "js-1sat-ord",
-  "version": "0.1.73",
+  "version": "0.1.74",
   "description": "1Sat Ordinals library",
   "types": "dist/index.d.ts",
   "type": "module",
@@ -30,7 +30,7 @@
   "dependencies": {
     "image-meta": "^0.2.1",
     "satoshi-token": "^0.0.4",
-    "sigma-protocol": "^0.1.3"
+    "sigma-protocol": "^0.1.4"
   },
   "peerDependencies": {
     "@bsv/sdk": "^1.1.19"
