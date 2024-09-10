@@ -101,11 +101,11 @@ export const createOrdListings = async (config: CreateOrdListingsConfig) => {
   );
   let fee = 0;
   for (const utxo of utxos) {
-    if (!paymentPk || !utxo.pk) {
+    if (!paymentPk && !utxo.pk) {
       throw new Error("Private key is required to sign the transaction");
     }
     const input = inputFromB64Utxo(utxo, new P2PKH().unlock(
-      utxo.pk || paymentPk,
+      utxo.pk || paymentPk!,
       "all",
       true,
       utxo.satoshis,

@@ -50,7 +50,7 @@ export const sendOrdinals = async (
 	// Inputs
 	// Add ordinal inputs
 	for (const ordUtxo of config.ordinals) {
-		if (!ordPk || !ordUtxo.pk) {
+		if (!ordPk && !ordUtxo.pk) {
 			throw new Error("Private key is required to sign the ordinal");
 		}
 		if (ordUtxo.satoshis !== 1) {
@@ -135,7 +135,7 @@ export const sendOrdinals = async (
 	);
 	let fee = 0;
 	for (const utxo of config.paymentUtxos) {
-		if (!paymentPk || !utxo.pk) {
+		if (!paymentPk && !utxo.pk) {
 			throw new Error("Private key is required to sign the payment");
 		}
 		const input = inputFromB64Utxo(utxo, new P2PKH().unlock(
