@@ -236,7 +236,7 @@ export type PreMAP = {
 export type CreateOrdinalsConfig = {
   utxos: Utxo[];
   destinations: Destination[];
-  paymentPk: PrivateKey;
+  paymentPk?: PrivateKey;
   changeAddress?: string;
   satsPerKb?: number;
   metaData?: PreMAP;
@@ -378,7 +378,7 @@ export interface BurnMAP extends MAP {
 }
 
 export type BurnOrdinalsConfig = {
-  ordPk: PrivateKey;
+  ordPk?: PrivateKey;
   ordinals: Utxo[];
   metaData?: BurnMAP;
 }
@@ -386,8 +386,8 @@ export type BurnOrdinalsConfig = {
 export type SendOrdinalsConfig = {
   paymentUtxos: Utxo[];
   ordinals: Utxo[];
-  paymentPk: PrivateKey;
-  ordPk: PrivateKey;
+  paymentPk?: PrivateKey;
+  ordPk?: PrivateKey;
   destinations: Destination[];
   changeAddress?: string;
   satsPerKb?: number;
@@ -403,7 +403,7 @@ export type DeployBsv21TokenConfig = {
   icon: string | IconInscription;
   utxos: Utxo[];
   initialDistribution: Distribution;
-  paymentPk: PrivateKey;
+  paymentPk?: PrivateKey;
   destinationAddress: string;
   changeAddress?: string;
   satsPerKb?: number;
@@ -412,7 +412,7 @@ export type DeployBsv21TokenConfig = {
 
 export type SendUtxosConfig = {
   utxos: Utxo[];
-  paymentPk: PrivateKey;
+  paymentPk?: PrivateKey;
   payments: Payment[];
   satsPerKb?: number;
   changeAddress?: string;
@@ -486,7 +486,7 @@ export type TransferOrdTokensConfig = {
 export type CreateOrdListingsConfig = {
   utxos: Utxo[];
   listings: NewListing[];
-  paymentPk: PrivateKey;
+  paymentPk?: PrivateKey;
   ordPk: PrivateKey,
   changeAddress?: string;
   satsPerKb?: number;
@@ -495,7 +495,7 @@ export type CreateOrdListingsConfig = {
 
 export type PurchaseOrdListingConfig = {
   utxos: Utxo[];
-  paymentPk: PrivateKey;
+  paymentPk?: PrivateKey;
   listing: ExistingListing;
   ordAddress: string;
   changeAddress?: string;
@@ -509,7 +509,7 @@ export type PurchaseOrdTokenListingConfig = {
   protocol: TokenType;
   tokenID: string;
   utxos: Utxo[];
-  paymentPk: PrivateKey;
+  paymentPk?: PrivateKey;
   listingUtxo: TokenUtxo;
   ordAddress: string;
   changeAddress?: string;
@@ -520,8 +520,8 @@ export type PurchaseOrdTokenListingConfig = {
 
 export type CancelOrdListingsConfig = {
   utxos: Utxo[],
-  paymentPk: PrivateKey;
-  ordPk: PrivateKey;
+  paymentPk?: PrivateKey;
+  ordPk?: PrivateKey;
   listingUtxos: Utxo[];
   additionalPayments?: Payment[];
   changeAddress?: string;
@@ -530,8 +530,8 @@ export type CancelOrdListingsConfig = {
 
 export interface CancelOrdTokenListingsConfig extends CancelOrdListingsConfig {
   utxos: Utxo[],
-  paymentPk: PrivateKey;
-  ordPk: PrivateKey;
+  paymentPk?: PrivateKey;
+  ordPk?: PrivateKey;
   listingUtxos: TokenUtxo[];
   additionalPayments: Payment[];
   changeAddress?: string;

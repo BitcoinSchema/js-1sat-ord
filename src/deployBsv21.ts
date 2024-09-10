@@ -120,8 +120,11 @@ export const deployBsv21Token = async (
 	);
 	let fee = 0;
 	for (const utxo of utxos) {
+		if (!paymentPk && !utxo.pk) {
+			throw new Error("Private key is required to sign the payment");
+		}
 		const input = inputFromB64Utxo(utxo, new P2PKH().unlock(
-			paymentPk, 
+			utxo.pk || paymentPk!, 
 			"all",
 			true, 
 			utxo.satoshis,
@@ -147,7 +150,10 @@ export const deployBsv21Token = async (
 	// if we need to send change, add it to the outputs
 	let payChange: Utxo | undefined;
 
-	const change = changeAddress || paymentPk.toAddress().toString();
+	if(!changeAddress && !paymentPk) {
+		throw new Error("Either changeAddress or paymentPk is required");
+	}
+	const change = changeAddress || paymentPk!.toAddress().toString();
 	const changeScript = new P2PKH().lock(change);
 	const changeOut = {
 		lockingScript: changeScript,

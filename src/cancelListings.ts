@@ -53,10 +53,13 @@ export const cancelOrdListings = async (config: CancelOrdListingsConfig): Promis
 	// Inputs
 	// Add the locked ordinals we're cancelling
 	for (const listingUtxo of listingUtxos) {
+		if(!ordPk && !listingUtxo.pk) {
+			throw new Error("Private key required for token input");
+		}
 		tx.addInput(inputFromB64Utxo(
 			listingUtxo,
 			new OrdLock().cancelListing(
-				ordPk,
+				listingUtxo.pk || ordPk!,
 				"all",
 				true,
 				listingUtxo.satoshis,
@@ -66,7 +69,7 @@ export const cancelOrdListings = async (config: CancelOrdListingsConfig): Promis
 		// Add cancel outputs returning listed ordinals
 		tx.addOutput({
 			satoshis: 1,
-			lockingScript: new P2PKH().lock(ordPk.toAddress().toString()),
+			lockingScript: new P2PKH().lock((listingUtxo.pk || ordPk!).toAddress().toString()),
 		});
 	}
 
@@ -81,7 +84,10 @@ export const cancelOrdListings = async (config: CancelOrdListingsConfig): Promis
 	// add change to the outputs
 	let payChange: Utxo | undefined;
 
-	const change = changeAddress || paymentPk.toAddress().toString();
+	if (!changeAddress && !paymentPk) {
+		throw new Error("paymentPk or changeAddress required for payment change");
+	}
+	const change = changeAddress || paymentPk!.toAddress().toString();
 	const changeScript = new P2PKH().lock(change);
 	const changeOut = {
 		lockingScript: changeScript,
@@ -96,10 +102,13 @@ export const cancelOrdListings = async (config: CancelOrdListingsConfig): Promis
 	);
 	let fee = 0;
 	for (const utxo of utxos) {
+		if(!utxo.pk && !paymentPk) {
+			throw new Error("paymentPk required for payment utxo");
+		}
 		const input = inputFromB64Utxo(
 			utxo, 
 			new P2PKH().unlock(
-				paymentPk, 
+				utxo.pk || paymentPk!,
 				"all",
 				true, 
 				utxo.satoshis,
@@ -207,10 +216,13 @@ export const cancelOrdTokenListings = async (
 	// Inputs
 	// Add the locked ordinals we're cancelling
 	for (const listingUtxo of listingUtxos) {
+		if(!ordPk && !listingUtxo.pk) {
+			throw new Error("Private key required for token input");
+		}
 		tx.addInput(inputFromB64Utxo(
 			listingUtxo,
 			new OrdLock().cancelListing(
-				ordPk,
+				listingUtxo.pk || ordPk!,
 				"all",
 				true,
 				listingUtxo.satoshis,
@@ -240,8 +252,11 @@ export const cancelOrdTokenListings = async (
 		throw new Error("Invalid protocol");
 	}
 
+	if(!ordAddress && !ordPk) {
+		throw new Error("ordAddress or ordPk required for token output");
+	}
 	const destination: Destination = {
-		address: ordAddress || ordPk.toAddress().toString(),
+		address: ordAddress || ordPk!.toAddress().toString(),
 		inscription: {
 			dataB64: Buffer.from(JSON.stringify(inscription)).toString("base64"),
 			contentType: "application/bsv-20",
@@ -269,7 +284,10 @@ export const cancelOrdTokenListings = async (
 	// add change to the outputs
 	let payChange: Utxo | undefined;
 
-	const change = changeAddress || paymentPk.toAddress().toString();
+	if (!changeAddress && !paymentPk) {
+		throw new Error("paymentPk or changeAddress required for payment change");
+	}
+	const change = changeAddress || paymentPk!.toAddress().toString();
 	const changeScript = new P2PKH().lock(change);
 	const changeOut = {
 		lockingScript: changeScript,
@@ -284,8 +302,11 @@ export const cancelOrdTokenListings = async (
 	);
 	let fee = 0;
 	for (const utxo of utxos) {
+		if(!utxo.pk && !paymentPk) {
+			throw new Error("paymentPk required for payment utxo");
+		}
 		const input = inputFromB64Utxo(utxo, new P2PKH().unlock(
-			paymentPk, 
+			utxo.pk || paymentPk!, 
 			"all",
 			true, 
 			utxo.satoshis,

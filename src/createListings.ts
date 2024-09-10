@@ -57,10 +57,13 @@ export const createOrdListings = async (config: CreateOrdListingsConfig) => {
     });
     const inputScriptBinary = toArray(listing.listingUtxo.script, "base64");
     const inputScript = Script.fromBinary(inputScriptBinary);
+    if (!ordPk && !listing.listingUtxo.pk) {
+      throw new Error("Private key is required to sign the ordinal");
+    }
     tx.addInput(inputFromB64Utxo(
       listing.listingUtxo,
       new OrdP2PKH().unlock(
-        ordPk,
+        listing.listingUtxo.pk || ordPk!,
         "all",
         true,
         listing.listingUtxo.satoshis,
@@ -79,8 +82,11 @@ export const createOrdListings = async (config: CreateOrdListingsConfig) => {
 
   // Check if change is needed
   let payChange: Utxo | undefined;
+  if(!changeAddress && !paymentPk) {
+    throw new Error("changeAddress or private key is required");
+  }
   const changeScript = new P2PKH().lock(
-    changeAddress || paymentPk.toAddress().toString(),
+    changeAddress || paymentPk!.toAddress().toString(),
   );
   const changeOutput = {
     lockingScript: changeScript,
@@ -95,8 +101,11 @@ export const createOrdListings = async (config: CreateOrdListingsConfig) => {
   );
   let fee = 0;
   for (const utxo of utxos) {
+    if (!paymentPk && !utxo.pk) {
+      throw new Error("Private key is required to sign the transaction");
+    }
     const input = inputFromB64Utxo(utxo, new P2PKH().unlock(
-      paymentPk,
+      utxo.pk || paymentPk!,
       "all",
       true,
       utxo.satoshis,
