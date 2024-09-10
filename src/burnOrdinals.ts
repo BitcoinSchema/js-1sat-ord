@@ -27,7 +27,7 @@ export const burnOrdinals = async (
 ): Promise<BaseResult> => {
 	const tx = new Transaction();
 	const spentOutpoints: string[] = [];
-	const { ordinals, metaData } = config;
+	const { ordinals, metaData, ordPk } = config;
 
 	// Inputs
 	// Add ordinal inputs
@@ -35,11 +35,14 @@ export const burnOrdinals = async (
 		if (ordUtxo.satoshis !== 1) {
 			throw new Error("1Sat Ordinal utxos must have exactly 1 satoshi");
 		}
+		if(!ordPk && !ordUtxo.pk) {
+			throw new Error("Private key is required to sign the ordinal");
+		}
 
 		const input = inputFromB64Utxo(
 			ordUtxo,
 			new OrdP2PKH().unlock(
-				config.ordPk,
+				ordUtxo.pk || ordPk!,
 				"all",
 				true,
 				ordUtxo.satoshis,
