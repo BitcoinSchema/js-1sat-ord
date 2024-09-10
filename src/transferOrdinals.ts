@@ -59,8 +59,6 @@ export const transferOrdTokens = async (
 		distributions,
 		paymentPk,
 		ordPk,
-		changeAddress,
-		tokenChangeAddress,
 		satsPerKb = DEFAULT_SAT_PER_KB,
 		metaData,
 		signer,
@@ -114,7 +112,8 @@ export const transferOrdTokens = async (
 	}
 
 	for (const token of tokensToUse) {
-		if(!token.pk && !ordPk) {
+    const ordKeyToUse = token.pk || ordPk;
+		if(!ordKeyToUse) {
 			throw new Error("Private key required for token input");
 		}
 		const inputScriptBinary = Utils.toArray(token.script, "base64");
@@ -122,7 +121,7 @@ export const transferOrdTokens = async (
 		tx.addInput(
 			inputFromB64Utxo(
 				token,
-				new OrdP2PKH().unlock(token.pk || ordPk!, "all", true, token.satoshis, inputScript),
+				new OrdP2PKH().unlock(ordKeyToUse, "all", true, token.satoshis, inputScript),
 			),
 		);
 	}
@@ -183,9 +182,9 @@ export const transferOrdTokens = async (
 	}
 
 	let tokenChange: TokenUtxo[] = [];
-  console.log({changeTsats})
 	if (changeTsats > 0n) {
-		if(!tokenChangeAddress && !ordPk) {
+    const tokenChangeAddress = config.tokenChangeAddress || ordPk?.toAddress();
+		if(!tokenChangeAddress) {
 			throw new Error("ordPk or changeAddress required for token change");
 		}
 		tokenChange = splitChangeOutputs(
@@ -193,7 +192,7 @@ export const transferOrdTokens = async (
 			changeTsats,
 			protocol,
 			tokenID,
-			tokenChangeAddress || ordPk!.toAddress().toString(),
+			tokenChangeAddress,
 			metaData,
 			splitConfig,
       		decimals,
@@ -210,12 +209,11 @@ export const transferOrdTokens = async (
 
 	// add change to the outputs
 	let payChange: Utxo | undefined;
-
-	if (!changeAddress && !paymentPk) {
+  const changeAddress = config.changeAddress || paymentPk?.toAddress();
+	if (!changeAddress) {
 		throw new Error("paymentPk or changeAddress required for payment change");
 	}
-	const change = changeAddress || paymentPk!.toAddress().toString();
-	const changeScript = new P2PKH().lock(change);
+	const changeScript = new P2PKH().lock(changeAddress);
 	const changeOut = {
 		lockingScript: changeScript,
 		change: true,
@@ -229,13 +227,14 @@ export const transferOrdTokens = async (
 	);
 	let fee = 0;
 	for (const utxo of utxos) {
-		if(!utxo.pk && !paymentPk) {
+    const payKeyToUse = utxo.pk || paymentPk;
+		if(!payKeyToUse) {
 			throw new Error("paymentPk required for payment utxo");
 		}
 		const input = inputFromB64Utxo(
 			utxo,
 			new P2PKH().unlock(
-				paymentPk || utxo.pk!,
+				payKeyToUse,
 				"all",
 				true,
 				utxo.satoshis,

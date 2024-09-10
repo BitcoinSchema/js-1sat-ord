@@ -50,7 +50,8 @@ export const sendOrdinals = async (
 	// Inputs
 	// Add ordinal inputs
 	for (const ordUtxo of config.ordinals) {
-		if (!ordPk && !ordUtxo.pk) {
+    const ordKeyToUse = ordUtxo.pk || ordPk;
+		if (!ordKeyToUse) {
 			throw new Error("Private key is required to sign the ordinal");
 		}
 		if (ordUtxo.satoshis !== 1) {
@@ -60,7 +61,7 @@ export const sendOrdinals = async (
 		const input = inputFromB64Utxo(
 			ordUtxo,
 			new OrdP2PKH().unlock(
-				ordUtxo.pk || ordPk!, 
+				ordKeyToUse, 
 				"all",
 				true, 
 				ordUtxo.satoshis,
@@ -116,11 +117,11 @@ export const sendOrdinals = async (
   // add change to the outputs
 	let payChange: Utxo | undefined;
 
-	if(!config.changeAddress && !paymentPk) {
+  const changeAddress = config.changeAddress || paymentPk?.toAddress();
+	if(!changeAddress) {
 		throw new Error("Either changeAddress or paymentPk is required");
 	}
-	const change = config.changeAddress || paymentPk!.toAddress().toString();
-	const changeScript = new P2PKH().lock(change);
+	const changeScript = new P2PKH().lock(changeAddress);
 	const changeOut = {
 		lockingScript: changeScript,
 		change: true,
@@ -135,11 +136,12 @@ export const sendOrdinals = async (
 	);
 	let fee = 0;
 	for (const utxo of config.paymentUtxos) {
-		if (!paymentPk && !utxo.pk) {
+    const payKeyToUse = utxo.pk || paymentPk;
+		if (!payKeyToUse) {
 			throw new Error("Private key is required to sign the payment");
 		}
 		const input = inputFromB64Utxo(utxo, new P2PKH().unlock(
-			utxo.pk || paymentPk!, 
+			payKeyToUse, 
 			"all",
 			true, 
 			utxo.satoshis,

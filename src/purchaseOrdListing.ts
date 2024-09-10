@@ -46,7 +46,6 @@ export const purchaseOrdListing = async (
 		paymentPk,
 		listing,
 		ordAddress,
-		changeAddress,
 		additionalPayments = [],
 		satsPerKb = DEFAULT_SAT_PER_KB,
 		royalties = [],
@@ -126,12 +125,11 @@ export const purchaseOrdListing = async (
 
 	// add change to the outputs
 	let payChange: Utxo | undefined;
-
-	if (!changeAddress && !paymentPk) {
+  const changeAddress = config.changeAddress || paymentPk?.toAddress();
+	if (!changeAddress) {
 		throw new Error("Either changeAddress or paymentPk is required");
 	}
-	const change = changeAddress || paymentPk!.toAddress().toString();
-	const changeScript = new P2PKH().lock(change);
+	const changeScript = new P2PKH().lock(changeAddress);
 	const changeOut = {
 		lockingScript: changeScript,
 		change: true,
@@ -145,13 +143,14 @@ export const purchaseOrdListing = async (
 	);
 	let fee = 0;
 	for (const utxo of utxos) {
-		if(!paymentPk && !utxo.pk) {
+    const payKeyToUse = utxo.pk || paymentPk;
+		if(!payKeyToUse) {
 			throw new Error("Private key is required to sign the payment");
 		}
 		const input = inputFromB64Utxo(
 			utxo,
 			new P2PKH().unlock(
-				utxo.pk || paymentPk!,
+				payKeyToUse,
 				"all",
 				true,
 				utxo.satoshis,
@@ -236,7 +235,6 @@ export const purchaseOrdTokenListing = async (
 		paymentPk,
 		listingUtxo,
 		ordAddress,
-		changeAddress,
 		satsPerKb = DEFAULT_SAT_PER_KB,
 		additionalPayments = [],
 		metaData,
@@ -317,12 +315,11 @@ export const purchaseOrdTokenListing = async (
 
 	// add change to the outputs
 	let payChange: Utxo | undefined;
-
-	if (!changeAddress && !paymentPk) {
+  const changeAddress = config.changeAddress || paymentPk?.toAddress();
+	if (!changeAddress) {
 		throw new Error("Either changeAddress or paymentPk is required");
 	}
-	const change = changeAddress || paymentPk!.toAddress().toString();
-	const changeScript = new P2PKH().lock(change);
+	const changeScript = new P2PKH().lock(changeAddress);
 	const changeOut = {
 		lockingScript: changeScript,
 		change: true,
@@ -336,13 +333,14 @@ export const purchaseOrdTokenListing = async (
 	);
 	let fee = 0;
 	for (const utxo of utxos) {
-		if (!paymentPk && !utxo.pk) {
+    const payKeyToUse = utxo.pk || paymentPk;
+		if (!payKeyToUse) {
 			throw new Error("Private key is required to sign the payment");
 		}
 		const input = inputFromB64Utxo(
 			utxo,
 			new P2PKH().unlock(
-				utxo.pk || paymentPk!,
+				payKeyToUse,
 				"all",
 				true,
 				utxo.satoshis,

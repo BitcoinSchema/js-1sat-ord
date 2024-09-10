@@ -35,7 +35,6 @@ export const createOrdinals = async (
 		utxos,
 		destinations,
 		paymentPk,
-		changeAddress,
 		satsPerKb = DEFAULT_SAT_PER_KB,
 		metaData,
 		signer,
@@ -87,11 +86,11 @@ export const createOrdinals = async (
 	}
 
 	let payChange: Utxo | undefined;
-	if(!changeAddress && !paymentPk) {
+  const changeAddress = config.changeAddress || paymentPk?.toAddress();
+	if(!changeAddress) {
 		throw new Error("Either changeAddress or paymentPk is required");
 	}
-	const change = changeAddress || paymentPk!.toAddress().toString();
-	const changeScript = new P2PKH().lock(change);
+	const changeScript = new P2PKH().lock(changeAddress);
 	const changeOut = {
 		lockingScript: changeScript,
 		change: true,
@@ -106,11 +105,12 @@ export const createOrdinals = async (
 
 	if(signer) {
 		const utxo = utxos.pop() as Utxo
-		if(!paymentPk && !utxo.pk) {
+    const payKeyToUse = utxo.pk || paymentPk;
+		if(!payKeyToUse) {
 			throw new Error("Private key is required to sign the transaction");
 		}
 		tx.addInput(inputFromB64Utxo(utxo, new P2PKH().unlock(
-			utxo.pk || paymentPk!, 
+			payKeyToUse, 
 			"all",
 			true, 
 			utxo.satoshis,
@@ -122,14 +122,15 @@ export const createOrdinals = async (
 
 	let fee = 0;
 	for (const utxo of utxos) {
-		if(!paymentPk && !utxo.pk) {
+    const payKeyToUse = utxo.pk || paymentPk;
+		if(!payKeyToUse) {
 			throw new Error("Private key is required to sign the transaction");
 		}
 		if (totalSatsIn >= totalSatsOut + BigInt(fee)) {
 			break;
 		}
 		const input = inputFromB64Utxo(utxo, new P2PKH().unlock(
-			utxo.pk || paymentPk!, 
+			payKeyToUse, 
 			"all",
 			true, 
 			utxo.satoshis,

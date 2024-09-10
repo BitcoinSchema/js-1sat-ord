@@ -35,14 +35,15 @@ export const burnOrdinals = async (
 		if (ordUtxo.satoshis !== 1) {
 			throw new Error("1Sat Ordinal utxos must have exactly 1 satoshi");
 		}
-		if(!ordPk && !ordUtxo.pk) {
+    const ordKeyToUse = ordUtxo.pk || ordPk;
+		if(!ordKeyToUse) {
 			throw new Error("Private key is required to sign the ordinal");
 		}
 
 		const input = inputFromB64Utxo(
 			ordUtxo,
 			new OrdP2PKH().unlock(
-				ordUtxo.pk || ordPk!,
+				ordKeyToUse,
 				"all",
 				true,
 				ordUtxo.satoshis,

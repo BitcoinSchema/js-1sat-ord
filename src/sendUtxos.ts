@@ -31,7 +31,6 @@ export const sendUtxos = async (
 		paymentPk,
 		payments,
 		satsPerKb = DEFAULT_SAT_PER_KB,
-		changeAddress,
 		metaData,
 	} = config;
 
@@ -56,11 +55,12 @@ export const sendUtxos = async (
 	);
 	let fee = 0;
 	for (const utxo of utxos) {
-		if (!paymentPk && !utxo.pk) {
+    const payKeyToUse = utxo.pk || paymentPk;
+		if (!payKeyToUse) {
 			throw new Error("Private key is required to sign the utxos");
 		}
 		const input = inputFromB64Utxo(utxo, new P2PKH().unlock(
-			utxo.pk || paymentPk!,
+			payKeyToUse,
 			"all",
 			true,
 			utxo.satoshis,
@@ -84,15 +84,15 @@ export const sendUtxos = async (
 		);
 	}
 
-	// if we need to send change, add it to the outputs
+  // Change
 	let payChange: Utxo | undefined;
+  // if we need to send change, add it to the outputs
 	if (totalSatsIn > totalSatsOut + fee) {
-		if(!changeAddress && !paymentPk) {
-			throw new Error("Either changeAddress or paymentPk is required");
-		}
-		// Change
-		const changeScript = new P2PKH().lock(changeAddress || paymentPk!.toAddress().toString());
-
+    const changeAddress = config.changeAddress || paymentPk?.toAddress();
+    if(!changeAddress) {
+      throw new Error("Either changeAddress or paymentPk is required");
+    }
+    const changeScript = new P2PKH().lock(changeAddress);
 		const changeOut: TransactionOutput = {
 			lockingScript: changeScript,
 			change: true,
