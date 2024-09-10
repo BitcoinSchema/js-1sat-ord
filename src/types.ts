@@ -555,8 +555,8 @@ export interface CancelOrdTokenListingsConfig extends CancelOrdListingsConfig {
 export interface CreateOrdTokenListingsConfig {
   utxos: Utxo[];
   listings: NewTokenListing[];
-  paymentPk: PrivateKey;
-  ordPk: PrivateKey,
+  paymentPk?: PrivateKey;
+  ordPk?: PrivateKey,
   changeAddress?: string;
   satsPerKb?: number;
   additionalPayments?: Payment[];
