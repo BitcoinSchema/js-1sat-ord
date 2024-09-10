@@ -34,18 +34,18 @@
   "dependencies": {
     "image-meta": "^0.2.1",
     "satoshi-token": "^0.0.4",
-    "sigma-protocol": "^0.1.5"
+    "sigma-protocol": "^0.1.6"
   },
   "peerDependencies": {
-    "@bsv/sdk": "^1.1.21"
+    "@bsv/sdk": "^1.1.23"
   },
   "devDependencies": {
     "@jest/globals": "^29.7.0",
-    "@types/bun": "^1.1.6",
+    "@types/bun": "^1.1.9",
     "jest": "^29.7.0",
     "microbundle": "^0.15.1",
     "rimraf": "^6.0.1",
-    "ts-jest": "^29.1.5",
-    "typescript": "^5.5.3"
+    "ts-jest": "^29.2.5",
+    "typescript": "^5.6.2"
   }
 }

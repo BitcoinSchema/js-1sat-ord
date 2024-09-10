@@ -1,10 +1,10 @@
-import { PrivateKey, Utils } from "@bsv/sdk";
+import { expect, test } from "@jest/globals";
+import { PrivateKey, P2PKH} from "@bsv/sdk";
 import { createOrdinals, sendOrdinals } from ".";
 import OrdP2PKH from "./templates/ordP2pkh";
 import type { Destination } from "./types";
 import type { SendOrdinalsConfig } from "./types";
 import type { CreateOrdinalsConfig } from "./types";
-import { P2PKH } from "@bsv/sdk";
 
 test("test build inscription", () => {
 	const dataB64 = "# Hello World!";

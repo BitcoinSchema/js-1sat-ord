@@ -1,6 +1,7 @@
+import { describe, expect, test } from "@jest/globals";
 import { PrivateKey, Script, Transaction, Utils } from "@bsv/sdk";
 import { createOrdinals } from "./createOrdinals";
-import type { CreateOrdinalsConfig, Utxo, Destination, IconInscription, Inscription, PreMAP } from "./types";
+import type { CreateOrdinalsConfig, Utxo, Destination, Inscription, PreMAP } from "./types";
 
 describe("createOrdinals", () => {
   const paymentPk = PrivateKey.fromWif("KwE2RgUthyfEZbzrS3EEgSRVr1NodBc9B3vPww6oSGChDuWS6Heb");

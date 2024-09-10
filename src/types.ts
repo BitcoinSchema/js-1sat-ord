@@ -80,6 +80,7 @@ export type Utxo = {
   txid: string;
   vout: number;
   script: string;
+  pk?: PrivateKey;
 };
 
 /**
@@ -114,6 +115,7 @@ export interface TokenUtxo extends Utxo {
   payout?: string;
   price?: number;
   isListing?: boolean;
+  pk?: PrivateKey;
 }
 
 export enum TokenSelectionStrategy {
@@ -463,8 +465,8 @@ export type TransferOrdTokensConfig = {
   utxos: Utxo[];
   inputTokens: TokenUtxo[];
   distributions: Distribution[];
-  paymentPk: PrivateKey;
-  ordPk: PrivateKey;
+  paymentPk?: PrivateKey;
+  ordPk?: PrivateKey;
   inputMode?: TokenInputMode;
   changeAddress?: string;
   tokenChangeAddress?: string;

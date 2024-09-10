@@ -1,3 +1,4 @@
+import { describe, expect, test } from "@jest/globals";
 import { P2PKH, PrivateKey } from "@bsv/sdk";
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';

@@ -114,12 +114,15 @@ export const transferOrdTokens = async (
 	}
 
 	for (const token of tokensToUse) {
+		if(!token.pk && !ordPk) {
+			throw new Error("Private key required for token input");
+		}
 		const inputScriptBinary = Utils.toArray(token.script, "base64");
 		const inputScript = Script.fromBinary(inputScriptBinary);
 		tx.addInput(
 			inputFromB64Utxo(
 				token,
-				new OrdP2PKH().unlock(ordPk, "all", true, token.satoshis, inputScript),
+				new OrdP2PKH().unlock(token.pk || ordPk!, "all", true, token.satoshis, inputScript),
 			),
 		);
 	}
@@ -182,31 +185,20 @@ export const transferOrdTokens = async (
 	let tokenChange: TokenUtxo[] = [];
   console.log({changeTsats})
 	if (changeTsats > 0n) {
+		if(!tokenChangeAddress && !ordPk) {
+			throw new Error("ordPk or changeAddress required for token change");
+		}
 		tokenChange = splitChangeOutputs(
 			tx,
 			changeTsats,
 			protocol,
 			tokenID,
-			tokenChangeAddress || ordPk.toAddress().toString(),
-			ordPk,
+			tokenChangeAddress || ordPk!.toAddress().toString(),
 			metaData,
 			splitConfig,
-      decimals,
+      		decimals,
 		);
 	}
-	// if (changeAmt > 0n) {
-	//   tokenChange = splitChangeOutputs(
-	//     tx,
-	//     inputTokens.length,
-	//     changeAmt,
-	//     protocol,
-	//     tokenID,
-	//     tokenChangeAddress || ordPk.toAddress().toString(),
-	//     ordPk,
-	//     metaData,
-	//     splitConfig,
-	//   );
-	// }
 
 	// Add additional payments if any
 	for (const p of additionalPayments) {
@@ -219,7 +211,10 @@ export const transferOrdTokens = async (
 	// add change to the outputs
 	let payChange: Utxo | undefined;
 
-	const change = changeAddress || paymentPk.toAddress().toString();
+	if (!changeAddress && !paymentPk) {
+		throw new Error("paymentPk or changeAddress required for payment change");
+	}
+	const change = changeAddress || paymentPk!.toAddress().toString();
 	const changeScript = new P2PKH().lock(change);
 	const changeOut = {
 		lockingScript: changeScript,
@@ -234,10 +229,13 @@ export const transferOrdTokens = async (
 	);
 	let fee = 0;
 	for (const utxo of utxos) {
+		if(!utxo.pk && !paymentPk) {
+			throw new Error("paymentPk required for payment utxo");
+		}
 		const input = inputFromB64Utxo(
 			utxo,
 			new P2PKH().unlock(
-				paymentPk,
+				paymentPk || utxo.pk!,
 				"all",
 				true,
 				utxo.satoshis,
@@ -314,7 +312,6 @@ const splitChangeOutputs = (
   protocol: TokenType,
   tokenID: string,
   tokenChangeAddress: string,
-  ordPk: PrivateKey,
   metaData: PreMAP | undefined,
   splitConfig: TokenSplitConfig,
   decimals: number,
@@ -366,7 +363,7 @@ const splitChangeOutputs = (
       }
 
       const lockingScript = new OrdP2PKH().lock(
-          tokenChangeAddress || ordPk.toAddress().toString(),
+          tokenChangeAddress,
           {
               dataB64: Buffer.from(JSON.stringify(inscription)).toString("base64"),
               contentType: "application/bsv-20",
@@ -388,78 +385,3 @@ const splitChangeOutputs = (
 
   return tokenChanges;
 };
-
-// const splitChangeOutputs = (
-// 	tx: Transaction,
-// 	changeAmt: bigint,
-// 	protocol: TokenType,
-// 	tokenID: string,
-// 	tokenChangeAddress: string,
-// 	ordPk: PrivateKey,
-// 	metaData: PreMAP | undefined,
-// 	splitConfig: TokenSplitConfig,
-// ): TokenUtxo[] => {
-// 	const tokenChanges: TokenUtxo[] = [];
-// 	const threshold = splitConfig.threshold || 0;
-// 	const maxOutputs = splitConfig.outputs;
-
-// 	let splitOutputs = 1;
-// 	if (threshold > 0) {
-// 		splitOutputs = changeAmt / threshold;
-// 		splitOutputs = Math.min(splitOutputs, maxOutputs);
-// 		splitOutputs = Math.max(splitOutputs, 1);
-// 	}
-
-// 	const baseChangeAmount = changeAmt / splitOutputs;
-// 	let remainder = changeAmt % splitOutputs;
-
-// 	for (let i = 0; i < splitOutputs; i++) {
-// 		let splitAmount = baseChangeAmount;
-// 		if (remainder > 0n) {
-// 			splitAmount += 1;
-// 			remainder -= 1;
-// 		}
-
-// 		const transferInscription: TransferTokenInscription = {
-// 			p: "bsv-20",
-// 			op: "transfer",
-// 			amt: splitAmount.toString(),
-// 		};
-// 		let inscription: TransferBSV20Inscription | TransferBSV21Inscription;
-// 		if (protocol === TokenType.BSV20) {
-// 			inscription = {
-// 				...transferInscription,
-// 				tick: tokenID,
-// 			} as TransferBSV20Inscription;
-// 		} else if (protocol === TokenType.BSV21) {
-// 			inscription = {
-// 				...transferInscription,
-// 				id: tokenID,
-// 			} as TransferBSV21Inscription;
-// 		} else {
-// 			throw new Error("Invalid protocol");
-// 		}
-
-// 		const lockingScript = new OrdP2PKH().lock(
-// 			tokenChangeAddress || ordPk.toAddress().toString(),
-// 			{
-// 				dataB64: Buffer.from(JSON.stringify(inscription)).toString("base64"),
-// 				contentType: "application/bsv-20",
-// 			},
-// 			splitConfig.omitMetaData ? undefined : stringifyMetaData(metaData),
-// 		);
-
-// 		const vout = tx.outputs.length;
-// 		tx.addOutput({ lockingScript, satoshis: 1 });
-// 		tokenChanges.push({
-// 			id: tokenID,
-// 			satoshis: 1,
-// 			script: Buffer.from(lockingScript.toBinary()).toString("base64"),
-// 			txid: "",
-// 			vout,
-// 			amt: splitAmount.toString(),
-// 		});
-// 	}
-
-// 	return tokenChanges;
-// };
