@@ -74,6 +74,7 @@ export type Distribution = {
  * @property {string} txid - Transaction id
  * @property {number} vout - Output index
  * @property {string} script - Base64 encoded locking script
+ * @property {PrivateKey} [pk] - Optional. Private key for unlocking this utxo
  */
 export type Utxo = {
   satoshis: number;
@@ -90,6 +91,7 @@ export type Utxo = {
  * @property {string} creatorBapId - Optional. Creator BAP id of the NFT
  * @property {string} origin - Origin address of the NFT
  * @property {number} satoshis - Always 1
+ * @property {PrivateKey} [pk] - Optional. Private key for unlocking this utxo
  */
 export interface NftUtxo extends Utxo {
   collectionId?: string;
@@ -97,6 +99,7 @@ export interface NftUtxo extends Utxo {
   creatorBapId?: string;
   origin: string;
   satoshis: 1;
+  pk?: PrivateKey;
 }
 
 /**
@@ -107,6 +110,7 @@ export interface NftUtxo extends Utxo {
  * @property {string} [payout] - Optional. Payment output script base64 encoded
  * @property {number} [price] - Optional. Listing price in satoshis
  * @property {boolean} [isListing] - Optional. True if the token is a listing
+ * @property {PrivateKey} [pk] - Optional. Private key for unlocking this utxo
  */
 export interface TokenUtxo extends Utxo {
   amt: string;

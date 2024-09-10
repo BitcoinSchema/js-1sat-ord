@@ -48,6 +48,8 @@ const utxo: Utxo = {
 
  You can use the helper `fetchPayUtxos(address)` to fetch unspent transaction outputs from the public 1Sat API and create the scripts with the correct encoding (base64). This should be a BSV address, not your ordinals address. Note: By default the script encoding will be base64, but you can provide a 2nd parameter and specify hex or asm encoding for the script property.
 
+ Note: `Utxo` and `NftUtxo` and `TokenUtxo` have an optional `pk` field for specifying a Private Key for unlocking this utxo. This is helpful when multiple keys own the inputs and you need to spend them in a single traqnsaction.
+
  ```ts
  import { fetchPayUtxos } from "js-1sat-ord";
 
