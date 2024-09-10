@@ -1,4 +1,4 @@
-import { expect, test } from "@jest/globals";
+import { expect, test } from "bun:test";
 import { PrivateKey, P2PKH} from "@bsv/sdk";
 import { createOrdinals, sendOrdinals } from ".";
 import OrdP2PKH from "./templates/ordP2pkh";

@@ -1,6 +1,5 @@
 import {
 	P2PKH,
-	type PrivateKey,
 	SatoshisPerKilobyte,
 	Script,
 	Transaction,

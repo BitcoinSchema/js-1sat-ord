@@ -1,6 +1,7 @@
 import { imageMeta } from "image-meta";
-
+import { Utils } from "@bsv/sdk";
 import type { IconInscription, ImageContentType } from "../types";
+const { toArray } = Utils;
 
 export const ErrorOversizedIcon = new Error(
     "Image must be a square image with dimensions <= 400x400",
@@ -29,7 +30,7 @@ export const validIconData = async (
     }
 
     try {
-        const buffer = Buffer.from(dataB64, "base64");
+        const buffer = Uint8Array.from(toArray(dataB64, "base64"));
 
         // Meta contains { type, width?, height?, orientation? }
         const dimensions = imageMeta(buffer);

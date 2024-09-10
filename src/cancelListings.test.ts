@@ -1,4 +1,4 @@
-import { describe, expect, test } from "@jest/globals";
+import { describe, expect, test,  } from "bun:test";
 import { PrivateKey, Transaction } from "@bsv/sdk";
 import { cancelOrdListings, cancelOrdTokenListings } from "./cancelListings";
 import { type CancelOrdListingsConfig, type CancelOrdTokenListingsConfig, type Utxo, type TokenUtxo, TokenType } from "./types";
@@ -53,7 +53,7 @@ describe("cancelOrdListings", () => {
       ...baseConfig,
       utxos: [{ ...utxos[0], satoshis: 1 }],
     };
-    await expect(cancelOrdListings(insufficientConfig)).rejects.toThrow("Not enough funds");
+    expect(cancelOrdListings(insufficientConfig)).rejects.toThrow("Not enough funds");
   });
 });
 

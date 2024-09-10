@@ -1,4 +1,4 @@
-import { expect, test } from "@jest/globals";
+import { expect, test } from "bun:test";
 import { PrivateKey, Utils } from "@bsv/sdk";
 import { transferOrdTokens } from "./transferOrdinals";
 import { TokenInputMode, TokenType, type TokenUtxo, type TransferOrdTokensConfig } from "./types";

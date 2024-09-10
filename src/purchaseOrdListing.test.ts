@@ -1,4 +1,4 @@
-import { describe, expect, test } from "@jest/globals";
+import { describe, expect, test } from "bun:test";
 import { PrivateKey, Transaction } from "@bsv/sdk";
 import { purchaseOrdTokenListing } from "./purchaseOrdListing";
 import { TokenType, type PurchaseOrdTokenListingConfig, type TokenUtxo, type Utxo } from "./types";

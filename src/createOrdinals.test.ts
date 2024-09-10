@@ -1,4 +1,4 @@
-import { describe, expect, test } from "@jest/globals";
+import { describe, expect, test } from "bun:test";
 import { PrivateKey, Script, Transaction, Utils } from "@bsv/sdk";
 import { createOrdinals } from "./createOrdinals";
 import type { CreateOrdinalsConfig, Utxo, Destination, Inscription, PreMAP } from "./types";
