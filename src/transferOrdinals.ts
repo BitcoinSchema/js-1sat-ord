@@ -235,7 +235,7 @@ export const transferOrdTokens = async (
 		const input = inputFromB64Utxo(
 			utxo,
 			new P2PKH().unlock(
-				paymentPk || utxo.pk!,
+				utxo.pk || paymentPk!,
 				"all",
 				true,
 				utxo.satoshis,
