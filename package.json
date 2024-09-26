@@ -1,6 +1,6 @@
 {
   "name": "js-1sat-ord",
-  "version": "0.1.75",
+  "version": "0.1.76",
   "description": "1Sat Ordinals library",
   "types": "dist/index.d.ts",
   "type": "module",
@@ -26,7 +26,8 @@
     "build": "bun run clean && microbundle --globals @bsv/sdk=bsv",
     "clean": "rimraf -rf dist",
     "test": "bun test",
-    "prepublishOnly": "bun run build"
+    "prepublishOnly": "bun run build",
+    "fmt": "echo $(which biome) && biome format --write ."
   },
   "keywords": [],
   "author": "Luke Rohenaz",
