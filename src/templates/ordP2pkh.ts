@@ -25,48 +25,52 @@ export default class OrdP2PKH extends P2PKH {
 	// unlock method inherits from p2pkh
 	lock(
 		address: string,
-    inscription?: Inscription,
+		inscription?: Inscription,
 		metaData?: MAP | undefined,
 	): Script {
-		let ordAsm = "";
-		// This can be omitted for reinscriptions that just update metadata
-		if (inscription?.dataB64 !== undefined && inscription?.contentType !== undefined) {
-			const ordHex = toHex("ord");
-			const fsBuffer = Buffer.from(inscription.dataB64, "base64");
-			const fileHex = fsBuffer.toString("hex").trim();
-			if (!fileHex) {
-				throw new Error("Invalid file data");
-			}
-			const fileMediaType = toHex(inscription.contentType);
-			if (!fileMediaType) {
-				throw new Error("Invalid media type");
-			}
-			ordAsm = `OP_0 OP_IF ${ordHex} OP_1 ${fileMediaType} OP_0 ${fileHex} OP_ENDIF`;
-		}
-
 		// Create ordinal output and inscription in a single output
 		const lockingScript = new P2PKH().lock(address);
-		let inscriptionAsm = `${ordAsm ? `${ordAsm} ` : ""}${lockingScript.toASM()}`;
+		return applyInscription(lockingScript, inscription, metaData);
+	}
+}
 
-		// MAP.app and MAP.type keys are required
-		if (metaData && (!metaData.app || !metaData.type)) {
-			throw new Error("MAP.app and MAP.type are required fields");
+export const applyInscription = (lockingScript: LockingScript, inscription?: Inscription, metaData?: MAP) => {
+	let ordAsm = "";
+	// This can be omitted for reinscriptions that just update metadata
+	if (inscription?.dataB64 !== undefined && inscription?.contentType !== undefined) {
+		const ordHex = toHex("ord");
+		const fsBuffer = Buffer.from(inscription.dataB64, "base64");
+		const fileHex = fsBuffer.toString("hex").trim();
+		if (!fileHex) {
+			throw new Error("Invalid file data");
 		}
+		const fileMediaType = toHex(inscription.contentType);
+		if (!fileMediaType) {
+			throw new Error("Invalid media type");
+		}
+		ordAsm = `OP_0 OP_IF ${ordHex} OP_1 ${fileMediaType} OP_0 ${fileHex} OP_ENDIF`;
+	}
 
-		if (metaData?.app && metaData?.type) {
-			const mapPrefixHex = toHex(MAP_PREFIX);
-			const mapCmdValue = toHex("SET");
-			inscriptionAsm = `${inscriptionAsm ? `${inscriptionAsm} `: ""}OP_RETURN ${mapPrefixHex} ${mapCmdValue}`;
+	let inscriptionAsm = `${ordAsm ? `${ordAsm} ` : ""}${lockingScript.toASM()}`;
 
-			for (const [key, value] of Object.entries(metaData)) {
-				if (key !== "cmd") {
-					inscriptionAsm = `${inscriptionAsm} ${toHex(key)} ${toHex(
-						value as string,
-					)}`;
-				}
+	// MAP.app and MAP.type keys are required
+	if (metaData && (!metaData.app || !metaData.type)) {
+		throw new Error("MAP.app and MAP.type are required fields");
+	}
+
+	if (metaData?.app && metaData?.type) {
+		const mapPrefixHex = toHex(MAP_PREFIX);
+		const mapCmdValue = toHex("SET");
+		inscriptionAsm = `${inscriptionAsm ? `${inscriptionAsm} ` : ""}OP_RETURN ${mapPrefixHex} ${mapCmdValue}`;
+
+		for (const [key, value] of Object.entries(metaData)) {
+			if (key !== "cmd") {
+				inscriptionAsm = `${inscriptionAsm} ${toHex(key)} ${toHex(
+					value as string,
+				)}`;
 			}
 		}
-
-		return LockingScript.fromASM(inscriptionAsm);
 	}
+
+	return LockingScript.fromASM(inscriptionAsm);
 }
