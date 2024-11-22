@@ -9,7 +9,7 @@ import {
 	selectTokenUtxos,
 } from "./utils/utxo";
 import { validateSubTypeData } from "./validate";
-import OrdP2PKH from "./templates/ordP2pkh";
+import OrdP2PKH, { applyInscription } from "./templates/ordP2pkh";
 import OrdLock from "./templates/ordLock";
 import stringifyMetaData from "./utils/subtypeData";
 import { createOrdListings, createOrdTokenListings } from "./createListings";
@@ -47,4 +47,5 @@ export {
 	createOrdTokenListings,
   oneSatBroadcaster,
   OneSatBroadcaster,
+  applyInscription,
 };
