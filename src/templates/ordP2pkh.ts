@@ -34,7 +34,7 @@ export default class OrdP2PKH extends P2PKH {
 	}
 }
 
-export const applyInscription = (lockingScript: LockingScript, inscription?: Inscription, metaData?: MAP) => {
+export const applyInscription = (lockingScript: LockingScript, inscription?: Inscription, metaData?: MAP, withSeparator=false) => {
 	let ordAsm = "";
 	// This can be omitted for reinscriptions that just update metadata
 	if (inscription?.dataB64 !== undefined && inscription?.contentType !== undefined) {
@@ -51,7 +51,7 @@ export const applyInscription = (lockingScript: LockingScript, inscription?: Ins
 		ordAsm = `OP_0 OP_IF ${ordHex} OP_1 ${fileMediaType} OP_0 ${fileHex} OP_ENDIF`;
 	}
 
-	let inscriptionAsm = `${ordAsm ? `${ordAsm} ` : ""}${lockingScript.toASM()}`;
+	let inscriptionAsm = `${ordAsm ? `${ordAsm} ${withSeparator ? 'OP_CODESEPARATOR ' : ''}` : ""}${lockingScript.toASM()}`;
 
 	// MAP.app and MAP.type keys are required
 	if (metaData && (!metaData.app || !metaData.type)) {
