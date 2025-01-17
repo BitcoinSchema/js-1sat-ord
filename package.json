@@ -1,6 +1,6 @@
 {
   "name": "js-1sat-ord",
-  "version": "0.1.79",
+  "version": "0.1.80",
   "description": "1Sat Ordinals library",
   "types": "dist/index.d.ts",
   "type": "module",
@@ -41,9 +41,9 @@
     "@bsv/sdk": "^1.1.23"
   },
   "devDependencies": {
-    "@types/bun": "^1.1.9",
+    "@types/bun": "^1.1.16",
     "microbundle": "^0.15.1",
     "rimraf": "^6.0.1",
-    "typescript": "^5.6.2"
+    "typescript": "^5.7.3"
   }
 }

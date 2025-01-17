@@ -6,7 +6,7 @@ import {
 	Utils,
 } from "@bsv/sdk";
 import { DEFAULT_SAT_PER_KB } from "./constants";
-import OrdP2PKH from "./templates/ordP2pkh";
+import OrdP2PKH, { applyInscription } from "./templates/ordP2pkh";
 import {
 	TokenType,
 	type TokenUtxo,
@@ -143,14 +143,14 @@ export const transferOrdTokens = async (
 			op: burn ? "burn" : "transfer",
 			amt: bigAmt.toString(),
 		};
-		let inscription: TransferBSV20Inscription | TransferBSV21Inscription;
+		let inscriptionObj: TransferBSV20Inscription | TransferBSV21Inscription;
 		if (protocol === TokenType.BSV20) {
-			inscription = {
+			inscriptionObj = {
 				...transferInscription,
 				tick: tokenID,
 			} as TransferBSV20Inscription;
 		} else if (protocol === TokenType.BSV21) {
-			inscription = {
+			inscriptionObj = {
 				...transferInscription,
 				id: tokenID,
 			} as TransferBSV21Inscription;
@@ -158,17 +158,22 @@ export const transferOrdTokens = async (
 			throw new Error("Invalid protocol");
 		}
 
-		tx.addOutput({
-			satoshis: 1,
-			lockingScript: new OrdP2PKH().lock(
+		const inscription = {
+			dataB64: Buffer.from(JSON.stringify(inscriptionObj)).toString("base64"),
+			contentType: "application/bsv-20",
+		}
+		let lockingScript = typeof dest.address == 'string' ?
+			new OrdP2PKH().lock(
 				dest.address,
-				{
-					dataB64: Buffer.from(JSON.stringify(inscription)).toString("base64"),
-					contentType: "application/bsv-20",
-				},
+				inscription,
 				// when present, include metadata on each distribution if omit is not specified
 				dest.omitMetaData ? undefined : stringifyMetaData(metaData),
-			),
+			) :
+			applyInscription(dest.address, inscription);
+
+		tx.addOutput({
+			satoshis: 1,
+			lockingScript,
 		});
 		totalTsatOut += bigAmt;
 	}

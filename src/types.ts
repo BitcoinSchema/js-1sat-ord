@@ -1,4 +1,4 @@
-import type { PrivateKey, Transaction } from "@bsv/sdk";
+import type { PrivateKey, Script, Transaction } from "@bsv/sdk";
 import type { AuthToken } from "sigma-protocol";
 
 // biome-ignore lint/complexity/noBannedTypes: Reserved for future use
@@ -63,7 +63,7 @@ export type NewTokenListing = {
  * @property {boolean} [omitMetaData] - Optional. Set to true to omit metadata from this distribution's output.
  */
 export type Distribution = {
-  address: string;
+  address: string | Script;
   tokens: number;
   omitMetaData?: boolean;
 };
