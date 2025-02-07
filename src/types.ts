@@ -230,7 +230,7 @@ export type PreMAP = {
   type: string;
   [prop: string]: unknown;
   royalties?: Royalty[];
-  subTypeData?: CollectionSubTypeData | CollectionItemSubTypeData;
+  subTypeData?: CollectionSubTypeData | CollectionItemSubTypeData | string;
 };
 
 export type CreateOrdinalsConfig = {
