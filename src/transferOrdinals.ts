@@ -137,7 +137,7 @@ export const transferOrdTokens = async (
 	// build destination inscriptions
 	for (const dest of distributions) {
 		const bigAmt = toTokenSat(dest.tokens, decimals, ReturnTypes.BigInt);
-    console.log({distTokenSat: bigAmt});
+    
 		const transferInscription: TransferTokenInscription = {
 			p: "bsv-20",
 			op: burn ? "burn" : "transfer",
@@ -162,7 +162,7 @@ export const transferOrdTokens = async (
 			dataB64: Buffer.from(JSON.stringify(inscriptionObj)).toString("base64"),
 			contentType: "application/bsv-20",
 		}
-		let lockingScript = typeof dest.address == 'string' ?
+		const lockingScript = typeof dest.address === 'string' ?
 			new OrdP2PKH().lock(
 				dest.address,
 				inscription,
@@ -324,7 +324,6 @@ const splitChangeOutputs = (
   const threshold = splitConfig.threshold !== undefined ? toTokenSat(splitConfig.threshold, decimals, ReturnTypes.BigInt) : undefined;
   const maxOutputs = splitConfig.outputs;
   const changeAmt = changeTsats;
-  console.log({splitChangeAmt: changeAmt})
   let splitOutputs: bigint;
   if (threshold !== undefined && threshold > 0n) {
       splitOutputs = changeAmt / threshold;

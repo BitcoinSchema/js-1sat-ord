@@ -43,7 +43,6 @@ export const inputFromB64Utxo = (
  */
 export const fetchPayUtxos = async (address: string, scriptEncoding: "hex" | "base64" | "asm" = "base64"): Promise<Utxo[]> => {
 	const payUrl = `${API_HOST}/txos/address/${address}/unspent?bsv20=false`;
-	console.log({ payUrl });
 	const payRes = await fetch(payUrl);
 	if (!payRes.ok) {
 		throw new Error("Error fetching pay utxos");
