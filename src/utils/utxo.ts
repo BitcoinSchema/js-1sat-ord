@@ -193,7 +193,7 @@ export const fetchTokenUtxos = async (
 };
 
 const isLock = (utxo: Utxo) => {
-  return !!(utxo as unknown as { lock: { address: string, until: number } }).lock;
+  return !!(utxo as unknown as { data?: {lock: { address: string, until: number } }}).data?.lock;
 }
 
 /**
