@@ -48,7 +48,7 @@ const utxo: Utxo = {
 
  You can use the helper `fetchPayUtxos(address)` to fetch unspent transaction outputs from the public 1Sat API and create the scripts with the correct encoding (base64). This should be a BSV address, not your ordinals address. Note: By default the script encoding will be base64, but you can provide a 2nd parameter and specify hex or asm encoding for the script property.
 
- Note: `Utxo` and `NftUtxo` and `TokenUtxo` have an optional `pk` field for specifying a Private Key for unlocking this utxo. This is helpful when multiple keys own the inputs and you need to spend them in a single traqnsaction.
+ Note: `Utxo` and `NftUtxo` and `TokenUtxo` have an optional `pk` field for specifying a Private Key for unlocking this utxo. This is helpful when multiple keys own the inputs and you need to spend them in a single transaction.
 
  ```ts
  import { fetchPayUtxos } from "js-1sat-ord";
@@ -252,8 +252,27 @@ Each function accepts additional configuration options not shown in the examples
 - `changeAddress`: Address to send change to (if not provided, defaults to the payment key's address)
 - `satsPerKb`: Satoshis per kilobyte for fee calculation
 - `metaData`: MAP (Magic Attribute Protocol) metadata to include in inscriptions
-- `signer`: Custom signer object for transaction signing
+- `signer`: LocalSigner or RemoteSigner object for adding Sigma protocol signatures to transactions (provides replay protection)
 - `additionalPayments`: Additional payments to include in the transaction
+
+#### Using Sigma Protocol Signatures
+
+Several functions support optional Sigma protocol signatures for replay protection:
+
+```ts
+import { PrivateKey } from "@bsv/sdk";
+
+const signerKey = PrivateKey.fromRandom();
+const signer = { idKey: signerKey };
+
+// Use with any supported function
+const config = {
+  // ... other config options
+  signer: signer
+};
+```
+
+Supported functions: `createOrdinals`, `sendOrdinals`, `transferOrdToken`, `deployBsv21Token`, `sendUtxos`, `createOrdListings`, `createOrdTokenListings`
 
 Refer to the function documentation for a complete list of configuration options for each function.
 

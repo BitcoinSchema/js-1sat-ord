@@ -21,6 +21,7 @@ import {
 } from "./types";
 import { inputFromB64Utxo } from "./utils/utxo";
 import { ReturnTypes, toToken, toTokenSat } from "satoshi-token";
+import { signData } from "./signData";
 const { toArray } = Utils;
 
 export const createOrdListings = async (config: CreateOrdListingsConfig) => {
@@ -31,10 +32,11 @@ export const createOrdListings = async (config: CreateOrdListingsConfig) => {
     ordPk,
     satsPerKb = DEFAULT_SAT_PER_KB,
     additionalPayments = [],
+    signer,
   } = config;
 
   const modelOrFee = new SatoshisPerKilobyte(satsPerKb);
-  const tx = new Transaction();
+  let tx = new Transaction();
 
   // Warn if creating many inscriptions at once
   if (listings.length > 100) {
@@ -130,6 +132,10 @@ export const createOrdListings = async (config: CreateOrdListingsConfig) => {
     );
   }
 
+  if (signer) {
+    tx = await signData(tx, signer);
+  }
+
   // Calculate fee
   await tx.fee(modelOrFee);
 
@@ -180,6 +186,7 @@ export const createOrdTokenListings = async (
     listings,
     decimals,
     satsPerKb = DEFAULT_SAT_PER_KB,
+    signer,
   } = config;
 
 
@@ -206,7 +213,7 @@ export const createOrdTokenListings = async (
   }
 
   const modelOrFee = new SatoshisPerKilobyte(satsPerKb);
-  const tx = new Transaction();
+  let tx = new Transaction();
   // Outputs
   // Add listing outputs
   for (const listing of listings) {
@@ -366,6 +373,10 @@ export const createOrdTokenListings = async (
     throw new Error(
       `Not enough funds to create token listings. Total sats in: ${totalSatsIn}, Total sats out: ${totalSatsOut}, Fee: ${fee}`,
     );
+  }
+
+  if (signer) {
+    tx = await signData(tx, signer);
   }
 
   // estimate the cost of the transaction and assign change value

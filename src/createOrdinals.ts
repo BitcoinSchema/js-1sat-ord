@@ -1,16 +1,16 @@
-import { Transaction, SatoshisPerKilobyte, P2PKH, Script, Utils } from "@bsv/sdk";
-import OrdP2PKH from "./templates/ordP2pkh";
-import type {
-	Utxo,
-	CreateOrdinalsConfig,
-	CreateOrdinalsCollectionConfig,
-	CreateOrdinalsCollectionItemConfig,
-  ChangeResult,
-} from "./types";
-import { inputFromB64Utxo } from "./utils/utxo";
+import { P2PKH, SatoshisPerKilobyte, Script, Transaction, Utils } from "@bsv/sdk";
 import { DEFAULT_SAT_PER_KB } from "./constants";
 import { signData } from "./signData";
+import OrdP2PKH from "./templates/ordP2pkh";
+import type {
+	ChangeResult,
+	CreateOrdinalsCollectionConfig,
+	CreateOrdinalsCollectionItemConfig,
+	CreateOrdinalsConfig,
+	Utxo,
+} from "./types";
 import stringifyMetaData from "./utils/subtypeData";
+import { inputFromB64Utxo } from "./utils/utxo";
 
 /**
  * Creates a transaction with inscription outputs
@@ -103,6 +103,8 @@ export const createOrdinals = async (
 		0n,
 	);
 
+	let fee = 0;
+
 	if(signer) {
 		const utxo = utxos.pop() as Utxo
     const payKeyToUse = utxo.pk || paymentPk;
@@ -110,17 +112,17 @@ export const createOrdinals = async (
 			throw new Error("Private key is required to sign the transaction");
 		}
 		tx.addInput(inputFromB64Utxo(utxo, new P2PKH().unlock(
-			payKeyToUse, 
+			payKeyToUse,
 			"all",
-			true, 
+			true,
 			utxo.satoshis,
 			Script.fromBinary(Utils.toArray(utxo.script, 'base64'))
 		)));
 		totalSatsIn += BigInt(utxo.satoshis);
 		tx = await signData(tx, signer);
+		// Calculate fee after signing since it adds OP_RETURN outputs
+		fee = await modelOrFee.computeFee(tx);
 	}
-
-	let fee = 0;
 	for (const utxo of utxos) {
     const payKeyToUse = utxo.pk || paymentPk;
 		if(!payKeyToUse) {
@@ -177,7 +179,9 @@ export const createOrdinals = async (
 
 	return {
 		tx,
-		spentOutpoints: utxos.map((utxo) => `${utxo.txid}_${utxo.vout}`),
+		spentOutpoints: tx.inputs.map(
+			(i) => `${i.sourceTXID}_${i.sourceOutputIndex}`,
+		),
 		payChange,
 	};
 };
