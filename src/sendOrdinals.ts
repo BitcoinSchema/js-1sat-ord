@@ -11,6 +11,7 @@ import type { SendOrdinalsConfig, Utxo, ChangeResult } from "./types";
 import { inputFromB64Utxo } from "./utils/utxo";
 import { signData } from "./signData";
 import stringifyMetaData from "./utils/subtypeData";
+import MAP from "@bsv/templates/template/bitcom/MAP.ts";
 
 /**
  * Sends ordinals to the given destinations
@@ -97,6 +98,17 @@ export const sendOrdinals = async (
 			);
 		} else {
 			s = new P2PKH().lock(destination.address);
+
+			if (config.metaData) {
+				const data = {} as Record<string, string>;
+				for (const key in config.metaData) {
+					data[key] = (config.metaData[key] as any).toString();
+				}
+				s = new Script([
+					...s.chunks,
+					...MAP.lock("SET", data).chunks,
+				])
+			}
 		}
 
 		tx.addOutput({

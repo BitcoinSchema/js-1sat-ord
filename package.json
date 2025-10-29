@@ -27,18 +27,20 @@
     "clean": "rimraf -rf dist",
     "test": "bun test",
     "prepublishOnly": "bun run build",
-    "fmt": "echo $(which biome) && biome format --write ."
+    "fmt": "echo $(which biome) && biome format --write .",
+    "postinstall": "cd node_modules/@bsv/templates && npm install && npm run build"
   },
   "keywords": [],
   "author": "Luke Rohenaz",
   "license": "MIT",
   "dependencies": {
+    "@bsv/templates": "github:b-open-io/ts-templates#feature/new-templates",
     "image-meta": "^0.2.2",
     "satoshi-token": "^0.0.4",
     "sigma-protocol": "^0.1.6"
   },
   "peerDependencies": {
-    "@bsv/sdk": "^1.8.2"
+    "@bsv/sdk": "^1.8.10"
   },
   "devDependencies": {
     "@types/bun": "^1.3.0",
