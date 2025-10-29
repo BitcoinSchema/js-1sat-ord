@@ -4,7 +4,7 @@
     "": {
       "name": "js-1sat-ord",
       "dependencies": {
-        "@bsv/templates": "github:b-open-io/ts-templates#feature/new-templates",
+        "@bsv/templates": "file:bsv-templates-1.1.0.tgz",
         "image-meta": "^0.2.2",
         "satoshi-token": "^0.0.4",
         "sigma-protocol": "^0.1.6",
@@ -225,7 +225,7 @@
 
     "@bsv/sdk": ["@bsv/sdk@1.8.10", "", {}, "sha512-urWf+mF4rx3uDmoUwi5yBa2AGxfu4m8IZdi+LmrP7l9mmTmlz42HzpvqXq/aJr6b/Bm5nN2e9vNdl99ICr97tQ=="],
 
-    "@bsv/templates": ["@bsv/templates@github:b-open-io/ts-templates#fa48751", { "dependencies": { "@bsv/sdk": "^1.8.10" } }, "b-open-io-ts-templates-fa48751"],
+    "@bsv/templates": ["@bsv/templates@bsv-templates-1.1.0.tgz", { "dependencies": { "@bsv/sdk": "^1.8.10" } }],
 
     "@isaacs/balanced-match": ["@isaacs/balanced-match@4.0.1", "", {}, "sha512-yzMTt9lEb8Gv7zRioUilSglI0c0smZ9k5D65677DLWLtWJaXIS3CqcGyUFByYKlnUj6TkjLVs54fBl6+TiGQDQ=="],
 
