@@ -16,7 +16,8 @@
     }
   },
   "files": [
-    "/dist"
+    "/dist",
+    "bsv-templates-1.1.0.tgz"
   ],
   "repository": {
     "type": "git",
