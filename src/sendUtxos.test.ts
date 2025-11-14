@@ -15,14 +15,14 @@ describe("sendUtxos", () => {
   }];
 
   const exactUtxos: Utxo[] = [{
-    satoshis: 12,
+    satoshis: 30,
     txid: "ecb483eda58f26da1b1f8f15b782b1186abdf9c6399a1c3e63e0d429d5092a41",
     vout: 0,
     script: Buffer.from(new P2PKH().lock(address).toHex(), 'hex').toString('base64'),
   }];
 
   const sufficientUtxos: Utxo[] = [{
-    satoshis: 15,
+    satoshis: 50,
     txid: "ecb483eda58f26da1b1f8f15b782b1186abdf9c6399a1c3e63e0d429d5092a41",
     vout: 0,
     script: Buffer.from(new P2PKH().lock(address).toHex(), 'hex').toString('base64'),

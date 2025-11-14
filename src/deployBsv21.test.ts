@@ -18,14 +18,14 @@ describe("deployBsv21Token", () => {
   }];
 
   const exactUtxos: Utxo[] = [{
-    satoshis: 7,
+    satoshis: 49,
     txid: "ecb483eda58f26da1b1f8f15b782b1186abdf9c6399a1c3e63e0d429d5092a41",
     vout: 0,
     script: Buffer.from(new P2PKH().lock(address).toHex(), 'hex').toString('base64'),
   }];
 
   const sufficientUtxos: Utxo[] = [{
-    satoshis: 30,
+    satoshis: 300,
     txid: "ecb483eda58f26da1b1f8f15b782b1186abdf9c6399a1c3e63e0d429d5092a41",
     vout: 0,
     script: Buffer.from(new P2PKH().lock(address).toHex(), 'hex').toString('base64'),
