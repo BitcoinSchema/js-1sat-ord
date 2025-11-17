@@ -408,6 +408,7 @@ export type DeployBsv21TokenConfig = {
   changeAddress?: string;
   satsPerKb?: number;
   additionalPayments?: Payment[];
+  signer?: LocalSigner | RemoteSigner;
 };
 
 export type SendUtxosConfig = {
@@ -417,6 +418,7 @@ export type SendUtxosConfig = {
   satsPerKb?: number;
   changeAddress?: string;
   metaData?: MAP;
+  signer?: LocalSigner | RemoteSigner;
 };
 
 export interface TokenChangeResult extends ChangeResult {
@@ -491,6 +493,7 @@ export type CreateOrdListingsConfig = {
   changeAddress?: string;
   satsPerKb?: number;
   additionalPayments?: Payment[];
+  signer?: LocalSigner | RemoteSigner;
 }
 
 export type PurchaseOrdListingConfig = {
@@ -569,6 +572,7 @@ export interface CreateOrdTokenListingsConfig {
   decimals: number;
   inputTokens: TokenUtxo[];
   tokenChangeAddress: string;
+  signer?: LocalSigner | RemoteSigner;
 }
 
 export const MAX_TOKEN_SUPPLY = 2n ** 64n - 1n;

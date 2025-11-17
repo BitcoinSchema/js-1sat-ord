@@ -131,7 +131,7 @@ export default class OrdLock {
 					otherInputs: [],
 					inputIndex,
 					outputs: tx.outputs,
-					inputSequence: input.sequence,
+					inputSequence: input.sequence || 0xffffffff,
 					subscript,
 					lockTime: tx.lockTime,
 					scope: TransactionSignature.SIGHASH_ALL |

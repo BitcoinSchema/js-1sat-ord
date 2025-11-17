@@ -99,16 +99,57 @@ describe("createOrdinals", () => {
     expect(Utils.toBase58Check(changeScript.chunks[2].data as number[])).toEqual(customChangeAddress);
   });
 
-  // test("create ordinals with signer", async () => {
-  //   const mockSigner = {
-  //     sign: jest.fn().mockResolvedValue("mockedSignature"),
-  //   };
-  //   const config: CreateOrdinalsConfig = {
-  //     ...baseConfig,
-  //     signer: mockSigner,
-  //   };
-  //   await createOrdinals(config);
+  test("create ordinals with signer and single UTXO", async () => {
+    const signerPk = PrivateKey.fromRandom();
+    const singleUtxo: Utxo[] = [{
+      satoshis: 200,
+      txid: "ecb483eda58f26da1b1f8f15b782b1186abdf9c6399a1c3e63e0d429d5092a41",
+      vout: 0,
+      script: "base64EncodedScript",
+    }];
 
-  //   expect(mockSigner.sign).toHaveBeenCalled();
-  // });
+    const config: CreateOrdinalsConfig = {
+      ...baseConfig,
+      utxos: singleUtxo,
+      signer: { idKey: signerPk }
+    };
+
+    const { tx, spentOutpoints } = await createOrdinals(config);
+    expect(tx).toBeDefined();
+    expect(tx.toHex()).toBeTruthy();
+    expect(spentOutpoints).toEqual(["ecb483eda58f26da1b1f8f15b782b1186abdf9c6399a1c3e63e0d429d5092a41_0"]);
+    // Should have inscription output, OP_RETURN signature output, and possibly change
+    expect(tx.outputs.length).toBeGreaterThanOrEqual(1);
+  });
+
+  test("create ordinals with signer and multiple UTXOs", async () => {
+    const signerPk = PrivateKey.fromRandom();
+    const multipleUtxos: Utxo[] = [
+      {
+        satoshis: 5000,
+        txid: "ecb483eda58f26da1b1f8f15b782b1186abdf9c6399a1c3e63e0d429d5092a41",
+        vout: 0,
+        script: "base64EncodedScript",
+      },
+      {
+        satoshis: 5000,
+        txid: "ecb483eda58f26da1b1f8f15b782b1186abdf9c6399a1c3e63e0d429d5092a41",
+        vout: 1,
+        script: "base64EncodedScript",
+      }
+    ];
+
+    const config: CreateOrdinalsConfig = {
+      ...baseConfig,
+      utxos: multipleUtxos,
+      signer: { idKey: signerPk }
+    };
+
+    const { tx, spentOutpoints } = await createOrdinals(config);
+    expect(tx).toBeDefined();
+    expect(tx.toHex()).toBeTruthy();
+    expect(spentOutpoints.length).toBeGreaterThanOrEqual(1);
+    // Should have inscription output, OP_RETURN signature output, and possibly change
+    expect(tx.outputs.length).toBeGreaterThanOrEqual(1);
+  });
 });

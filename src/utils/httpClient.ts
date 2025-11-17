@@ -9,14 +9,8 @@ export function defaultHttpClient (): HttpClient {
   }
 
   if (typeof window !== 'undefined' && typeof window.fetch === 'function') {
-    const originalFetch = window.fetch
-
-    window.fetch = async (...args) => {
-      return await originalFetch(...args)
-    }
-
     // Use fetch in a browser environment
-    return new FetchHttpClient(window.fetch)
+    return new FetchHttpClient(window.fetch.bind(window))
   }
   if (typeof require !== 'undefined') {
     // Use Node.js https module

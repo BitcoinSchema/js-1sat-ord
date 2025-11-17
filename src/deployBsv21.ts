@@ -1,22 +1,23 @@
 import {
-	Transaction,
 	P2PKH,
 	SatoshisPerKilobyte,
+	Script,
+	Transaction,
 	type TransactionOutput,
 	Utils,
-	Script,
 } from "@bsv/sdk";
+import { DEFAULT_SAT_PER_KB } from "./constants";
+import { signData } from "./signData";
+import OrdP2PKH from "./templates/ordP2pkh";
 import type {
-  ChangeResult,
+	ChangeResult,
 	DeployBsv21TokenConfig,
 	DeployMintTokenInscription,
 	Inscription,
 	Utxo,
 } from "./types";
-import { inputFromB64Utxo } from "./utils/utxo";
 import { validIconData, validIconFormat } from "./utils/icon";
-import OrdP2PKH from "./templates/ordP2pkh";
-import { DEFAULT_SAT_PER_KB } from "./constants";
+import { inputFromB64Utxo } from "./utils/utxo";
 
 /**
  * Deploys & Mints a BSV21 token to the given destination address
@@ -46,11 +47,12 @@ export const deployBsv21Token = async (
 		destinationAddress,
 		satsPerKb = DEFAULT_SAT_PER_KB,
 		additionalPayments = [],
+		signer,
 	} = config;
 
 	const modelOrFee = new SatoshisPerKilobyte(satsPerKb);
 
-	const tx = new Transaction();
+	let tx = new Transaction();
 
 	let iconValue: string;
 	if (typeof icon === "string") {
@@ -117,16 +119,36 @@ export const deployBsv21Token = async (
 		(total, out) => total + BigInt(out.satoshis || 0),
 		0n,
 	);
+
 	let fee = 0;
+
+	if(signer) {
+		const utxo = utxos.pop() as Utxo
+    const payKeyToUse = utxo.pk || paymentPk;
+		if(!payKeyToUse) {
+			throw new Error("Private key is required to sign the transaction");
+		}
+		tx.addInput(inputFromB64Utxo(utxo, new P2PKH().unlock(
+			payKeyToUse,
+			"all",
+			true,
+			utxo.satoshis,
+			Script.fromBinary(Utils.toArray(utxo.script, 'base64'))
+		)));
+		totalSatsIn += BigInt(utxo.satoshis);
+		tx = await signData(tx, signer);
+		// Calculate fee after signing since it adds OP_RETURN outputs
+		fee = await modelOrFee.computeFee(tx);
+	}
 	for (const utxo of utxos) {
     const payKeyToUse = utxo.pk || paymentPk;
 		if (!payKeyToUse) {
 			throw new Error("Private key is required to sign the payment");
 		}
 		const input = inputFromB64Utxo(utxo, new P2PKH().unlock(
-			payKeyToUse, 
+			payKeyToUse,
 			"all",
-			true, 
+			true,
 			utxo.satoshis,
 			Script.fromBinary(Utils.toArray(utxo.script, 'base64'))
 		));

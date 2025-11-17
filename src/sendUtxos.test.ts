@@ -15,14 +15,14 @@ describe("sendUtxos", () => {
   }];
 
   const exactUtxos: Utxo[] = [{
-    satoshis: 12,
+    satoshis: 30,
     txid: "ecb483eda58f26da1b1f8f15b782b1186abdf9c6399a1c3e63e0d429d5092a41",
     vout: 0,
     script: Buffer.from(new P2PKH().lock(address).toHex(), 'hex').toString('base64'),
   }];
 
   const sufficientUtxos: Utxo[] = [{
-    satoshis: 15,
+    satoshis: 50,
     txid: "ecb483eda58f26da1b1f8f15b782b1186abdf9c6399a1c3e63e0d429d5092a41",
     vout: 0,
     script: Buffer.from(new P2PKH().lock(address).toHex(), 'hex').toString('base64'),
@@ -65,5 +65,59 @@ describe("sendUtxos", () => {
   test("send utxos with insufficient utxo", async () => {
     const config = { ...baseConfig, utxos: insufficientUtxos };
     await expect(sendUtxos(config)).rejects.toThrow("Not enough funds");
+  });
+
+  test("send utxos with signer and single UTXO", async () => {
+    const signerPk = PrivateKey.fromRandom();
+    const singleUtxo: Utxo[] = [{
+      satoshis: 200,
+      txid: "ecb483eda58f26da1b1f8f15b782b1186abdf9c6399a1c3e63e0d429d5092a41",
+      vout: 0,
+      script: Buffer.from(new P2PKH().lock(address).toHex(), 'hex').toString('base64'),
+    }];
+
+    const config = {
+      ...baseConfig,
+      utxos: singleUtxo,
+      signer: { idKey: signerPk }
+    };
+
+    const { tx, spentOutpoints } = await sendUtxos(config);
+    expect(tx).toBeDefined();
+    expect(tx.toHex()).toBeTruthy();
+    expect(spentOutpoints).toEqual(["ecb483eda58f26da1b1f8f15b782b1186abdf9c6399a1c3e63e0d429d5092a41_0"]);
+    // Should have payment output and OP_RETURN signature output (possibly change)
+    expect(tx.outputs.length).toBeGreaterThanOrEqual(1);
+  });
+
+  test("send utxos with signer and multiple UTXOs", async () => {
+    const signerPk = PrivateKey.fromRandom();
+    const multipleUtxos: Utxo[] = [
+      {
+        satoshis: 100,
+        txid: "ecb483eda58f26da1b1f8f15b782b1186abdf9c6399a1c3e63e0d429d5092a41",
+        vout: 0,
+        script: Buffer.from(new P2PKH().lock(address).toHex(), 'hex').toString('base64'),
+      },
+      {
+        satoshis: 100,
+        txid: "ecb483eda58f26da1b1f8f15b782b1186abdf9c6399a1c3e63e0d429d5092a41",
+        vout: 1,
+        script: Buffer.from(new P2PKH().lock(address).toHex(), 'hex').toString('base64'),
+      }
+    ];
+
+    const config = {
+      ...baseConfig,
+      utxos: multipleUtxos,
+      signer: { idKey: signerPk }
+    };
+
+    const { tx, spentOutpoints } = await sendUtxos(config);
+    expect(tx).toBeDefined();
+    expect(tx.toHex()).toBeTruthy();
+    expect(spentOutpoints.length).toBeGreaterThanOrEqual(1);
+    // Should have payment output, OP_RETURN signature output, and possibly change
+    expect(tx.outputs.length).toBeGreaterThanOrEqual(1);
   });
 });
