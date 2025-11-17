@@ -575,4 +575,4 @@ export interface CreateOrdTokenListingsConfig {
   signer?: LocalSigner | RemoteSigner;
 }
 
-export const MAX_TOKEN_SUPPLY = 2n ** 64n - 1n;
+export const MAX_TOKEN_SUPPLY = 18446744073709551615n; // 2^64 - 1
