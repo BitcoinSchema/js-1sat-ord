@@ -1,6 +1,6 @@
 {
   "name": "js-1sat-ord",
-  "version": "0.1.84",
+  "version": "0.1.85",
   "description": "1Sat Ordinals library",
   "types": "dist/index.d.ts",
   "type": "module",
@@ -24,7 +24,7 @@
     "url": "https://github.com/BitcoinSchema/js-1sat-ord.git"
   },
   "scripts": {
-    "build": "bun run clean && microbundle --globals @bsv/sdk=bsv",
+    "build": "bun run clean && microbundle --external @bsv/sdk --globals @bsv/sdk=bsv",
     "clean": "rimraf -rf dist",
     "test": "bun test",
     "prepublishOnly": "bun run build",
@@ -34,7 +34,6 @@
   "author": "Luke Rohenaz",
   "license": "MIT",
   "dependencies": {
-    "@bsv/templates": "file:./bsv-templates-1.1.0.tgz",
     "image-meta": "^0.2.2",
     "satoshi-token": "^0.0.4",
     "sigma-protocol": "^0.1.6"

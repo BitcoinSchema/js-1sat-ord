@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.85] - 2025-11-18
+
+### Changed
+- Bundle @bsv/templates directly into dist files instead of treating as external dependency
+- Remove @bsv/templates from package dependencies (now bundled)
+- Configure microbundle to only externalize @bsv/sdk
+
+### Fixed
+- Fix Bun installation errors with @bsv/templates tarball dependency
+
 ## [0.1.84] - 2025-11-17
 
 ### Fixed
