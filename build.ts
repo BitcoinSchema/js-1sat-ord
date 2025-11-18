@@ -25,7 +25,6 @@ await Bun.build({
   format: "cjs",
   naming: "index.cjs",
   external,
-  packages: "external",
   sourcemap: "external",
   minify: true,
 });
@@ -39,7 +38,6 @@ await Bun.build({
   format: "esm",
   naming: "index.module.js",
   external,
-  packages: "external",
   sourcemap: "external",
   minify: true,
 });
@@ -53,9 +51,8 @@ await Bun.build({
   format: "esm",
   naming: "index.modern.js",
   external,
-  packages: "external", // Don't bundle node_modules
   sourcemap: "external",
-  minify: true, // Minify for production
+  minify: true,
 });
 
 // Build UMD (IIFE for browsers)
@@ -67,7 +64,6 @@ await Bun.build({
   format: "iife",
   naming: "index.umd.js",
   external,
-  packages: "external", // Don't bundle node_modules
   sourcemap: "external",
   minify: true,
   globalName: "js1satOrd",
