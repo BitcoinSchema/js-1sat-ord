@@ -242,6 +242,8 @@ export type CreateOrdinalsConfig = {
   metaData?: PreMAP;
   signer?: LocalSigner | RemoteSigner;
   additionalPayments?: Payment[];
+  /** When false, inputs are added without unlocking scripts and tx.sign() is skipped. Default: true */
+  signInputs?: boolean;
 };
 
 export enum RoytaltyType {
@@ -395,6 +397,8 @@ export type SendOrdinalsConfig = {
   signer?: LocalSigner | RemoteSigner;
   additionalPayments?: Payment[];
   enforceUniformSend?: boolean;
+  /** When false, inputs are added without unlocking scripts and tx.sign() is skipped. Default: true */
+  signInputs?: boolean;
 }
 
 export type DeployBsv21TokenConfig = {
@@ -409,6 +413,8 @@ export type DeployBsv21TokenConfig = {
   satsPerKb?: number;
   additionalPayments?: Payment[];
   signer?: LocalSigner | RemoteSigner;
+  /** When false, inputs are added without unlocking scripts and tx.sign() is skipped. Default: true */
+  signInputs?: boolean;
 };
 
 export type SendUtxosConfig = {
@@ -419,6 +425,8 @@ export type SendUtxosConfig = {
   changeAddress?: string;
   metaData?: MAP;
   signer?: LocalSigner | RemoteSigner;
+  /** When false, inputs are added without unlocking scripts and tx.sign() is skipped. Default: true */
+  signInputs?: boolean;
 };
 
 export interface TokenChangeResult extends ChangeResult {
@@ -483,6 +491,8 @@ export type TransferOrdTokensConfig = {
   burn?: boolean;
   splitConfig?: TokenSplitConfig;
   tokenInputMode?: TokenInputMode;
+  /** When false, inputs are added without unlocking scripts and tx.sign() is skipped. Default: true */
+  signInputs?: boolean;
 }
 
 export type CreateOrdListingsConfig = {
@@ -494,6 +504,8 @@ export type CreateOrdListingsConfig = {
   satsPerKb?: number;
   additionalPayments?: Payment[];
   signer?: LocalSigner | RemoteSigner;
+  /** When false, inputs are added without unlocking scripts and tx.sign() is skipped. Default: true */
+  signInputs?: boolean;
 }
 
 export type PurchaseOrdListingConfig = {
@@ -573,6 +585,8 @@ export interface CreateOrdTokenListingsConfig {
   inputTokens: TokenUtxo[];
   tokenChangeAddress: string;
   signer?: LocalSigner | RemoteSigner;
+  /** When false, inputs are added without unlocking scripts and tx.sign() is skipped. Default: true */
+  signInputs?: boolean;
 }
 
 export const MAX_TOKEN_SUPPLY = 18446744073709551615n; // 2^64 - 1

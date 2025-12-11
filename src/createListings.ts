@@ -33,6 +33,7 @@ export const createOrdListings = async (config: CreateOrdListingsConfig) => {
     satsPerKb = DEFAULT_SAT_PER_KB,
     additionalPayments = [],
     signer,
+    signInputs = true,
   } = config;
 
   const modelOrFee = new SatoshisPerKilobyte(satsPerKb);
@@ -56,23 +57,27 @@ export const createOrdListings = async (config: CreateOrdListingsConfig) => {
         listing.price,
       ),
     });
-    const inputScriptBinary = toArray(listing.listingUtxo.script, "base64");
-    const inputScript = Script.fromBinary(inputScriptBinary);
 
-    const ordKeyToUse = listing.listingUtxo.pk || ordPk;
-    if (!ordKeyToUse) {
-      throw new Error("Private key is required to sign the ordinal");
+    if (signInputs) {
+      const inputScriptBinary = toArray(listing.listingUtxo.script, "base64");
+      const inputScript = Script.fromBinary(inputScriptBinary);
+      const ordKeyToUse = listing.listingUtxo.pk || ordPk;
+      if (!ordKeyToUse) {
+        throw new Error("Private key is required to sign the ordinal");
+      }
+      tx.addInput(inputFromB64Utxo(
+        listing.listingUtxo,
+        new OrdP2PKH().unlock(
+          ordKeyToUse,
+          "all",
+          true,
+          listing.listingUtxo.satoshis,
+          inputScript,
+        ),
+      ));
+    } else {
+      tx.addInput(inputFromB64Utxo(listing.listingUtxo));
     }
-    tx.addInput(inputFromB64Utxo(
-      listing.listingUtxo,
-      new OrdP2PKH().unlock(
-        ordKeyToUse,
-        "all",
-        true,
-        listing.listingUtxo.satoshis,
-        inputScript,
-      ),
-    ));
   }
 
   // Add additional payments if any
@@ -103,19 +108,22 @@ export const createOrdListings = async (config: CreateOrdListingsConfig) => {
   );
   let fee = 0;
   for (const utxo of utxos) {
-    const payKeyToUse = utxo.pk || paymentPk;
-    if (!payKeyToUse) {
-      throw new Error("Private key is required to sign the transaction");
+    if (signInputs) {
+      const payKeyToUse = utxo.pk || paymentPk;
+      if (!payKeyToUse) {
+        throw new Error("Private key is required to sign the transaction");
+      }
+      const input = inputFromB64Utxo(utxo, new P2PKH().unlock(
+        payKeyToUse,
+        "all",
+        true,
+        utxo.satoshis,
+        Script.fromBinary(Utils.toArray(utxo.script, 'base64'))
+      ));
+      tx.addInput(input);
+    } else {
+      tx.addInput(inputFromB64Utxo(utxo));
     }
-    const input = inputFromB64Utxo(utxo, new P2PKH().unlock(
-      payKeyToUse,
-      "all",
-      true,
-      utxo.satoshis,
-      Script.fromBinary(Utils.toArray(utxo.script, 'base64'))
-    ));
-
-    tx.addInput(input);
     // stop adding inputs if the total amount is enough
     totalSatsIn += BigInt(utxo.satoshis);
     fee = await modelOrFee.computeFee(tx);
@@ -139,8 +147,10 @@ export const createOrdListings = async (config: CreateOrdListingsConfig) => {
   // Calculate fee
   await tx.fee(modelOrFee);
 
-  // Sign the transaction
-  await tx.sign();
+  // Sign the transaction (if signInputs is true)
+  if (signInputs) {
+    await tx.sign();
+  }
 
   // check for change
   const payChangeOutIdx = tx.outputs.findIndex((o) => o.change);
@@ -187,6 +197,7 @@ export const createOrdTokenListings = async (
     decimals,
     satsPerKb = DEFAULT_SAT_PER_KB,
     signer,
+    signInputs = true,
   } = config;
 
 
@@ -256,21 +267,24 @@ export const createOrdTokenListings = async (
 
   // Input tokens are already adjusted for decimals
   for (const token of inputTokens) {
-    const ordKeyToUse = token.pk || ordPk;
-    if(!ordKeyToUse) {
-      throw new Error("Private key is required to sign the ordinal");
+    if (signInputs) {
+      const ordKeyToUse = token.pk || ordPk;
+      if(!ordKeyToUse) {
+        throw new Error("Private key is required to sign the ordinal");
+      }
+      tx.addInput(inputFromB64Utxo(
+        token,
+        new OrdP2PKH().unlock(
+          ordKeyToUse,
+          "all",
+          true,
+          token.satoshis,
+          Script.fromBinary(toArray(token.script, "base64")),
+        ),
+      ));
+    } else {
+      tx.addInput(inputFromB64Utxo(token));
     }
-    tx.addInput(inputFromB64Utxo(
-      token,
-      new OrdP2PKH().unlock(
-        ordKeyToUse,
-        "all",
-        true,
-        token.satoshis,
-        Script.fromBinary(toArray(token.script, "base64")),
-      ),
-    ));
-
     totalAmtIn += BigInt(token.amt);
   }
   changeAmt = totalAmtIn - totalAmtOut;
@@ -346,19 +360,22 @@ export const createOrdTokenListings = async (
   );
   let fee = 0;
   for (const utxo of utxos) {
-    const payKeyToUse = utxo.pk || paymentPk;
-    if(!payKeyToUse) {
-      throw new Error("Private key is required to sign the payment");
+    if (signInputs) {
+      const payKeyToUse = utxo.pk || paymentPk;
+      if(!payKeyToUse) {
+        throw new Error("Private key is required to sign the payment");
+      }
+      const input = inputFromB64Utxo(utxo, new P2PKH().unlock(
+        payKeyToUse,
+        "all",
+        true,
+        utxo.satoshis,
+        Script.fromBinary(Utils.toArray(utxo.script, 'base64'))
+      ));
+      tx.addInput(input);
+    } else {
+      tx.addInput(inputFromB64Utxo(utxo));
     }
-    const input = inputFromB64Utxo(utxo, new P2PKH().unlock(
-      payKeyToUse,
-      "all",
-      true,
-      utxo.satoshis,
-      Script.fromBinary(Utils.toArray(utxo.script, 'base64'))
-    ));
-
-    tx.addInput(input);
     // stop adding inputs if the total amount is enough
     totalSatsIn += BigInt(utxo.satoshis);
     fee = await modelOrFee.computeFee(tx);
@@ -382,8 +399,10 @@ export const createOrdTokenListings = async (
   // estimate the cost of the transaction and assign change value
   await tx.fee(modelOrFee);
 
-  // Sign the transaction
-  await tx.sign();
+  // Sign the transaction (if signInputs is true)
+  if (signInputs) {
+    await tx.sign();
+  }
 
   const txid = tx.id("hex") as string;
   if (tokenChange) {
