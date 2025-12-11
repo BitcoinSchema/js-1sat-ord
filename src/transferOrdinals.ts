@@ -69,6 +69,7 @@ export const transferOrdTokens = async (
 			outputs: 1,
 			omitMetaData: false,
 		},
+		signInputs = true,
 	} = config;
 
 	// Ensure these inputs are for the expected token
@@ -111,18 +112,22 @@ export const transferOrdTokens = async (
 	}
 
 	for (const token of tokensToUse) {
-    const ordKeyToUse = token.pk || ordPk;
-		if(!ordKeyToUse) {
-			throw new Error("Private key required for token input");
+		if (signInputs) {
+			const ordKeyToUse = token.pk || ordPk;
+			if(!ordKeyToUse) {
+				throw new Error("Private key required for token input");
+			}
+			const inputScriptBinary = Utils.toArray(token.script, "base64");
+			const inputScript = Script.fromBinary(inputScriptBinary);
+			tx.addInput(
+				inputFromB64Utxo(
+					token,
+					new OrdP2PKH().unlock(ordKeyToUse, "all", true, token.satoshis, inputScript),
+				),
+			);
+		} else {
+			tx.addInput(inputFromB64Utxo(token));
 		}
-		const inputScriptBinary = Utils.toArray(token.script, "base64");
-		const inputScript = Script.fromBinary(inputScriptBinary);
-		tx.addInput(
-			inputFromB64Utxo(
-				token,
-				new OrdP2PKH().unlock(ordKeyToUse, "all", true, token.satoshis, inputScript),
-			),
-		);
 	}
 
 	// remove any undefined fields from metadata
@@ -231,22 +236,25 @@ export const transferOrdTokens = async (
 	);
 	let fee = 0;
 	for (const utxo of utxos) {
-    const payKeyToUse = utxo.pk || paymentPk;
-		if(!payKeyToUse) {
-			throw new Error("paymentPk required for payment utxo");
+		if (signInputs) {
+			const payKeyToUse = utxo.pk || paymentPk;
+			if(!payKeyToUse) {
+				throw new Error("paymentPk required for payment utxo");
+			}
+			const input = inputFromB64Utxo(
+				utxo,
+				new P2PKH().unlock(
+					payKeyToUse,
+					"all",
+					true,
+					utxo.satoshis,
+					Script.fromBinary(Utils.toArray(utxo.script, "base64")),
+				),
+			);
+			tx.addInput(input);
+		} else {
+			tx.addInput(inputFromB64Utxo(utxo));
 		}
-		const input = inputFromB64Utxo(
-			utxo,
-			new P2PKH().unlock(
-				payKeyToUse,
-				"all",
-				true,
-				utxo.satoshis,
-				Script.fromBinary(Utils.toArray(utxo.script, "base64")),
-			),
-		);
-
-		tx.addInput(input);
 		// stop adding inputs if the total amount is enough
 		totalSatsIn += BigInt(utxo.satoshis);
 		fee = await modelOrFee.computeFee(tx);
@@ -270,8 +278,10 @@ export const transferOrdTokens = async (
 	// estimate the cost of the transaction and assign change value
 	await tx.fee(modelOrFee);
 
-	// Sign the transaction
-	await tx.sign();
+	// Sign the transaction (if signInputs is true)
+	if (signInputs) {
+		await tx.sign();
+	}
 
 	// assign txid to tokenChange outputs
 	const txid = tx.id("hex") as string;

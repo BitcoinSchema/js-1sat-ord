@@ -5,7 +5,7 @@ import {
 	type TransactionInput,
 	Utils,
 	P2PKH,
-  Script,
+	Script,
 } from "@bsv/sdk";
 import { type NftUtxo, type TokenSelectionOptions, type TokenSelectionResult, TokenSelectionStrategy, TokenType, type TokenUtxo, type Utxo } from "../types";
 import { API_HOST } from "../constants";
@@ -13,27 +13,45 @@ import { toToken } from "satoshi-token";
 
 const { fromBase58Check } = Utils;
 
+// Standard P2PKH unlocking script size: ~107 bytes
+// (1 byte push + 71-72 bytes signature + 1 byte push + 33 bytes pubkey)
+const P2PKH_UNLOCK_SIZE = 107;
+
 /**
- * Converts a Utxo object with a base64 encoded script to a Utxo object with a hex encoded script
+ * Converts a Utxo object with a base64 encoded script to a TransactionInput
  * @param {Utxo} utxo - Utxo object with base64 encoded script
- * @param {Object} unlockScriptTemplate - Object with sign and estimateLength functions
- * @returns {TransactionInput} Utxo object with hex encoded script
+ * @param {Object} [unlockScriptTemplate] - Optional. Object with sign and estimateLength functions.
+ *   When omitted, creates input for external signing (signInputs: false mode) with fee estimation only.
+ * @returns {TransactionInput} Transaction input with source info
  */
 export const inputFromB64Utxo = (
 	utxo: Utxo,
-	unlockScriptTemplate: {
+	unlockScriptTemplate?: {
 		sign: (tx: Transaction, inputIndex: number) => Promise<UnlockingScript>;
 		estimateLength: (tx: Transaction, inputIndex: number) => Promise<number>;
 	},
 ): TransactionInput => {
-	const input = fromUtxo(
-		{
-			...utxo,
-			script: Buffer.from(utxo.script, "base64").toString("hex"),
+	const utxoHex = {
+		...utxo,
+		script: Buffer.from(utxo.script, "base64").toString("hex"),
+	};
+
+	if (unlockScriptTemplate) {
+		return fromUtxo(utxoHex, unlockScriptTemplate);
+	}
+
+	// For signInputs: false mode - create input that supports fee estimation
+	// but will be signed externally (e.g., by wallet).
+	// Uses fromUtxo with a template that estimates size but throws on sign.
+	return fromUtxo(utxoHex, {
+		estimateLength: async () => P2PKH_UNLOCK_SIZE,
+		sign: async () => {
+			throw new Error(
+				"Cannot sign input: transaction was built with signInputs: false. " +
+				"This input must be signed externally (e.g., by a wallet)."
+			);
 		},
-		unlockScriptTemplate,
-	);
-	return input;
+	});
 };
 
 /**

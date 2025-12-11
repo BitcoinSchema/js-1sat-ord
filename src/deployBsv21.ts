@@ -40,7 +40,7 @@ export const deployBsv21Token = async (
 	const {
 		symbol,
 		icon,
-    decimals,
+		decimals,
 		utxos,
 		initialDistribution,
 		paymentPk,
@@ -48,6 +48,7 @@ export const deployBsv21Token = async (
 		satsPerKb = DEFAULT_SAT_PER_KB,
 		additionalPayments = [],
 		signer,
+		signInputs = true,
 	} = config;
 
 	const modelOrFee = new SatoshisPerKilobyte(satsPerKb);
@@ -124,35 +125,43 @@ export const deployBsv21Token = async (
 
 	if(signer) {
 		const utxo = utxos.pop() as Utxo
-    const payKeyToUse = utxo.pk || paymentPk;
-		if(!payKeyToUse) {
-			throw new Error("Private key is required to sign the transaction");
+		if (signInputs) {
+			const payKeyToUse = utxo.pk || paymentPk;
+			if(!payKeyToUse) {
+				throw new Error("Private key is required to sign the transaction");
+			}
+			tx.addInput(inputFromB64Utxo(utxo, new P2PKH().unlock(
+				payKeyToUse,
+				"all",
+				true,
+				utxo.satoshis,
+				Script.fromBinary(Utils.toArray(utxo.script, 'base64'))
+			)));
+		} else {
+			tx.addInput(inputFromB64Utxo(utxo));
 		}
-		tx.addInput(inputFromB64Utxo(utxo, new P2PKH().unlock(
-			payKeyToUse,
-			"all",
-			true,
-			utxo.satoshis,
-			Script.fromBinary(Utils.toArray(utxo.script, 'base64'))
-		)));
 		totalSatsIn += BigInt(utxo.satoshis);
 		tx = await signData(tx, signer);
 		// Calculate fee after signing since it adds OP_RETURN outputs
 		fee = await modelOrFee.computeFee(tx);
 	}
 	for (const utxo of utxos) {
-    const payKeyToUse = utxo.pk || paymentPk;
-		if (!payKeyToUse) {
-			throw new Error("Private key is required to sign the payment");
+		if (signInputs) {
+			const payKeyToUse = utxo.pk || paymentPk;
+			if (!payKeyToUse) {
+				throw new Error("Private key is required to sign the payment");
+			}
+			const input = inputFromB64Utxo(utxo, new P2PKH().unlock(
+				payKeyToUse,
+				"all",
+				true,
+				utxo.satoshis,
+				Script.fromBinary(Utils.toArray(utxo.script, 'base64'))
+			));
+			tx.addInput(input);
+		} else {
+			tx.addInput(inputFromB64Utxo(utxo));
 		}
-		const input = inputFromB64Utxo(utxo, new P2PKH().unlock(
-			payKeyToUse,
-			"all",
-			true,
-			utxo.satoshis,
-			Script.fromBinary(Utils.toArray(utxo.script, 'base64'))
-		));
-		tx.addInput(input);
 		// stop adding inputs if the total amount is enough
 		totalSatsIn += BigInt(utxo.satoshis);
 		fee = await modelOrFee.computeFee(tx);
@@ -186,8 +195,10 @@ export const deployBsv21Token = async (
 	// estimate the cost of the transaction and assign change value
 	await tx.fee(modelOrFee);
 
-	// Sign the transaction
-	await tx.sign();
+	// Sign the transaction (if signInputs is true)
+	if (signInputs) {
+		await tx.sign();
+	}
 
 	// check for change
 	const payChangeOutIdx = tx.outputs.findIndex((o) => o.change);
