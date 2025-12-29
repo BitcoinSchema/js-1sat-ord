@@ -1,6 +1,6 @@
 {
   "name": "js-1sat-ord",
-  "version": "0.1.89",
+  "version": "0.1.91",
   "author": "Luke Rohenaz",
   "repository": {
     "type": "git",
@@ -9,14 +9,14 @@
   "main": "dist/index.cjs",
   "module": "dist/index.module.js",
   "dependencies": {
-    "@bsv/templates": "./bsv-templates-1.1.0.tgz",
+    "@bopen-io/templates": "^1.1.2",
     "image-meta": "^0.2.2",
-    "satoshi-token": "^0.0.4",
+    "satoshi-token": "^0.0.7",
     "sigma-protocol": "^0.1.6"
   },
   "devDependencies": {
-    "@bsv/sdk": "1.9.9",
-    "@types/bun": "^1.3.4",
+    "@bsv/sdk": "1.9.29",
+    "@types/bun": "^1.3.5",
     "rimraf": "^6.1.2",
     "typescript": "^5.9.3"
   },
@@ -29,8 +29,7 @@
   },
   "description": "1Sat Ordinals library",
   "files": [
-    "/dist",
-    "bsv-templates-1.1.0.tgz"
+    "/dist"
   ],
   "keywords": [],
   "license": "MIT",

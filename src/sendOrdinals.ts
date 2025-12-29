@@ -11,7 +11,7 @@ import type { SendOrdinalsConfig, Utxo, ChangeResult } from "./types";
 import { inputFromB64Utxo } from "./utils/utxo";
 import { signData } from "./signData";
 import stringifyMetaData from "./utils/subtypeData";
-import { MAP } from "@bsv/templates";
+import { MAP } from "@bopen-io/templates";
 
 /**
  * Sends ordinals to the given destinations
