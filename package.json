@@ -9,7 +9,7 @@
   "main": "dist/index.cjs",
   "module": "dist/index.module.js",
   "dependencies": {
-    "@bopen-io/templates": "^1.1.2",
+    "@1sat/templates": "^0.0.2",
     "image-meta": "^0.2.2",
     "satoshi-token": "^0.0.7",
     "sigma-protocol": "^0.1.6"

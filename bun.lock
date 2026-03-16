@@ -5,7 +5,7 @@
     "": {
       "name": "js-1sat-ord",
       "dependencies": {
-        "@bopen-io/templates": "^1.1.2",
+        "@1sat/templates": "^0.0.2",
         "image-meta": "^0.2.2",
         "satoshi-token": "^0.0.7",
         "sigma-protocol": "^0.1.6",
@@ -19,7 +19,9 @@
     },
   },
   "packages": {
-    "@bopen-io/templates": ["@bopen-io/templates@1.1.2", "", { "dependencies": { "@bsv/sdk": "^1.9.29" } }, "sha512-5CGRDz0ZaOwLbehfcnWphvYggorUpRAB2tFp5hLiyPyIPHcWfmJhTx7APvDGd92t+xourGlcT8tdSUv2mgZ39A=="],
+    "@1sat/templates": ["@1sat/templates@0.0.2", "", { "dependencies": { "@1sat/types": "0.0.13" }, "peerDependencies": { "@bsv/sdk": "^2.0.4", "sigma-protocol": "^0.1.9" }, "optionalPeers": ["sigma-protocol"] }, "sha512-bK7pPHmYxtjrlayLfXHng5vRPh6PkRI44gUh/xOMX+/30vREfVjvVhwtzCbvsiWxf56AHMrntFmOcE9ExHtvVg=="],
+
+    "@1sat/types": ["@1sat/types@0.0.13", "", { "peerDependencies": { "@bsv/sdk": "^2.0.4" } }, "sha512-MFL8ihulTRzQy4uZ5WrTegB0ktdqCiqGcmkJja2x5KaGXLG0T0PTNmS22gLaru4fFQpn4UsItB+MlySjDDxk8Q=="],
 
     "@bsv/sdk": ["@bsv/sdk@1.9.29", "", {}, "sha512-hPB2YQKBky3vpGhGVDdu/Iui19dhmhubIirWskZcppUBpeVYN9HwiS26PK30/avSwRyyzxM43gDcqsNBOL/5Ww=="],
 
