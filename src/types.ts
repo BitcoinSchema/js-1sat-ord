@@ -181,7 +181,7 @@ export interface MintTokenInscription extends TokenInscription {
 export interface DeployMintTokenInscription extends TokenInscription {
   op: "deploy+mint";
   sym: string;
-  icon: string;
+  icon?: string;
 }
 
 export interface TransferTokenInscription extends TokenInscription {
@@ -404,7 +404,7 @@ export type SendOrdinalsConfig = {
 export type DeployBsv21TokenConfig = {
   symbol: string;
   decimals?: number;
-  icon: string | IconInscription;
+  icon?: string | IconInscription;
   utxos: Utxo[];
   initialDistribution: Distribution;
   paymentPk?: PrivateKey;

@@ -55,30 +55,32 @@ export const deployBsv21Token = async (
 
 	let tx = new Transaction();
 
-	let iconValue: string;
-	if (typeof icon === "string") {
-		iconValue = icon;
-	} else {
-		const iconError = await validIconData(icon);
-		if (iconError) {
-			throw iconError;
+	let iconValue: string | undefined;
+	if (icon !== undefined) {
+		if (typeof icon === "string") {
+			iconValue = icon;
+		} else {
+			const iconError = await validIconData(icon);
+			if (iconError) {
+				throw iconError;
+			}
+			// add icon inscription to the transaction
+			const iconScript = new OrdP2PKH().lock(destinationAddress, icon);
+			const iconOut = {
+				satoshis: 1,
+				lockingScript: iconScript,
+			};
+			tx.addOutput(iconOut);
+			// relative output index of the icon
+			iconValue = "_0";
 		}
-		// add icon inscription to the transaction
-		const iconScript = new OrdP2PKH().lock(destinationAddress, icon);
-		const iconOut = {
-			satoshis: 1,
-			lockingScript: iconScript,
-		};
-		tx.addOutput(iconOut);
-		// relative output index of the icon
-		iconValue = "_0";
-	}
 
-	// Ensure the icon format
-	if (!validIconFormat(iconValue)) {
-		throw new Error(
-			"Invalid icon format. Must be either outpoint (format: txid_vout) or relative output index of the icon (format _vout). examples: ecb483eda58f26da1b1f8f15b782b1186abdf9c6399a1c3e63e0d429d5092a41_0 or _1",
-		);
+		// Ensure the icon format
+		if (!validIconFormat(iconValue)) {
+			throw new Error(
+				"Invalid icon format. Must be either outpoint (format: txid_vout) or relative output index of the icon (format _vout). examples: ecb483eda58f26da1b1f8f15b782b1186abdf9c6399a1c3e63e0d429d5092a41_0 or _1",
+			);
+		}
 	}
   
 	// Outputs
@@ -87,9 +89,12 @@ export const deployBsv21Token = async (
 		p: "bsv-20",
 		op: "deploy+mint",
 		sym: symbol,
-		icon: iconValue,
 		amt: tsatAmt.toString(),
 	};
+
+  if (iconValue) {
+    fileData.icon = iconValue;
+  }
 
   if (decimals) {
     fileData.dec = decimals.toString();
