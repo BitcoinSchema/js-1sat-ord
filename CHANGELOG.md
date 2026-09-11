@@ -5,6 +5,7 @@
 ### Changed
 - Deprecate creation of OrdLock listings while retaining cancellation and purchase APIs.
 - Align supported SDK and signing-library dependencies.
+- Direct new development to the maintained 1Sat SDK as this library is retired.
 
 OrdLock is being deprecated in favor of a more advanced locking contract.
 

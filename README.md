@@ -2,11 +2,29 @@
 description: js-1sat-ord
 ---
 
-# 1Sat Ordinals - JS Library
+# js-1sat-ord (deprecated)
+
+Use **[1Sat SDK](https://github.com/b-open-io/1sat-sdk)** for maintained 1Sat development. This library is being retired; the documentation below is retained for existing integrations and historical reference.
+
+The replacement is a set of packages, not a drop-in API replacement:
+
+| Need | Replacement |
+| --- | --- |
+| Wallet actions and transaction workflows | [`@1sat/actions`](https://github.com/b-open-io/1sat-sdk/tree/master/packages/actions) |
+| Script templates | [`@1sat/templates`](https://github.com/b-open-io/1sat-sdk/tree/master/packages/templates) |
+| Indexer/API access | [`@1sat/client`](https://github.com/b-open-io/1sat-sdk/tree/master/packages/client) |
+| Shared types | [`@1sat/types`](https://github.com/b-open-io/1sat-sdk/tree/master/packages/types) |
+
+See the [1Sat SDK setup and package guide](https://github.com/b-open-io/1sat-sdk#readme) before migrating. New contract support belongs in that SDK.
+
+The retirement release retains the existing cancellation and purchase APIs while deprecating listing creation. OrdLock is being deprecated in favor of a more advanced locking contract.
+
+## Legacy documentation
+
 
 A Javascript library for creating and managing 1Sat Ordinal inscriptions and transactions. Uses `@bsv/sdk` under the hood.
 
-It provides functions for listing, cancelling and purchasing Ordinal Lock transactions.
+The historical API includes Ordinal Lock transaction functions. Listing creation is deprecated; cancellation and purchase remain available in the retirement release.
 
 It also privides helpers for fetching utxos for payments, nfts, and tokens.
 
