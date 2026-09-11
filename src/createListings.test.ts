@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
-import { PrivateKey, Transaction } from "@bsv/sdk";
+import { PrivateKey } from "@bsv/sdk";
 import { createOrdListings, createOrdTokenListings } from "./createListings";
+import { ORDLOCK_CREATE_DISABLED } from "./templates/ordLock";
 import {
   TokenType,
   type CreateOrdListingsConfig,
@@ -42,29 +43,11 @@ describe("createOrdListings", () => {
     ordPk,
   };
 
-  test("create ord listings with sufficient funds", async () => {
-    const { tx, spentOutpoints, payChange } = await createOrdListings(baseConfig);
-
-    expect(tx).toBeInstanceOf(Transaction);
-    expect(spentOutpoints).toHaveLength(2); // 1 payment utxo + 1 listing utxo
-    expect(payChange).toBeDefined();
-  });
-
-  test("create ord listings with additional payments", async () => {
-    const config = {
-      ...baseConfig,
-      additionalPayments: [{ to: address, amount: 1000 }],
-    };
-    const { tx } = await createOrdListings(config);
-    expect(tx.outputs).toHaveLength(3); // 1 for listing, 1 for additional payment, 1 for change
-  });
-
-  test("create ord listings with insufficient funds", async () => {
-    const insufficientConfig = {
-      ...baseConfig,
-      utxos: [{ ...utxos[0], satoshis: 1 }],
-    };
-    await expect(createOrdListings(insufficientConfig)).rejects.toThrow("Not enough funds");
+  test("createOrdListings — listing creation is deprecated", async () => {
+    await expect(createOrdListings(baseConfig)).rejects.toThrow(ORDLOCK_CREATE_DISABLED);
+    await expect(createOrdListings(baseConfig)).rejects.toThrow(
+      /OrdLock listing creation is deprecated/,
+    );
   });
 });
 
@@ -108,51 +91,10 @@ describe("createOrdTokenListings", () => {
     decimals: 8,
   };
 
-  test("create ord token listings with sufficient funds", async () => {
-    const { tx, spentOutpoints, payChange, tokenChange } = await createOrdTokenListings(baseConfig);
-
-    expect(tx).toBeInstanceOf(Transaction);
-    expect(spentOutpoints).toHaveLength(2); // 1 payment utxo + 1 token utxo
-    expect(payChange).toBeDefined();
-    expect(tokenChange).toBeDefined();
-    if (tokenChange) {
-      expect(tokenChange[0].amt).toBe("100000000000");
-      expect(tokenChange[0].txid).toBe(tx.id('hex'));
-    }
-  });
-
-  test("create ord token listings with BSV21 protocol", async () => {
-    const bsv21Config = {
-      ...baseConfig,
-      protocol: TokenType.BSV21,
-    };
-    const { tx } = await createOrdTokenListings(bsv21Config);
-
-    expect(tx.outputs[0].lockingScript.toHex()).toContain(Buffer.from("bsv-20").toString('hex'));
-    expect(tx.outputs[0].lockingScript.toHex()).toContain(Buffer.from("id").toString('hex'));
-  });
-
-  test("create ord token listings with mismatched tokenID", async () => {
-    const mismatchedConfig = {
-      ...baseConfig,
-      inputTokens: [{ ...inputTokens[0], id: "WRONGTOKEN" }],
-    };
-    await expect(createOrdTokenListings(mismatchedConfig)).rejects.toThrow("Input tokens do not match");
-  });
-
-  test("create ord token listings with insufficient tokens", async () => {
-    const insufficientConfig = {
-      ...baseConfig,
-      inputTokens: [{ ...inputTokens[0], amt: "500" }],
-    };
-    await expect(createOrdTokenListings(insufficientConfig)).rejects.toThrow("Not enough tokens to send");
-  });
-
-  test("create ord token listings with insufficient funds", async () => {
-    const insufficientConfig = {
-      ...baseConfig,
-      utxos: [{ ...utxos[0], satoshis: 1 }],
-    };
-    await expect(createOrdTokenListings(insufficientConfig)).rejects.toThrow("Not enough funds");
+  test("createOrdTokenListings — listing creation is deprecated", async () => {
+    await expect(createOrdTokenListings(baseConfig)).rejects.toThrow(ORDLOCK_CREATE_DISABLED);
+    await expect(createOrdTokenListings(baseConfig)).rejects.toThrow(
+      /OrdLock listing creation is deprecated/,
+    );
   });
 });
