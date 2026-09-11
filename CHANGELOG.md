@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.92] - 2026-09-11
+
+### Changed
+- Deprecate creation of OrdLock listings while retaining cancellation and purchase APIs.
+- Align supported SDK and signing-library dependencies.
+
+OrdLock is being deprecated in favor of a more advanced locking contract.
+
 ## [0.1.89] - 2025-12-11
 
 ### Added
