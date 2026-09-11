@@ -6,7 +6,7 @@ import {
   Utils,
 } from "@bsv/sdk";
 import { DEFAULT_SAT_PER_KB } from "./constants";
-import OrdLock from "./templates/ordLock";
+import OrdLock, { ORDLOCK_CREATE_DISABLED } from "./templates/ordLock";
 import OrdP2PKH from "./templates/ordP2pkh";
 import {
   type TokenChangeResult,
@@ -24,7 +24,11 @@ import { ReturnTypes, toToken, toTokenSat } from "satoshi-token";
 import { signData } from "./signData";
 const { toArray } = Utils;
 
-export const createOrdListings = async (config: CreateOrdListingsConfig) => {
+export const createOrdListings = async (_config: CreateOrdListingsConfig) => {
+  // ORDLOCK_LISTING_DISABLED — restore when the replacement listing contract ships.
+  throw new Error(ORDLOCK_CREATE_DISABLED);
+
+  const config = _config;
   const {
     utxos,
     listings,
@@ -182,8 +186,12 @@ export const createOrdListings = async (config: CreateOrdListingsConfig) => {
 };
 
 export const createOrdTokenListings = async (
-  config: CreateOrdTokenListingsConfig,
+  _config: CreateOrdTokenListingsConfig,
 ): Promise<TokenChangeResult> => {
+  // ORDLOCK_LISTING_DISABLED — restore when the replacement listing contract ships.
+  throw new Error(ORDLOCK_CREATE_DISABLED);
+
+  const config = _config;
   const {
     utxos,
     protocol,
