@@ -11,6 +11,7 @@ import {
 import { validateSubTypeData } from "./validate";
 import OrdP2PKH, { applyInscription } from "./templates/ordP2pkh";
 import OrdLock, { ORDLOCK_CREATE_DISABLED } from "./templates/ordLock";
+import { OrdLockV2 } from "@1sat/templates";
 import stringifyMetaData from "./utils/subtypeData";
 import { createOrdListings, createOrdTokenListings } from "./createListings";
 import { cancelOrdListings, cancelOrdTokenListings } from "./cancelListings";
@@ -38,6 +39,7 @@ export {
 	validateSubTypeData,
 	OrdP2PKH,
 	OrdLock,
+	OrdLockV2,
 	ORDLOCK_CREATE_DISABLED,
 	stringifyMetaData,
 	createOrdListings,

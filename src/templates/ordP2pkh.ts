@@ -34,22 +34,33 @@ export default class OrdP2PKH extends P2PKH {
 	}
 }
 
-export const applyInscription = (lockingScript: LockingScript, inscription?: Inscription, metaData?: MAP, withSeparator=false) => {
-	let ordAsm = "";
-	// This can be omitted for reinscriptions that just update metadata
-	if (inscription?.dataB64 !== undefined && inscription?.contentType !== undefined) {
-		const ordHex = toHex("ord");
-		const fsBuffer = Buffer.from(inscription.dataB64, "base64");
-		const fileHex = fsBuffer.toString("hex").trim();
-		if (!fileHex) {
-			throw new Error("Invalid file data");
-		}
-		const fileMediaType = toHex(inscription.contentType);
-		if (!fileMediaType) {
-			throw new Error("Invalid media type");
-		}
-		ordAsm = `OP_0 OP_IF ${ordHex} OP_1 ${fileMediaType} OP_0 ${fileHex} OP_ENDIF`;
+/**
+ * ASM of the inscription envelope (`OP_0 OP_IF "ord" OP_1 <type> OP_0 <data> OP_ENDIF`),
+ * or an empty string when no inscription is given (reinscriptions that only update metadata).
+ */
+const inscriptionEnvelopeAsm = (inscription?: Inscription): string => {
+	if (inscription?.dataB64 === undefined || inscription?.contentType === undefined) {
+		return "";
 	}
+	const ordHex = toHex("ord");
+	const fsBuffer = Buffer.from(inscription.dataB64, "base64");
+	const fileHex = fsBuffer.toString("hex").trim();
+	if (!fileHex) {
+		throw new Error("Invalid file data");
+	}
+	const fileMediaType = toHex(inscription.contentType);
+	if (!fileMediaType) {
+		throw new Error("Invalid media type");
+	}
+	return `OP_0 OP_IF ${ordHex} OP_1 ${fileMediaType} OP_0 ${fileHex} OP_ENDIF`;
+};
+
+/** The bare inscription envelope as a script (nothing after OP_ENDIF). */
+export const inscriptionEnvelope = (inscription: Inscription): LockingScript =>
+	LockingScript.fromASM(inscriptionEnvelopeAsm(inscription));
+
+export const applyInscription = (lockingScript: LockingScript, inscription?: Inscription, metaData?: MAP, withSeparator=false) => {
+	const ordAsm = inscriptionEnvelopeAsm(inscription);
 
 	let inscriptionAsm = `${ordAsm ? `${ordAsm} ${withSeparator ? 'OP_CODESEPARATOR ' : ''}` : ""}${lockingScript.toASM()}`;
 

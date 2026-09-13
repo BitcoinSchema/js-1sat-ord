@@ -38,7 +38,8 @@ export type NewListing = {
  * @property {Utxo} listingUtxo - Utxo of the listing
  */
 export type ExistingListing = {
-  payout: string;
+  /** Serialized payout output, base64. Required for legacy OrdLock v1 listings; v2 listings carry it in the script. */
+  payout?: string;
   listingUtxo: Utxo;
 }
 
@@ -210,6 +211,12 @@ export type BaseResult = {
 
 export interface ChangeResult extends BaseResult {
   payChange?: Utxo;
+  /**
+   * OrdLock v2 purchases only: the front-funding remainder (funding placed
+   * ahead of the listing input minus the seller payout), returned to the
+   * change address as output 0. Spendable like `payChange`.
+   */
+  cushion?: Utxo;
 };
 
 /**
