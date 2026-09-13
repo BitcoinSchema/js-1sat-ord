@@ -12,13 +12,15 @@ import {
   type ChangeResult,
   type TokenChangeResult,
 } from "./types";
-import { inputFromB64Utxo } from "./utils/utxo";
+import { inputFromB64Utxo, scriptFromB64 } from "./utils/utxo";
 import { DEFAULT_SAT_PER_KB } from "./constants";
-import OrdLock from "./templates/ordLock";
+import { cancelListingUnlocker } from "./utils/ordlock";
 import OrdP2PKH from "./templates/ordP2pkh";
 
 /**
- * Cancel Ordinal Listings
+ * Cancel Ordinal Listings. Each listing input is spent with the cancel branch
+ * of its own contract generation (OrdLock v2, or legacy v1), and the ordinal
+ * is returned to the signing key's address at the same output index.
  * @param {CancelOrdListingsConfig} config - Configuration object for cancelling ordinals
  * @param {PrivateKey} config.paymentPk - Private key to sign payment inputs
  * @param {PrivateKey} config.ordPk - Private key to sign ordinals
@@ -58,12 +60,10 @@ export const cancelOrdListings = async (config: CancelOrdListingsConfig): Promis
 		}
 		tx.addInput(inputFromB64Utxo(
 			listingUtxo,
-			new OrdLock().cancelListing(
+			cancelListingUnlocker(
 				ordKeyToUse,
-				"all",
-				true,
 				listingUtxo.satoshis,
-				Script.fromBinary(Utils.toArray(listingUtxo.script, 'base64'))
+				scriptFromB64(listingUtxo.script),
 			)
 		));
 		// Add cancel outputs returning listed ordinals
@@ -221,12 +221,10 @@ export const cancelOrdTokenListings = async (
 		}
 		tx.addInput(inputFromB64Utxo(
 			listingUtxo,
-			new OrdLock().cancelListing(
+			cancelListingUnlocker(
 				ordKeyToUse,
-				"all",
-				true,
 				listingUtxo.satoshis,
-				Script.fromBinary(Utils.toArray(listingUtxo.script, 'base64'))
+				scriptFromB64(listingUtxo.script),
 			)
 		));
 		totalAmtIn += Number.parseInt(listingUtxo.amt);

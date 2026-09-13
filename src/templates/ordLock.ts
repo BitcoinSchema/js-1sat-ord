@@ -17,14 +17,15 @@ export const oLockPrefix =
 export const oLockSuffix =
 	"615179547a75537a537a537a0079537a75527a527a7575615579008763567901c161517957795779210ac407f0e4bd44bfc207355a778b046225a7068fc59ee7eda43ad905aadbffc800206c266b30e6a1319c66dc401e5bd6b432ba49688eecd118297041da8074ce081059795679615679aa0079610079517f517f517f517f517f517f517f517f517f517f517f517f517f517f517f517f517f517f517f517f517f517f517f517f517f517f517f517f517f517f517f7c7e7c7e7c7e7c7e7c7e7c7e7c7e7c7e7c7e7c7e7c7e7c7e7c7e7c7e7c7e7c7e7c7e7c7e7c7e7c7e7c7e7c7e7c7e7c7e7c7e7c7e7c7e7c7e7c7e7c7e7c7e01007e81517a75615779567956795679567961537956795479577995939521414136d08c5ed2bf3ba048afe6dcaebafeffffffffffffffffffffffffffffff00517951796151795179970079009f63007952799367007968517a75517a75517a7561527a75517a517951795296a0630079527994527a75517a6853798277527982775379012080517f517f517f517f517f517f517f517f517f517f517f517f517f517f517f517f517f517f517f517f517f517f517f517f517f517f517f517f517f517f517f7c7e7c7e7c7e7c7e7c7e7c7e7c7e7c7e7c7e7c7e7c7e7c7e7c7e7c7e7c7e7c7e7c7e7c7e7c7e7c7e7c7e7c7e7c7e7c7e7c7e7c7e7c7e7c7e7c7e7c7e7c7e01205279947f7754537993527993013051797e527e54797e58797e527e53797e52797e57797e0079517a75517a75517a75517a75517a75517a75517a75517a75517a75517a75517a75517a75517a756100795779ac517a75517a75517a75517a75517a75517a75517a75517a75517a7561517a75517a756169587951797e58797eaa577961007982775179517958947f7551790128947f77517a75517a75618777777777777777777767557951876351795779a9876957795779ac777777777777777767006868";
 
-/** Thrown by `lock()` while OrdLock listing creation is deprecated. */
+/** Thrown by the legacy `OrdLock.lock()`: v1 listings are deprecated. */
 export const ORDLOCK_CREATE_DISABLED =
-	"OrdLock listing creation is deprecated pending a replacement contract. Existing listings can still be cancelled or bought.";
+	"OrdLock v1 listing creation is deprecated. createOrdListings and createOrdTokenListings build OrdLock v2 listings; use OrdLockV2.lock for a raw script. Existing v1 listings can still be cancelled or bought.";
 
 /**
- * OrdLock class implementing ScriptTemplate.
+ * Legacy OrdLock (v1) class implementing ScriptTemplate.
  *
- * This class provides methods for interacting with OrdinalLock contract 
+ * Provides cancel and purchase unlocks for existing v1 listings. New listings
+ * use OrdLockV2 from @1sat/templates.
  */
 export default class OrdLock {
 	/**
@@ -41,7 +42,6 @@ export default class OrdLock {
 		_price: number,
 		_inscription?: Inscription,
 	): Script {
-		// ORDLOCK_LISTING_DISABLED — restore when the replacement listing contract ships.
 		throw new Error(ORDLOCK_CREATE_DISABLED);
 	}
 

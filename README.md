@@ -2,9 +2,9 @@
 description: js-1sat-ord
 ---
 
-# js-1sat-ord (deprecated)
+# js-1sat-ord (legacy)
 
-Use **[1Sat SDK](https://github.com/b-open-io/1sat-sdk)** for maintained 1Sat development. This library is being retired; the documentation below is retained for existing integrations and historical reference.
+Use **[1Sat SDK](https://github.com/b-open-io/1sat-sdk)** for new 1Sat development. This library is maintained for existing key-based integrations; the documentation below covers that API.
 
 The replacement is a set of packages, not a drop-in API replacement:
 
@@ -17,14 +17,14 @@ The replacement is a set of packages, not a drop-in API replacement:
 
 See the [1Sat SDK setup and package guide](https://github.com/b-open-io/1sat-sdk#readme) before migrating. New contract support belongs in that SDK.
 
-The retirement release retains the existing cancellation and purchase APIs while deprecating listing creation. OrdLock is being deprecated in favor of a more advanced locking contract.
+Marketplace listings use the **OrdLock v2** contract (from `@1sat/templates`). `createOrdListings` / `createOrdTokenListings` build v2 listings; `purchaseOrdListing` / `purchaseOrdTokenListing` and `cancelOrdListings` / `cancelOrdTokenListings` handle both v2 and legacy v1 listings, detected from the listing script. Creating new v1 listings is deprecated (`OrdLock.lock` throws).
 
 ## Legacy documentation
 
 
 A Javascript library for creating and managing 1Sat Ordinal inscriptions and transactions. Uses `@bsv/sdk` under the hood.
 
-The historical API includes Ordinal Lock transaction functions. Listing creation is deprecated; cancellation and purchase remain available in the retirement release.
+It also includes the Ordinal Lock marketplace functions (create, purchase, and cancel listings).
 
 It also privides helpers for fetching utxos for payments, nfts, and tokens.
 
@@ -222,7 +222,7 @@ const { tx } = await sendUtxos(config);
 ```
 
 ### Create Ordinal Listings 
-Creates a listing using an "Ordinal Lock" script. Can be purchased by anyone by sending a specific amount to the provided address.
+Creates a listing using the OrdLock v2 contract. Can be purchased by anyone by paying the listed price to the provided address; the ordinal returns to `ordAddress` on cancel. Token listings (`createOrdTokenListings`) carry their transfer inscription ahead of the contract.
 
 ```ts
 const listings = [{
@@ -245,18 +245,27 @@ const { tx } = await createOrdListings(config);
 ### Purchase Ordinal Listing
 
 ```ts
-const config: PurchaseOrdListingConfig ={
-  utxos: [utxo], 
-  paymentPk, 
-  listingUtxo, 
+const config: PurchaseOrdListingConfig = {
+  utxos: [utxo, feeUtxo],
+  paymentPk,
+  listing: { listingUtxo },
   ordAddress,
 };
 
-const { tx } = await purchaseOrdListing(config);
+const { tx, payChange, cushion } = await purchaseOrdListing(config);
 ```
 
+The v2 contract binds the seller's payout to the output at the listing's own input index, and the purchased ordinal follows first-sat ordering into a 1-sat receive output. The purchase is laid out as:
+
+```
+inputs:  [front funding…] [listing] [fee funding…]
+outputs: [cushion / 0-sat fillers…] [payout] [receive] [additional payments…] [royalties…] [change]
+```
+
+Front funding is taken from the largest `utxos` until the price is covered; its remainder returns to the change address as the `cushion` output (index 0). Because that remainder is fixed by the contract layout, **the fee must come from a separate utxo**: pass at least one utxo beyond those covering the price (split one with `sendUtxos` if needed). `payChange` is the ordinary change output; `cushion` is set when the front funding exceeded the price. Legacy v1 listings still need `listing.payout` (the serialized payout from the indexer); v2 listings read it from the script.
+
 ### Cancel Ordinal Listings
-Spends the ordinal lock without payment, returning the ordinal to the address specified in the listing contract.
+Spends the ordinal lock without payment, returning the ordinal to the signing key's address. `ordPk` (or `listingUtxo.pk`) must be the key that created the listing; each generation of the contract (v2 or legacy v1) is unlocked with its own cancel branch.
 
 ```ts
 const config: CancelOrdListingsConfig = { utxos, listingUtxos, ordPk, paymentPk };

@@ -17,6 +17,10 @@ const { fromBase58Check } = Utils;
 // (1 byte push + 71-72 bytes signature + 1 byte push + 33 bytes pubkey)
 const P2PKH_UNLOCK_SIZE = 107;
 
+/** Parses a base64 encoded script. */
+export const scriptFromB64 = (scriptB64: string): Script =>
+	Script.fromBinary(Utils.toArray(scriptB64, "base64"));
+
 /**
  * Converts a Utxo object with a base64 encoded script to a TransactionInput
  * @param {Utxo} utxo - Utxo object with base64 encoded script
